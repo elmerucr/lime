@@ -27,7 +27,7 @@ host_t::host_t()
     SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
-    //SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
     screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VIDEO_WIDTH, VIDEO_HEIGHT);
 
@@ -76,7 +76,7 @@ void host_t::run()
 {
     while (running) {
         process_events();
-        //SDL_RenderClear(renderer);
+        SDL_RenderClear(renderer);
         for (int i=0; i<VIDEO_WIDTH*VIDEO_HEIGHT; i++) {
             framebuffer[i] = palette[rca.byte() & 0b11];
         }
