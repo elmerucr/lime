@@ -23,6 +23,10 @@ private:
         0xffe0f8d0
     };
 
+    const uint8_t scanline_alpha = 176;
+
+    bool scanlines{true};
+
 public:
     host_t();
     ~host_t();
