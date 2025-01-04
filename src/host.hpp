@@ -16,6 +16,8 @@ private:
     rca_t rca;
     bool video_fullscreen{false};
 
+    uint32_t blend(uint32_t c0, uint32_t c1);
+
     const uint32_t palette[4] = {
         0xff081820,
         0xff346856,

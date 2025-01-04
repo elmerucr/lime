@@ -27,7 +27,7 @@ host_t::host_t()
     SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
-	SDL_RenderSetLogicalSize(renderer, 16, 9);
+	SDL_RenderSetLogicalSize(renderer, VIDEO_WIDTH, VIDEO_HEIGHT);
     SDL_ShowCursor(SDL_DISABLE);
 
     // black clearcolor
@@ -36,7 +36,12 @@ host_t::host_t()
     screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VIDEO_WIDTH, 2 * VIDEO_HEIGHT);
     SDL_SetTextureBlendMode(screen, SDL_BLENDMODE_BLEND);
 
-    framebuffer = new uint32_t[VIDEO_WIDTH * 2 * VIDEO_HEIGHT];
+    // one extra line, needed for scanline effect
+    framebuffer = new uint32_t[VIDEO_WIDTH * ((2 * VIDEO_HEIGHT) + 1)];
+
+    for (int i=0; i<VIDEO_WIDTH * ((2 * VIDEO_HEIGHT) + 1); i++) {
+        framebuffer[i] = 0;
+    }
 }
 
 host_t::~host_t()
@@ -79,12 +84,12 @@ void host_t::process_events()
     }
 }
 
-static uint32_t blend(uint32_t c0, uint32_t c1, uint8_t alpha)
+uint32_t host_t::blend(uint32_t c0, uint32_t c1)
 {
     return
     ((((c0 & 0x00ff00ff) + (c1 & 0x00ff00ff)) >> 1) & 0x00ff00ff) |
     ((((c0 & 0x0000ff00) + (c1 & 0x0000ff00)) >> 1) & 0x0000ff00) |
-    (alpha << 24);
+    (scanline_alpha << 24);
 }
 
 void host_t::run()
@@ -98,13 +103,22 @@ void host_t::run()
                 framebuffer[((y << 1) * VIDEO_WIDTH) + x] = palette[rca.byte() & 0b11];
             }
         }
-        for (int y=0; y < (VIDEO_HEIGHT - 10); y++) {
-            for (int x=0; x < VIDEO_WIDTH; x++) {
-                framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] = blend(
-                    framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x],
-                    framebuffer[(((y << 1) + 2) * VIDEO_WIDTH) + x],
-                    scanline_alpha
-                );
+
+        if (scanlines) {
+            for (int y=0; y < VIDEO_HEIGHT; y++) {
+                for (int x=0; x < VIDEO_WIDTH; x++) {
+                    framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] = blend(
+                        framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x],
+                        framebuffer[(((y << 1) + 2) * VIDEO_WIDTH) + x]
+                    );
+                }
+            }
+        } else {
+            for (int y=0; y < VIDEO_HEIGHT; y++) {
+                for (int x=0; x < VIDEO_WIDTH; x++) {
+                    framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] =
+                        framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x];
+                }
             }
         }
 
