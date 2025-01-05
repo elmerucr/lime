@@ -9,9 +9,21 @@
 #ifndef SYSTEM_HPP
 #define SYSTEM_HPP
 
+class host_t;
+class vdc_t;
+
 class system_t {
 private:
 public:
+    system_t();
+    ~system_t();
+
+    host_t *host;
+    vdc_t *vdc;
+
+    bool running;
+
+    void run();
 };
 
 #endif

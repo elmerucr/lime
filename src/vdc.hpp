@@ -10,19 +10,18 @@ class vdc_t {
 private:
     uint8_t *ram;
 
-    font_cbm_8x8_t font;
-
-    // registers
-    uint8_t bg0_x{0};
-    uint8_t bg0_y{0};
-    
+    font_cbm_8x8_t font;    
 public:
     vdc_t();
     ~vdc_t();
+    
+    // registers
+    uint8_t bg0_x{0};
+    uint8_t bg0_y{0};
 
     uint8_t *buffer;
 
-    void run();
+    void update();
 };
 
 #endif

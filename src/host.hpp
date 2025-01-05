@@ -2,11 +2,12 @@
 #define HOST_HPP
 
 #include <SDL2/SDL.h>
-#include "rca.hpp"
+#include "common.hpp"
+#include "system.hpp"
 
 class host_t {
 private:
-    uint8_t *buf;
+    system_t *system;
 
     const uint8_t *sdl_keyboard_state;
     int window_scaling{1};
@@ -14,8 +15,6 @@ private:
     SDL_Renderer *renderer;
     SDL_Texture *screen;
     uint32_t *framebuffer;
-    bool running{true};
-    rca_t rca;
     bool video_fullscreen{false};
 
     uint32_t blend(uint32_t c0, uint32_t c1);
@@ -41,13 +40,14 @@ private:
     uint8_t scanline_mode{2};
 
 public:
-    host_t(uint8_t *b);
+    host_t(system_t *s);
+    
     ~host_t();
 
-    void process_events();
+    bool process_events();
     void events_wait_until_key_released(SDL_KeyCode key);
     void video_toggle_fullscreen();
-    void run();
+    void update_screen();
 };
 
 #endif

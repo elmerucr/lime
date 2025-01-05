@@ -1,11 +1,12 @@
 #include "host.hpp"
 #include "common.hpp"
+#include "vdc.hpp"
 #include <thread>
 #include <chrono>
 
-host_t::host_t(uint8_t *b)
+host_t::host_t(system_t *s)
 {
-    buf = b;
+    system = s;
 
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 
@@ -56,8 +57,10 @@ host_t::~host_t()
     SDL_Quit();
 }
 
-void host_t::process_events()
+bool host_t::process_events()
 {
+    bool return_value{true};
+
 	SDL_Event event;
 
 	//bool shift_pressed = sdl2_keyboard_state[SDL_SCANCODE_LSHIFT] | sdl2_keyboard_state[SDL_SCANCODE_RSHIFT];
@@ -74,16 +77,18 @@ void host_t::process_events()
                     if (++scanline_mode > 2) scanline_mode = 0;
                 } else if ((event.key.keysym.sym == SDLK_q) && alt_pressed) {
                     events_wait_until_key_released(SDLK_q);
-                    running = false;
+                    return_value = false;
                 }
                 break;
             case SDL_QUIT:
-                running = false;
+                return_value = false;
                 break;
             default:
                 break;
         }
     }
+
+    return return_value;
 }
 
 uint32_t host_t::blend(uint32_t c0, uint32_t c1)
@@ -94,53 +99,50 @@ uint32_t host_t::blend(uint32_t c0, uint32_t c1)
     (scanline_alpha << 24);
 }
 
-void host_t::run()
+void host_t::update_screen()
 {
-    while (running) {
-        process_events();
-        SDL_RenderClear(renderer);
+    SDL_RenderClear(renderer);
 
-        for (int y=0; y < VIDEO_HEIGHT; y++) {
-            for (int x=0; x < VIDEO_WIDTH; x ++) {
-                //framebuffer[((y << 1) * VIDEO_WIDTH) + x] = palette[rca.byte() & 0b11];
-                framebuffer[((y << 1) * VIDEO_WIDTH) + x] = palette[buf[(VIDEO_WIDTH * y) + x]];
-            }
+    for (int y=0; y < VIDEO_HEIGHT; y++) {
+        for (int x=0; x < VIDEO_WIDTH; x ++) {
+            framebuffer[((y << 1) * VIDEO_WIDTH) + x] = palette[system->vdc->buffer[(VIDEO_WIDTH * y) + x]];
         }
-
-        switch (scanline_mode) {
-            case 1:
-                for (int y=0; y < VIDEO_HEIGHT; y++) {
-                    for (int x=0; x < VIDEO_WIDTH; x++) {
-                        framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] =
-                            (framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x] & 0x00ffffff) |
-                            (scanline_alpha << 24);
-                    }
-                }
-                break;
-            case 2:
-                for (int y=0; y < VIDEO_HEIGHT; y++) {
-                    for (int x=0; x < VIDEO_WIDTH; x++) {
-                        framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] = blend(
-                            framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x],
-                            framebuffer[(((y << 1) + 2) * VIDEO_WIDTH) + x]
-                        );
-                    }
-                }
-                break;
-            default:
-                for (int y=0; y < VIDEO_HEIGHT; y++) {
-                    for (int x=0; x < VIDEO_WIDTH; x++) {
-                        framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] =
-                            framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x];
-                    }
-                }
-                break;
-        }
-
-        SDL_UpdateTexture(screen, nullptr, (void *)framebuffer, VIDEO_WIDTH*sizeof(uint32_t));
-        SDL_RenderCopy(renderer, screen, nullptr, nullptr);
-        SDL_RenderPresent(renderer);
     }
+
+    switch (scanline_mode) {
+        case 1:
+            for (int y=0; y < VIDEO_HEIGHT; y++) {
+                for (int x=0; x < VIDEO_WIDTH; x++) {
+                    framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] =
+                        (framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x] & 0x00ffffff) |
+                        (scanline_alpha << 24);
+                }
+            }
+            break;
+        case 2:
+            for (int y=0; y < VIDEO_HEIGHT; y++) {
+                for (int x=0; x < VIDEO_WIDTH; x++) {
+                    framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] = blend(
+                        framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x],
+                        framebuffer[(((y << 1) + 2) * VIDEO_WIDTH) + x]
+                    );
+                }
+            }
+            break;
+        default:
+            for (int y=0; y < VIDEO_HEIGHT; y++) {
+                for (int x=0; x < VIDEO_WIDTH; x++) {
+                    framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] =
+                        framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x];
+                }
+            }
+            break;
+    }
+
+    SDL_UpdateTexture(screen, nullptr, (void *)framebuffer, VIDEO_WIDTH*sizeof(uint32_t));
+    SDL_RenderCopy(renderer, screen, nullptr, nullptr);
+    SDL_RenderPresent(renderer);
+
 }
 
 void host_t::events_wait_until_key_released(SDL_KeyCode key)

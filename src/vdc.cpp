@@ -1,7 +1,6 @@
 #include "vdc.hpp"
 #include "common.hpp"
 #include <cstdio>
-#include <cassert>
 
 vdc_t::vdc_t()
 {
@@ -74,9 +73,11 @@ vdc_t::vdc_t()
     ram[TILESET_1 + 76] = 0b01'01'01'01; ram[TILESET_1 + 77] = 0b00'00'00'00;
     ram[TILESET_1 + 78] = 0b00'00'00'00; ram[TILESET_1 + 79] = 0b00'00'00'00;
 
+    // have something to display
     for (int i=0; i<0x400; i++) {
         ram[BACKGROUND_0 + i] = i & 0xff;
     }
+
     ram[BACKGROUND_0 + 36] = 1;
     ram[BACKGROUND_0 + 37] = 2;
     ram[BACKGROUND_0 + 68] = 3;
@@ -89,7 +90,7 @@ vdc_t::~vdc_t()
     delete [] ram;
 }
 
-void vdc_t::run()
+void vdc_t::update()
 {
     uint8_t tx, ty;
     uint8_t px, py; // pixel in x...
@@ -101,7 +102,6 @@ void vdc_t::run()
         for (uint16_t x = 0; x < VIDEO_WIDTH; x++) {
             tx = (bg0_x + x) & 0xff;
             px = tx % 4;
-            assert(px < 4);
 
             tile_index = ram[BACKGROUND_0 + (32 * (ty >> 3)) + (tx >> 3)];
 

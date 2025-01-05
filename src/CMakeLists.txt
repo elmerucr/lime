@@ -1,7 +1,5 @@
-add_library(host STATIC
+add_library(system STATIC
 	host.cpp
-)
-
-add_library(vdc STATIC
+	system.cpp
 	vdc.cpp
 )

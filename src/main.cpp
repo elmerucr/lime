@@ -1,14 +1,10 @@
-#include "host.hpp"
-#include "vdc.hpp"
+#include "system.hpp"
 
 int main()
 {
-    vdc_t vdc;
-    vdc.run();
-
-    host_t *host = new host_t(vdc.buffer);
-    host->run();
-    delete host;
+	system_t *system = new system_t();
+	system->run();
+	delete system;
 
     return 0;
 }

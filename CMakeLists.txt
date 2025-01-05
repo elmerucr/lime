@@ -16,4 +16,4 @@ add_subdirectory(src/)
 add_executable(lemon src/main.cpp)
 
 # target_link_libraries(punch system ${SDL2_LIBRARIES})
-target_link_libraries(lemon PRIVATE vdc host SDL2::SDL2-static)
+target_link_libraries(lemon PRIVATE system SDL2::SDL2-static)
