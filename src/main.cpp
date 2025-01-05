@@ -8,6 +8,7 @@ int main()
     delete host;
 
     vdc_t vdc;
+    vdc.run();
 
     return 0;
 }

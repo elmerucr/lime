@@ -6,6 +6,7 @@
 
 #define RAM_SIZE        0x10000
 
+#define BACKGROUND_0    0x0400
 #define TILESET_0       0x2000
 #define TILESET_1       0x2800
 
