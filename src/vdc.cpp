@@ -1,3 +1,9 @@
+// ---------------------------------------------------------------------
+// vdc.cpp
+//
+// video display controller
+// ---------------------------------------------------------------------
+
 #include "vdc.hpp"
 #include "common.hpp"
 #include <cstdio>
@@ -13,11 +19,12 @@ vdc_t::vdc_t()
         ram[i] = (i & 0x40) ? 0xff : 0x00;
     }
 
-    // tileset 1
-    for (int i = 0; i < 0x1000; i++) {
-        ram[TILESET_1 + i] = 0;
+	// clear tileset memory
+    for (int i = 0; i < 0x1800; i++) {
+        ram[TILESET_0 + i] = 0;
     }
 
+    // tileset 1
     for (int i = 0; i < (8 * font.size); i++) {
         uint16_t index = i >> 3;
         int index_pos = 7 - (i & 0b111);
@@ -75,13 +82,13 @@ vdc_t::vdc_t()
 
     // have something to display
     for (int i=0; i<0x400; i++) {
-        ram[BACKGROUND_0 + i] = i & 0xff;
+        ram[LAYER_0 + i] = i & 0xff;
     }
 
-    ram[BACKGROUND_0 + 36] = 1;
-    ram[BACKGROUND_0 + 37] = 2;
-    ram[BACKGROUND_0 + 68] = 3;
-    ram[BACKGROUND_0 + 69] = 4;
+    ram[LAYER_0 + 36] = 1;
+    ram[LAYER_0 + 37] = 2;
+    ram[LAYER_0 + 68] = 3;
+    ram[LAYER_0 + 69] = 4;
 }
 
 vdc_t::~vdc_t()
@@ -92,22 +99,18 @@ vdc_t::~vdc_t()
 
 void vdc_t::update()
 {
-    uint8_t tx, ty;
-    uint8_t px, py; // pixel in x...
-    uint8_t tile_index;
+    for (uint16_t scr_y = 0; scr_y < VIDEO_HEIGHT; scr_y++) {
+        uint8_t y = (bg0_y + scr_y) & 0xff;
+        uint8_t y_in_tile = y % 8;
 
-    for (uint16_t y = 0; y < VIDEO_HEIGHT; y++){
-            ty = (bg0_y + y) & 0xff;
-            py = ty % 8;
-        for (uint16_t x = 0; x < VIDEO_WIDTH; x++) {
-            tx = (bg0_x + x) & 0xff;
-            px = tx % 4;
+        for (uint16_t scr_x = 0; scr_x < VIDEO_WIDTH; scr_x++) {
+            uint8_t x = (bg0_x + scr_x) & 0xff;
+            uint8_t px = x % 4;
+            uint8_t tile_index = ram[LAYER_0 + ((y >> 3) << 5) + (x >> 3)];
 
-            tile_index = ram[BACKGROUND_0 + (32 * (ty >> 3)) + (tx >> 3)];
-
-            buffer[(VIDEO_WIDTH * y) + x] =
-            (ram[TILESET_1 + (16 * tile_index) + (py << 1) + ((tx & 0x4) ? 1 : 0)] & (0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
-
+            buffer[(VIDEO_WIDTH * scr_y) + scr_x] =
+            	(ram[TILESET_1 + (tile_index << 4) + (y_in_tile << 1) + ((x & 0x4) ? 1 : 0)] &
+				(0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
         }
     }
 }
