@@ -22,6 +22,8 @@
 
 class font_cbm_8x8_t {
 public:
+	uint16_t size{2048};
+
 	uint8_t data[2048] = {
 		0b00000000,		// $00 (space)
 		0b00000000,

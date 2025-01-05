@@ -69,7 +69,7 @@ void host_t::process_events()
 					events_wait_until_key_released(SDLK_f);
 					video_toggle_fullscreen();
                 } else if ((event.key.keysym.sym == SDLK_s) && alt_pressed) {
-                    scanlines = !scanlines;
+                    if (++scanline_mode > 2) scanline_mode = 0;
                 } else if ((event.key.keysym.sym == SDLK_q) && alt_pressed) {
                     events_wait_until_key_released(SDLK_q);
                     running = false;
@@ -104,22 +104,34 @@ void host_t::run()
             }
         }
 
-        if (scanlines) {
-            for (int y=0; y < VIDEO_HEIGHT; y++) {
-                for (int x=0; x < VIDEO_WIDTH; x++) {
-                    framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] = blend(
-                        framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x],
-                        framebuffer[(((y << 1) + 2) * VIDEO_WIDTH) + x]
-                    );
+        switch (scanline_mode) {
+            case 1:
+                for (int y=0; y < VIDEO_HEIGHT; y++) {
+                    for (int x=0; x < VIDEO_WIDTH; x++) {
+                        framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] = blend(
+                            framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x],
+                            framebuffer[(((y << 1) + 2) * VIDEO_WIDTH) + x]
+                        );
+                    }
                 }
-            }
-        } else {
-            for (int y=0; y < VIDEO_HEIGHT; y++) {
-                for (int x=0; x < VIDEO_WIDTH; x++) {
-                    framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] =
-                        framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x];
+                break;
+            case 2:
+                for (int y=0; y < VIDEO_HEIGHT; y++) {
+                    for (int x=0; x < VIDEO_WIDTH; x++) {
+                        framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] =
+                            (framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x] & 0x00ffffff) |
+                            (scanline_alpha << 24);
+                    }
                 }
-            }
+                break;
+            default:
+                for (int y=0; y < VIDEO_HEIGHT; y++) {
+                    for (int x=0; x < VIDEO_WIDTH; x++) {
+                        framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] =
+                            framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x];
+                    }
+                }
+                break;
         }
 
         SDL_UpdateTexture(screen, nullptr, (void *)framebuffer, VIDEO_WIDTH*sizeof(uint32_t));

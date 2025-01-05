@@ -27,7 +27,7 @@ private:
 
     const uint8_t scanline_alpha = 176;
 
-    bool scanlines{true};
+    uint8_t scanline_mode{0};
 
 public:
     host_t();
