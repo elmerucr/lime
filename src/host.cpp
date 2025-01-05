@@ -6,7 +6,7 @@
 host_t::host_t(uint8_t *b)
 {
     buf = b;
-    
+
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 
     sdl_keyboard_state = SDL_GetKeyboardState(NULL);
@@ -111,19 +111,19 @@ void host_t::run()
             case 1:
                 for (int y=0; y < VIDEO_HEIGHT; y++) {
                     for (int x=0; x < VIDEO_WIDTH; x++) {
-                        framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] = blend(
-                            framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x],
-                            framebuffer[(((y << 1) + 2) * VIDEO_WIDTH) + x]
-                        );
+                        framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] =
+                            (framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x] & 0x00ffffff) |
+                            (scanline_alpha << 24);
                     }
                 }
                 break;
             case 2:
                 for (int y=0; y < VIDEO_HEIGHT; y++) {
                     for (int x=0; x < VIDEO_WIDTH; x++) {
-                        framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] =
-                            (framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x] & 0x00ffffff) |
-                            (scanline_alpha << 24);
+                        framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] = blend(
+                            framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x],
+                            framebuffer[(((y << 1) + 2) * VIDEO_WIDTH) + x]
+                        );
                     }
                 }
                 break;
