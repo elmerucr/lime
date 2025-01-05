@@ -18,11 +18,18 @@ private:
 
     uint32_t blend(uint32_t c0, uint32_t c1);
 
+    // const uint32_t palette[4] = {
+    //     0xff081820,
+    //     0xff346856,
+    //     0xff88c070,
+    //     0xffe0f8d0
+    // };
+
     const uint32_t palette[4] = {
-        0xff081820,
-        0xff346856,
-        0xff88c070,
-        0xffe0f8d0
+        0xff6a260e,
+        0xffbf6425,
+        0xffb58261,
+        0xfff0e3d2
     };
 
     const uint8_t scanline_alpha = 176;
