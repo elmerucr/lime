@@ -20,6 +20,8 @@ public:
     vdc_t();
     ~vdc_t();
 
+    uint8_t *buffer;
+
     void run();
 };
 

@@ -3,8 +3,10 @@
 #include <thread>
 #include <chrono>
 
-host_t::host_t()
+host_t::host_t(uint8_t *b)
 {
+    buf = b;
+    
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 
     sdl_keyboard_state = SDL_GetKeyboardState(NULL);
@@ -100,7 +102,8 @@ void host_t::run()
 
         for (int y=0; y < VIDEO_HEIGHT; y++) {
             for (int x=0; x < VIDEO_WIDTH; x ++) {
-                framebuffer[((y << 1) * VIDEO_WIDTH) + x] = palette[rca.byte() & 0b11];
+                //framebuffer[((y << 1) * VIDEO_WIDTH) + x] = palette[rca.byte() & 0b11];
+                framebuffer[((y << 1) * VIDEO_WIDTH) + x] = palette[buf[(VIDEO_WIDTH * y) + x]];
             }
         }
 

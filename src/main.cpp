@@ -3,12 +3,12 @@
 
 int main()
 {
-    host_t *host = new host_t();
-    host->run();
-    delete host;
-
     vdc_t vdc;
     vdc.run();
+
+    host_t *host = new host_t(vdc.buffer);
+    host->run();
+    delete host;
 
     return 0;
 }
