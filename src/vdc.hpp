@@ -54,6 +54,8 @@ class vdc_t {
 private:
     uint8_t *ram;
     font_cbm_8x8_t font;
+	void draw_layer(layer_t *l);
+	void draw_sprite(sprite_t *s);
 public:
     vdc_t();
     ~vdc_t();

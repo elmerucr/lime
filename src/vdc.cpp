@@ -92,6 +92,36 @@ vdc_t::~vdc_t()
     delete [] ram;
 }
 
+void vdc_t::draw_layer(layer_t *l)
+{
+	//
+}
+
+void vdc_t::draw_sprite(sprite_t *s)
+{
+	if (s->flags & 0b1) {
+		uint16_t tileset = (s->flags & 0b10) ? TILESET_1 : TILESET_0;
+		for (int y=0; y<8; y++) {
+			uint8_t scr_y = (s->y + y) & 0xff;
+			if (scr_y < VIDEO_HEIGHT) {
+				for (int x=0; x<8; x++) {
+					uint8_t scr_x = (s->x + x) & 0xff;
+					if (scr_x < VIDEO_WIDTH) {
+						// ..... :-)
+						uint8_t res =
+							(ram[tileset + (s->index << 4) + (y << 1) + ((x & 0x4) ? 1 : 0)] &
+							(0b11 << (2 * (3 - (x%4))))) >> (2 * (3 - (x%4)));
+						// if NOT (transparency AND 0b00) then write pixel
+						if (!((s->flags & 0b100) && !res)) {
+							buffer[(VIDEO_WIDTH * scr_y) + scr_x] = res;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 void vdc_t::update()
 {
     for (uint16_t scr_y = 0; scr_y < VIDEO_HEIGHT; scr_y++) {
@@ -110,28 +140,6 @@ void vdc_t::update()
 	}
 
 	for (int i=0; i<64; i++) {
-		uint8_t flags = sprite[i].flags;
-		if (flags & 0b1) {
-			uint8_t index = sprite[i].index;
-			uint16_t tileset = (flags & 0b10) ? TILESET_1 : TILESET_0;
-			for (int y=0; y<8; y++) {
-				uint8_t scr_y = (sprite[i].y + y) & 0xff;
-				if (scr_y < VIDEO_HEIGHT) {
-					for (int x=0; x<8; x++) {
-						uint8_t scr_x = (sprite[i].x + x) & 0xff;
-						if (scr_x < VIDEO_WIDTH) {
-							// ..... :-)
-							uint8_t res =
-								(ram[tileset + (index << 4) + (y << 1) + ((x & 0x4) ? 1 : 0)] &
-								(0b11 << (2 * (3 - (x%4))))) >> (2 * (3 - (x%4)));
-							// if NOT (transparency AND 0b00) then write pixel
-							if (!((flags & 0b100) && !res)) {
-								buffer[(VIDEO_WIDTH * scr_y) + scr_x] = res;
-							}
-						}
-					}
-				}
-			}
-		}
+		draw_sprite(&sprite[i]);
 	}
 }
