@@ -37,11 +37,11 @@ private:
 
     const uint8_t scanline_alpha = 176;
 
-    uint8_t scanline_mode{2};
+    uint8_t scanline_mode{1};
 
 public:
     host_t(system_t *s);
-    
+
     ~host_t();
 
     bool process_events();

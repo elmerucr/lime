@@ -41,54 +41,49 @@ vdc_t::vdc_t()
     // tile 0 = empty
 
     // tile 1
-    ram[TILESET_1 + 16] = 0b00'00'00'00; ram[TILESET_1 + 17] = 0b00'00'00'00;
-    ram[TILESET_1 + 18] = 0b00'00'00'01; ram[TILESET_1 + 19] = 0b00'00'00'00;
-    ram[TILESET_1 + 20] = 0b00'00'01'11; ram[TILESET_1 + 21] = 0b10'00'00'00;
-    ram[TILESET_1 + 22] = 0b00'00'01'11; ram[TILESET_1 + 23] = 0b10'10'00'00;
-    ram[TILESET_1 + 24] = 0b00'01'11'10; ram[TILESET_1 + 25] = 0b11'11'10'00;
-    ram[TILESET_1 + 26] = 0b00'01'11'10; ram[TILESET_1 + 27] = 0b10'10'11'11;
-    ram[TILESET_1 + 28] = 0b00'01'11'10; ram[TILESET_1 + 29] = 0b10'10'10'10;
-    ram[TILESET_1 + 30] = 0b00'01'11'10; ram[TILESET_1 + 31] = 0b10'10'11'11;
+    ram[TILESET_0 + 16] = 0b00'00'00'00; ram[TILESET_0 + 17] = 0b00'00'00'00;
+    ram[TILESET_0 + 18] = 0b00'00'00'01; ram[TILESET_0 + 19] = 0b00'00'00'00;
+    ram[TILESET_0 + 20] = 0b00'00'01'11; ram[TILESET_0 + 21] = 0b10'00'00'00;
+    ram[TILESET_0 + 22] = 0b00'00'01'11; ram[TILESET_0 + 23] = 0b10'10'00'00;
+    ram[TILESET_0 + 24] = 0b00'01'11'10; ram[TILESET_0 + 25] = 0b11'11'10'00;
+    ram[TILESET_0 + 26] = 0b00'01'11'10; ram[TILESET_0 + 27] = 0b10'10'11'11;
+    ram[TILESET_0 + 28] = 0b00'01'11'10; ram[TILESET_0 + 29] = 0b10'10'10'10;
+    ram[TILESET_0 + 30] = 0b00'01'11'10; ram[TILESET_0 + 31] = 0b10'10'11'11;
 
     // tile 2
-    ram[TILESET_1 + 32] = 0b00'00'00'00; ram[TILESET_1 + 33] = 0b00'00'00'00;
-    ram[TILESET_1 + 34] = 0b00'00'00'00; ram[TILESET_1 + 35] = 0b00'00'00'00;
-    ram[TILESET_1 + 36] = 0b00'00'00'00; ram[TILESET_1 + 37] = 0b00'00'00'00;
-    ram[TILESET_1 + 38] = 0b00'00'00'00; ram[TILESET_1 + 39] = 0b00'00'00'00;
-    ram[TILESET_1 + 40] = 0b00'00'00'00; ram[TILESET_1 + 41] = 0b00'00'00'00;
-    ram[TILESET_1 + 42] = 0b00'00'00'00; ram[TILESET_1 + 43] = 0b00'00'00'00;
-    ram[TILESET_1 + 44] = 0b11'00'00'00; ram[TILESET_1 + 45] = 0b00'00'00'00;
-    ram[TILESET_1 + 46] = 0b10'11'00'00; ram[TILESET_1 + 47] = 0b00'00'00'00;
+    ram[TILESET_0 + 32] = 0b00'00'00'00; ram[TILESET_0 + 33] = 0b00'00'00'00;
+    ram[TILESET_0 + 34] = 0b00'00'00'00; ram[TILESET_0 + 35] = 0b00'00'00'00;
+    ram[TILESET_0 + 36] = 0b00'00'00'00; ram[TILESET_0 + 37] = 0b00'00'00'00;
+    ram[TILESET_0 + 38] = 0b00'00'00'00; ram[TILESET_0 + 39] = 0b00'00'00'00;
+    ram[TILESET_0 + 40] = 0b00'00'00'00; ram[TILESET_0 + 41] = 0b00'00'00'00;
+    ram[TILESET_0 + 42] = 0b00'00'00'00; ram[TILESET_0 + 43] = 0b00'00'00'00;
+    ram[TILESET_0 + 44] = 0b11'00'00'00; ram[TILESET_0 + 45] = 0b00'00'00'00;
+    ram[TILESET_0 + 46] = 0b10'11'00'00; ram[TILESET_0 + 47] = 0b00'00'00'00;
 
     // tile 3
-    ram[TILESET_1 + 48] = 0b00'01'11'10; ram[TILESET_1 + 49] = 0b11'11'10'10;
-    ram[TILESET_1 + 50] = 0b00'00'01'11; ram[TILESET_1 + 51] = 0b10'10'10'10;
-    ram[TILESET_1 + 52] = 0b00'00'01'11; ram[TILESET_1 + 53] = 0b10'10'10'11;
-    ram[TILESET_1 + 54] = 0b00'00'00'01; ram[TILESET_1 + 55] = 0b11'10'10'11;
-    ram[TILESET_1 + 56] = 0b00'00'00'00; ram[TILESET_1 + 57] = 0b01'11'11'10;
-    ram[TILESET_1 + 58] = 0b00'00'00'00; ram[TILESET_1 + 59] = 0b00'01'01'11;
-    ram[TILESET_1 + 60] = 0b00'00'00'00; ram[TILESET_1 + 61] = 0b00'00'00'01;
-    ram[TILESET_1 + 62] = 0b00'00'00'00; ram[TILESET_1 + 63] = 0b00'00'00'00;
+    ram[TILESET_0 + 48] = 0b00'01'11'10; ram[TILESET_0 + 49] = 0b11'11'10'10;
+    ram[TILESET_0 + 50] = 0b00'00'01'11; ram[TILESET_0 + 51] = 0b10'10'10'10;
+    ram[TILESET_0 + 52] = 0b00'00'01'11; ram[TILESET_0 + 53] = 0b10'10'10'11;
+    ram[TILESET_0 + 54] = 0b00'00'00'01; ram[TILESET_0 + 55] = 0b11'10'10'11;
+    ram[TILESET_0 + 56] = 0b00'00'00'00; ram[TILESET_0 + 57] = 0b01'11'11'10;
+    ram[TILESET_0 + 58] = 0b00'00'00'00; ram[TILESET_0 + 59] = 0b00'01'01'11;
+    ram[TILESET_0 + 60] = 0b00'00'00'00; ram[TILESET_0 + 61] = 0b00'00'00'01;
+    ram[TILESET_0 + 62] = 0b00'00'00'00; ram[TILESET_0 + 63] = 0b00'00'00'00;
 
     // tile 4
-    ram[TILESET_1 + 64] = 0b11'10'11'00; ram[TILESET_1 + 65] = 0b00'00'00'00;
-    ram[TILESET_1 + 66] = 0b11'10'11'10; ram[TILESET_1 + 67] = 0b00'00'00'00;
-    ram[TILESET_1 + 68] = 0b10'10'10'11; ram[TILESET_1 + 69] = 0b10'00'00'00;
-    ram[TILESET_1 + 70] = 0b10'10'10'11; ram[TILESET_1 + 71] = 0b10'10'00'00;
-    ram[TILESET_1 + 72] = 0b10'10'10'10; ram[TILESET_1 + 73] = 0b11'11'01'00;
-    ram[TILESET_1 + 74] = 0b11'11'11'11; ram[TILESET_1 + 75] = 0b01'01'00'00;
-    ram[TILESET_1 + 76] = 0b01'01'01'01; ram[TILESET_1 + 77] = 0b00'00'00'00;
-    ram[TILESET_1 + 78] = 0b00'00'00'00; ram[TILESET_1 + 79] = 0b00'00'00'00;
+    ram[TILESET_0 + 64] = 0b11'10'11'00; ram[TILESET_0 + 65] = 0b00'00'00'00;
+    ram[TILESET_0 + 66] = 0b11'10'11'10; ram[TILESET_0 + 67] = 0b00'00'00'00;
+    ram[TILESET_0 + 68] = 0b10'10'10'11; ram[TILESET_0 + 69] = 0b10'00'00'00;
+    ram[TILESET_0 + 70] = 0b10'10'10'11; ram[TILESET_0 + 71] = 0b10'10'00'00;
+    ram[TILESET_0 + 72] = 0b10'10'10'10; ram[TILESET_0 + 73] = 0b11'11'01'00;
+    ram[TILESET_0 + 74] = 0b11'11'11'11; ram[TILESET_0 + 75] = 0b01'01'00'00;
+    ram[TILESET_0 + 76] = 0b01'01'01'01; ram[TILESET_0 + 77] = 0b00'00'00'00;
+    ram[TILESET_0 + 78] = 0b00'00'00'00; ram[TILESET_0 + 79] = 0b00'00'00'00;
 
     // have something to display
     for (int i=0; i<0x400; i++) {
         ram[LAYER_0 + i] = i & 0xff;
     }
-
-    ram[LAYER_0 + 36] = 1;
-    ram[LAYER_0 + 37] = 2;
-    ram[LAYER_0 + 68] = 3;
-    ram[LAYER_0 + 69] = 4;
 }
 
 vdc_t::~vdc_t()
@@ -113,4 +108,23 @@ void vdc_t::update()
 				(0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
         }
     }
+
+	for (int i=0; i<64; i++) {
+		if (sprite[i].flags & 0b1) {
+			for (int y=0; y<8; y++) {
+				uint8_t scr_y = (sprite[i].y + y) & 0xff;
+				for (int x=0; x<8; x++) {
+					uint8_t scr_x = (sprite[i].x + x) & 0xff;
+					if ((scr_x < VIDEO_WIDTH) && (scr_y < VIDEO_HEIGHT)) {
+						uint8_t res =
+							(ram[TILESET_0 + (sprite[i].index << 4) + (y << 1) + ((x & 0x4) ? 1 : 0)] &
+							(0b11 << (2 * (3 - (x%4))))) >> (2 * (3 - (x%4)));
+						if (!((sprite[i].flags & 0b100) && !res)) {
+							buffer[(VIDEO_WIDTH * scr_y) + scr_x] = res;
+						}
+					}
+				}
+			}
+		}
+	}
 }
