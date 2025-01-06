@@ -106,21 +106,28 @@ void vdc_t::update()
             buffer[(VIDEO_WIDTH * scr_y) + scr_x] =
             	(ram[TILESET_1 + (tile_index << 4) + (y_in_tile << 1) + ((x & 0x4) ? 1 : 0)] &
 				(0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
-        }
-    }
+		}
+	}
 
 	for (int i=0; i<64; i++) {
-		if (sprite[i].flags & 0b1) {
+		uint8_t flags = sprite[i].flags;
+		if (flags & 0b1) {
+			uint8_t index = sprite[i].index;
+			uint16_t tileset = (flags & 0b10) ? TILESET_1 : TILESET_0;
 			for (int y=0; y<8; y++) {
 				uint8_t scr_y = (sprite[i].y + y) & 0xff;
-				for (int x=0; x<8; x++) {
-					uint8_t scr_x = (sprite[i].x + x) & 0xff;
-					if ((scr_x < VIDEO_WIDTH) && (scr_y < VIDEO_HEIGHT)) {
-						uint8_t res =
-							(ram[TILESET_0 + (sprite[i].index << 4) + (y << 1) + ((x & 0x4) ? 1 : 0)] &
-							(0b11 << (2 * (3 - (x%4))))) >> (2 * (3 - (x%4)));
-						if (!((sprite[i].flags & 0b100) && !res)) {
-							buffer[(VIDEO_WIDTH * scr_y) + scr_x] = res;
+				if (scr_y < VIDEO_HEIGHT) {
+					for (int x=0; x<8; x++) {
+						uint8_t scr_x = (sprite[i].x + x) & 0xff;
+						if (scr_x < VIDEO_WIDTH) {
+							// ..... :-)
+							uint8_t res =
+								(ram[tileset + (index << 4) + (y << 1) + ((x & 0x4) ? 1 : 0)] &
+								(0b11 << (2 * (3 - (x%4))))) >> (2 * (3 - (x%4)));
+							// if NOT (transparency AND 0b00) then write pixel
+							if (!((flags & 0b100) && !res)) {
+								buffer[(VIDEO_WIDTH * scr_y) + scr_x] = res;
+							}
 						}
 					}
 				}
