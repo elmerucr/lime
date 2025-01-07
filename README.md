@@ -1,14 +1,14 @@
 # lemon
 
-![icon](./docs/lemon_icon_512x512.png)
+![icon](./docs/icon_80x80.png)
 
 ..... is a virtual computer system that draws inspiration from iconic computing platforms such as the Commodore 64, Amiga 500, and Atari ST. Notable features include:
 
 * Utilization of the MC6809 CPU using the [MC6809](https://github.com/elmerucr/MC6809) library
-* A total of 16MB of video RAM, 64KB directly accessible by the CPU
-* Screen resolution of 320x200 pixels, refresh rate of 60Hz
-* Blitter chip for fast graphics processing
-* Programmable using either MC6809 assembly or the Squirrel Programming Language
+* A total of 64k RAM
+* Screen resolution of 192x120 pixels, refresh rate of 60Hz
+* VDC for graphics processing
+* Programmable using MC6809 assembly
 
 ## Table of Contents
 
