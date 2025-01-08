@@ -23,16 +23,16 @@ void system_t::run()
     running = true;
 
 	// icon
-	vdc->sprite[0] = { 88, 47, 0b00000101, 0x01 };
-	vdc->sprite[1] = { 96, 47, 0b00000101, 0x02 };
-	vdc->sprite[2] = { 88, 55, 0b00000101, 0x03 };
-	vdc->sprite[3] = { 96, 55, 0b00000101, 0x04 };
+	vdc->sprite[0] = { 88, 46, 0b00000101, 0x01 };
+	vdc->sprite[1] = { 96, 46, 0b00000101, 0x02 };
+	vdc->sprite[2] = { 88, 54, 0b00000101, 0x03 };
+	vdc->sprite[3] = { 96, 54, 0b00000101, 0x04 };
 
 	// text
 	vdc->sprite[4] = {  83, 62, 0b00000111, 0x6c };	// l
 	vdc->sprite[5] = {  88, 62, 0b00000111, 0x69 };	// i
 	vdc->sprite[6] = {  94, 62, 0b00000111, 0x6d };	// m
-	vdc->sprite[7] = { 102, 62, 0b00000111, 0x65 };	// e
+	vdc->sprite[7] = { 102, 62, 0b01000111, 0x65 };	// e
 
 	rca_t rca;
 
@@ -51,7 +51,6 @@ void system_t::run()
         running = host->process_events();
 
 		static uint8_t t = 0;
-
 		vdc->bg0_x = (8 * cos(8.0*M_PI*((float)t)/255.0));
 		vdc->bg0_y = (8 * sin(8.0*M_PI*((float)t)/255.0));
 		t++;

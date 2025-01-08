@@ -31,19 +31,22 @@ struct sprite_t {
 	uint8_t x{0};
 	uint8_t y{0};
 
+	// -----------------------------------------------------------------
 	// flags
 	//
-	// 7 6 5 4 3 2 1 0
-	//     | |   | | |
-	//     | |   | | +- unactive (0b0) / active (1)
-	//     | |   | +--- tileset 0 (0) / tileset 1 (1)
-	//     | |   +----- 0b00 is opaque (0) or transparent (1)
-	//     | |
-	//     | +--------- flip h (1)
-	//     +----------- flip v (1)
-	//               relative to scr (0b0) or associated layer (0b1) ?
-	//               flip xy ?
+	// bit 7 6 5 4 3 2 1 0
+	//       | | |   | | |
+	//       | | |   | | +- unactive (0b0) / active (1)
+	//       | | |   | +--- tileset 0 (0) / tileset 1 (1)
+	//       | | |   +----- 0b00 is opaque (0) or transparent (1)
+	//       | | |
+	//       | | +--------- flip h  (1)
+	//       | +----------- flip v  (1)
+	//       +------------- flip xy (1)
 	//
+	//               relative to scr (0b0) or associated layer (0b1) ?
+	//
+	// -----------------------------------------------------------------
 	uint8_t flags{0b00000000};
 
 	uint8_t index{0};
@@ -58,7 +61,6 @@ private:
     font_cbm_8x8_t font;
 	void draw_layer(layer_t *l);
 	void draw_sprite(sprite_t *s, uint8_t sl);
-	// void _draw_sprite(sprite_t *s, uint8_t sl);
 public:
     vdc_t();
     ~vdc_t();
