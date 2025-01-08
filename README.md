@@ -10,9 +10,9 @@
 * VDC for graphics processing
 * Programmable using MC6809 assembly
 
-## Table of Contents
+## The Icon
 
-*wip*
+Yes, I know a lemon is yellow. But the palette of lemon is green only...
 
 ## Screenshots
 

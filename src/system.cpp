@@ -19,18 +19,21 @@ void system_t::run()
 {
     running = true;
 
-	vdc->sprite[0].x = 88;
-	vdc->sprite[0].y = 52;
+	vdc->sprite[0].x = 87;
+	vdc->sprite[0].y = 51;
 	vdc->sprite[0].index = 1;
 	vdc->sprite[0].flags = 0b00000101;
+
 	vdc->sprite[1].x = 96;
 	vdc->sprite[1].y = 52;
 	vdc->sprite[1].index = 2;
 	vdc->sprite[1].flags = 0b00000101;
+
 	vdc->sprite[2].x = 88;
 	vdc->sprite[2].y = 60;
 	vdc->sprite[2].index = 3;
 	vdc->sprite[2].flags = 0b00000101;
+
 	vdc->sprite[3].x = 96;
 	vdc->sprite[3].y = 60;
 	vdc->sprite[3].index = 4;
@@ -45,7 +48,11 @@ void system_t::run()
 		vdc->bg0_y = (8 * sin(8.0*M_PI*((float)t)/255.0));
 		t++;
 
-        vdc->update();
+		for (uint8_t scanline=0; scanline<VIDEO_HEIGHT; scanline++) {
+			vdc->bg0_x += (abs(60 - (scanline >> 5)) % 14);
+        	vdc->update(scanline);
+		}
+
         host->update_screen();
     }
 }

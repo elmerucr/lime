@@ -97,17 +97,71 @@ void vdc_t::draw_layer(layer_t *l)
 	//
 }
 
-void vdc_t::draw_sprite(sprite_t *s)
+void vdc_t::draw_sprite(sprite_t *s, uint8_t sl)
 {
 	if (s->flags & 0b1) {
+		// Determine tileset
 		uint16_t tileset = (s->flags & 0b10) ? TILESET_1 : TILESET_0;
-		for (int y=0; y<8; y++) {
-			uint8_t scr_y = (s->y + y) & 0xff;
+
+		// Subtract y position from scanline, remainder is y position in sprite
+		uint8_t y = sl - s->y;
+
+		// if y < 8, it's inside sprite
+		if (y < 8) {
+			uint8_t start_x{0}, end_x{0};
+
+			if (s->x < VIDEO_WIDTH) {
+				start_x = s->x;
+				end_x = ((s->x + 8) > VIDEO_WIDTH) ? VIDEO_WIDTH : (s->x + 8);
+			} else if (s->x >= 248) {
+				end_x = s->x + 8;
+			}
+
+			// checking this flag before getting in for loop with scr_x
+			// otherwise this is executed each new pixel
+			if (s->flags & 0b00100000) y = 7 - y;
+
+			for (uint8_t scr_x=start_x; scr_x<end_x; scr_x++) {
+				uint8_t x = scr_x - s->x;
+
+				if (s->flags & 0b00010000) x = 7 - x;
+
+
+				uint8_t res =
+					(ram[tileset + (s->index << 4) + (y << 1) + ((x & 0x4) ? 1 : 0)] &
+					(0b11 << (2 * (3 - (x%4))))) >> (2 * (3 - (x%4)));
+				// if NOT (transparency AND 0b00) then write pixel
+				if (!((s->flags & 0b100) && !res)) {
+					buffer[(VIDEO_WIDTH * sl) + scr_x] = res;
+				}
+			}
+		}
+	}
+}
+
+void vdc_t::_draw_sprite(sprite_t *s, uint8_t sl)
+{
+	if (s->flags & 0b1) {
+		// determine tileset
+		uint16_t tileset = (s->flags & 0b10) ? TILESET_1 : TILESET_0;
+
+		// subtract y position from scanline
+		// remainder is y position in sprite
+		uint8_t y = sl - s->y;
+
+		// if y < 8, it's inside sprite
+		if (y < 8) {
+			uint8_t scr_y = (s->y + y)  & 0xff;
+			bool ver_flip = s->flags & 0b100000;
+			y = ver_flip ? 7 - y : y;
 			if (scr_y < VIDEO_HEIGHT) {
+				bool hor_flip = s->flags & 0b010000;
+
 				for (int x=0; x<8; x++) {
-					uint8_t scr_x = (s->x + x) & 0xff;
+					uint8_t scr_x = (s->x + (hor_flip ? 7 - x : x)) & 0xff;
+
 					if (scr_x < VIDEO_WIDTH) {
-						// ..... :-)
+						// find correct value for color
 						uint8_t res =
 							(ram[tileset + (s->index << 4) + (y << 1) + ((x & 0x4) ? 1 : 0)] &
 							(0b11 << (2 * (3 - (x%4))))) >> (2 * (3 - (x%4)));
@@ -122,9 +176,11 @@ void vdc_t::draw_sprite(sprite_t *s)
 	}
 }
 
-void vdc_t::update()
+void vdc_t::update(uint8_t scanline)
 {
-    for (uint16_t scr_y = 0; scr_y < VIDEO_HEIGHT; scr_y++) {
+	uint16_t scr_y = scanline;
+
+    if (scr_y < VIDEO_HEIGHT) {
         uint8_t y = (bg0_y + scr_y) & 0xff;
         uint8_t y_in_tile = y % 8;
 
@@ -140,6 +196,6 @@ void vdc_t::update()
 	}
 
 	for (int i=0; i<64; i++) {
-		draw_sprite(&sprite[i]);
+		draw_sprite(&sprite[i], scanline);
 	}
 }

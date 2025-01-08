@@ -45,7 +45,8 @@ struct sprite_t {
 	//     | |
 	//     | +--------- flip h (1)
 	//     +----------- flip v (1)
-	//               relative to scr (0b0) or associated layer (0b1)
+	//               relative to scr (0b0) or associated layer (0b1) ?
+	//               flip xy ?
 	//
 	uint8_t flags{0b00000000};
 };
@@ -55,7 +56,8 @@ private:
     uint8_t *ram;
     font_cbm_8x8_t font;
 	void draw_layer(layer_t *l);
-	void draw_sprite(sprite_t *s);
+	void draw_sprite(sprite_t *s, uint8_t sl);
+	void _draw_sprite(sprite_t *s, uint8_t sl);
 public:
     vdc_t();
     ~vdc_t();
@@ -68,7 +70,7 @@ public:
 
     uint8_t *buffer;
 
-    void update();
+    void update(uint8_t scanline);
 };
 
 #endif
