@@ -2,11 +2,14 @@
 #include "host.hpp"
 #include "vdc.hpp"
 #include <cmath>
+#include "rca.hpp"
 
 system_t::system_t()
 {
     host = new host_t(this);
     vdc = new vdc_t();
+
+	vdc->reset();
 }
 
 system_t::~system_t()
@@ -19,25 +22,30 @@ void system_t::run()
 {
     running = true;
 
-	vdc->sprite[0].x = 87;
-	vdc->sprite[0].y = 51;
-	vdc->sprite[0].index = 1;
-	vdc->sprite[0].flags = 0b00000101;
+	// icon
+	vdc->sprite[0] = { 88, 47, 0b00000101, 0x01 };
+	vdc->sprite[1] = { 96, 47, 0b00000101, 0x02 };
+	vdc->sprite[2] = { 88, 55, 0b00000101, 0x03 };
+	vdc->sprite[3] = { 96, 55, 0b00000101, 0x04 };
 
-	vdc->sprite[1].x = 96;
-	vdc->sprite[1].y = 52;
-	vdc->sprite[1].index = 2;
-	vdc->sprite[1].flags = 0b00000101;
+	// text
+	vdc->sprite[4] = {  83, 62, 0b00000111, 0x6c };	// l
+	vdc->sprite[5] = {  88, 62, 0b00000111, 0x69 };	// i
+	vdc->sprite[6] = {  94, 62, 0b00000111, 0x6d };	// m
+	vdc->sprite[7] = { 102, 62, 0b00000111, 0x65 };	// e
 
-	vdc->sprite[2].x = 88;
-	vdc->sprite[2].y = 60;
-	vdc->sprite[2].index = 3;
-	vdc->sprite[2].flags = 0b00000101;
+	rca_t rca;
 
-	vdc->sprite[3].x = 96;
-	vdc->sprite[3].y = 60;
-	vdc->sprite[3].index = 4;
-	vdc->sprite[3].flags = 0b00000101;
+	for (int i=9; i<64; i++) {
+		vdc->sprite[i].x = rca.byte();
+		vdc->sprite[i].y = rca.byte();
+		vdc->sprite[i].flags = 0b111;
+		vdc->sprite[i].index = rca.byte();
+		vdc->sprite[i].palette[0] = rca.byte() & 0b11;
+		vdc->sprite[i].palette[1] = rca.byte() & 0b11;
+		vdc->sprite[i].palette[2] = rca.byte() & 0b11;
+		vdc->sprite[i].palette[3] = rca.byte() & 0b11;
+	}
 
     while (running) {
         running = host->process_events();
@@ -48,9 +56,15 @@ void system_t::run()
 		vdc->bg0_y = (8 * sin(8.0*M_PI*((float)t)/255.0));
 		t++;
 
-		for (uint8_t scanline=0; scanline<VIDEO_HEIGHT; scanline++) {
-			vdc->bg0_x += (abs(60 - (scanline >> 5)) % 14);
-        	vdc->update(scanline);
+		for (uint8_t s=0; s < VIDEO_HEIGHT; s++) {
+			vdc->bg0_x += (abs(60 - (s >> 5)) % 14);
+        	vdc->update_scanline(s);
+		}
+
+		for (int i=9; i<64; i++) {
+			vdc->sprite[i].x--;
+			vdc->sprite[i].y++;
+			if (vdc->sprite[i].y == 240) vdc->sprite[i].x = rca.byte();
 		}
 
         host->update_screen();

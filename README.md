@@ -1,4 +1,4 @@
-# lemon
+# lime
 
 ![icon](./docs/icon_80x80.png)
 
@@ -9,10 +9,6 @@
 * Screen resolution of 192x120 pixels, refresh rate of 60Hz
 * VDC for graphics processing
 * Programmable using MC6809 assembly
-
-## The Icon
-
-Yes, I know a lemon is yellow. But the palette of lemon is green only...
 
 ## Screenshots
 

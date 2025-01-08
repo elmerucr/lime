@@ -19,7 +19,7 @@ host_t::host_t(system_t *s)
     printf("window scaling: %i\n", window_scaling);
 
     window = SDL_CreateWindow(
-        "lemon",
+        "lime",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
         window_scaling * VIDEO_WIDTH,

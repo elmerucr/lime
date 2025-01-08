@@ -30,10 +30,6 @@ struct layer_t {
 struct sprite_t {
 	uint8_t x{0};
 	uint8_t y{0};
-	uint8_t index{0};
-
-	// palette values can never be >0b11
-	uint8_t palette[4] = { 0b00, 0b01, 0b10, 0b11 };
 
 	// flags
 	//
@@ -49,6 +45,11 @@ struct sprite_t {
 	//               flip xy ?
 	//
 	uint8_t flags{0b00000000};
+
+	uint8_t index{0};
+
+	// palette values can never be >0b11
+	uint8_t palette[4] = { 0b00, 0b01, 0b10, 0b11 };
 };
 
 class vdc_t {
@@ -57,7 +58,7 @@ private:
     font_cbm_8x8_t font;
 	void draw_layer(layer_t *l);
 	void draw_sprite(sprite_t *s, uint8_t sl);
-	void _draw_sprite(sprite_t *s, uint8_t sl);
+	// void _draw_sprite(sprite_t *s, uint8_t sl);
 public:
     vdc_t();
     ~vdc_t();
@@ -70,7 +71,9 @@ public:
 
     uint8_t *buffer;
 
-    void update(uint8_t scanline);
+	void reset();
+
+    void update_scanline(uint8_t s);
 };
 
 #endif
