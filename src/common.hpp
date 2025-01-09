@@ -1,8 +1,8 @@
 #ifndef COMMON_HPP
 #define COMMON_HPP
 
-#define VIDEO_WIDTH     192
-#define VIDEO_HEIGHT    120
+#define VIDEO_WIDTH     240
+#define VIDEO_HEIGHT    160
 
 #define RAM_SIZE        0x10000
 

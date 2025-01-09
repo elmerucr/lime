@@ -6,7 +6,7 @@
 
 * Utilization of the MC6809 CPU using the [MC6809](https://github.com/elmerucr/MC6809) library
 * A total of 64k RAM
-* Screen resolution of 192x120 pixels, refresh rate of 60Hz
+* Screen resolution of 240x160 pixels, refresh rate of 60Hz
 * VDC for graphics processing
 * Programmable using MC6809 assembly
 

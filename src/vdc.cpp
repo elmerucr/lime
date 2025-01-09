@@ -11,7 +11,6 @@
 vdc_t::vdc_t()
 {
     ram = new uint8_t[RAM_SIZE];
-
     buffer = new uint8_t[VIDEO_WIDTH * VIDEO_HEIGHT];
 }
 
@@ -26,7 +25,7 @@ void vdc_t::draw_layer(layer_t *l)
 	//
 }
 
-void vdc_t::draw_sprite(sprite_t *s, uint8_t sl)
+void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 {
 	if (s->flags & 0b1) {
 		// Determine tileset
@@ -37,27 +36,28 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl)
 
 		// if y < 8, it's in range of the sprite
 		if (y < 8) {
+			// relative position
+			uint8_t adj_x = s->x - ((s->flags & 0b1000) ? l->x : 0);
+
 			uint8_t start_x{0}, end_x{0};
 
-			//bool relative_to_layer = s->flags &
-
 			if (s->x < VIDEO_WIDTH) {
-				start_x = s->x;
-				end_x = ((s->x + 8) > VIDEO_WIDTH) ? VIDEO_WIDTH : (s->x + 8);
-			} else if (s->x >= 248) {
-				end_x = s->x + 8;
+				start_x = adj_x;
+				end_x = ((adj_x + 8) > VIDEO_WIDTH) ? VIDEO_WIDTH : (adj_x + 8);
+			} else if (adj_x >= 248) {
+				end_x = adj_x + 8;
 			}
 
 			// test flip vertical
 			if (s->flags & 0b00100000) y = 7 - y;
 
 			for (uint8_t scr_x=start_x; scr_x<end_x; scr_x++) {
-				uint8_t x = scr_x - s->x;
+				uint8_t x = scr_x - adj_x;
 
 				// test flip horizontal flag
 				if (s->flags & 0b00010000) x = 7 - x;
 
-				// test flip xy flag, if 1, swap
+				// test flip xy flag, if 1, swap x and y
 				if (s->flags & 0b01000000) {
 					uint8_t t = x;
 					x = y;
@@ -146,23 +146,25 @@ void vdc_t::update_scanline(uint8_t s)
 	// draw sprites 127-164 (in that order)
 
 	// draw layer 0
-	// if (s < VIDEO_HEIGHT) {
-    //     uint8_t y = (bg0_y + s) & 0xff;
-    //     uint8_t y_in_tile = y % 8;
+	if (s < VIDEO_HEIGHT) {
+        uint8_t y = (layer[0].y + s) & 0xff;
+        uint8_t y_in_tile = y % 8;
 
-    //     for (uint16_t scr_x = 0; scr_x < VIDEO_WIDTH; scr_x++) {
-    //         uint8_t x = (bg0_x + scr_x) & 0xff;
-    //         uint8_t px = x % 4;
-    //         uint8_t tile_index = ram[LAYER_0 + ((y >> 3) << 5) + (x >> 3)];
+        for (uint16_t scr_x = 0; scr_x < VIDEO_WIDTH; scr_x++) {
+            uint8_t x = (layer[0].x + scr_x) & 0xff;
+            uint8_t px = x % 4;
+            uint8_t tile_index = ram[LAYER_0 + ((y >> 3) << 5) + (x >> 3)];
 
-    //         buffer[(VIDEO_WIDTH * s) + scr_x] =
-    //         	(ram[TILESET_1 + (tile_index << 4) + (y_in_tile << 1) + ((x & 0x4) ? 1 : 0)] &
-	// 			(0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
-	// 	}
-	// }
+            buffer[(VIDEO_WIDTH * s) + scr_x] =
+            	(ram[TILESET_1 + (tile_index << 4) + (y_in_tile << 1) + ((x & 0x4) ? 1 : 0)] &
+				(0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
+		}
+	}
+
+	draw_layer(&layer[0]);
 
 	// draw sprites 63-0 (in that order)
 	for (int i=63; i >= 0; i--) {
-		draw_sprite(&sprite[i], s);
+		draw_sprite(&sprite[i], s, &layer[0]);
 	}
 }

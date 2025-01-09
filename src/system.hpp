@@ -10,6 +10,7 @@
 #define SYSTEM_HPP
 
 class host_t;
+class core_t;
 class vdc_t;
 
 class system_t {
@@ -19,6 +20,7 @@ public:
     ~system_t();
 
     host_t *host;
+	core_t *core;
     vdc_t *vdc;
 
     bool running;

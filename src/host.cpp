@@ -15,7 +15,8 @@ host_t::host_t(system_t *s)
     SDL_DisplayMode dm;
 	SDL_GetCurrentDisplayMode(0, &dm);
     printf("desktop screen height: %i\n", dm.h);
-    window_scaling = ((3 * dm.h) / (8 * VIDEO_HEIGHT)) << 1;
+    window_scaling = (4 * dm.h) / (5 * VIDEO_HEIGHT);
+	if (window_scaling & 0b1) window_scaling--;
     printf("window scaling: %i\n", window_scaling);
 
     window = SDL_CreateWindow(
