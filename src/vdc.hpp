@@ -34,9 +34,16 @@ struct layer_t {
 	//       | | | | | | |
 	//       | | | | | | +- unactive (0b0) / active (1)
 	//       | | | | | +--- tileset 0 (0) / tileset 1 (1)
+	//       | | | | +----- 0b00 is opaque (0) or transparent (1)
 	//
 	// -----------------------------------------------------------------
 	uint8_t flags{0b00000000};
+
+	// palette values can never be >0b11
+	uint8_t palette[4] = { 0b00, 0b01, 0b10, 0b11 };
+
+	// not to be changed
+	uint16_t address;
 };
 
 struct sprite_t {

@@ -12,6 +12,11 @@ vdc_t::vdc_t()
 {
     ram = new uint8_t[VRAM_SIZE];
     buffer = new uint8_t[VIDEO_WIDTH * VIDEO_HEIGHT];
+
+	layer[0].address = VDC_LAYERS + 0x0000;
+	layer[1].address = VDC_LAYERS + 0x0400;
+	layer[2].address = VDC_LAYERS + 0x0800;
+	layer[3].address = VDC_LAYERS + 0x0c00;
 }
 
 vdc_t::~vdc_t()
@@ -29,7 +34,7 @@ void vdc_t::reset()
 
 	// clear full tileset memory (6kb)
     for (int i = 0; i < 0x1800; i++) {
-        ram[TILESET_0 + i] = 0;
+        ram[VDC_TILESET_0 + i] = 0;
     }
 
     // tileset 0
@@ -52,9 +57,9 @@ void vdc_t::reset()
 		0b01'01'01'01, 0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00
 	};
 
-	for (int i = 0; i < 80; i++) {
+	for (int i = 0; i < 64; i++) {
 		// skip tile 0, is empty
-		ram[TILESET_0 + (1 * 16) + i] = icon[i];
+		ram[VDC_TILESET_0 + (1 * 16) + i] = icon[i];
 	}
 
     // tileset 1
@@ -62,7 +67,7 @@ void vdc_t::reset()
         uint16_t index = i >> 3;
         int index_pos = 7 - (i & 0b111);
 
-        uint16_t address = TILESET_1 + (i >> 2);
+        uint16_t address = VDC_TILESET_1 + (i >> 2);
         uint8_t address_pos = 6 - ((i & 0b11) << 1);
 
         if (font.data[index] & (0b1 << index_pos)) {
@@ -72,8 +77,8 @@ void vdc_t::reset()
 
     // have something to display
     for (int i=0; i<0x400; i++) {
-		ram[LAYER_0 + i] = i & 0xff;
-		//ram[LAYER_0 + i] = 0;
+		ram[layer[0].address + i] = i & 0xff;
+		//ram[layer[0].address + i] = 0;
     }
 }
 
@@ -81,7 +86,7 @@ void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 {
 	if (l->flags & 0b1) {
 		// Determine tileset
-		uint16_t tileset = (l->flags & 0b10) ? TILESET_1 : TILESET_0;
+		uint16_t tileset = (l->flags & 0b10) ? VDC_TILESET_1 : VDC_TILESET_0;
 
 		if (sl < VIDEO_HEIGHT) {
 			uint8_t y = (l->y + sl) & 0xff;
@@ -90,11 +95,15 @@ void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 			for (uint16_t scr_x = 0; scr_x < VIDEO_WIDTH; scr_x++) {
 				uint8_t x = (l->x + scr_x) & 0xff;
 				uint8_t px = x % 4;
-				uint8_t tile_index = ram[LAYER_0 + ((y >> 3) << 5) + (x >> 3)];
+				uint8_t tile_index = ram[l->address + ((y >> 3) << 5) + (x >> 3)];
 
-				buffer[(VIDEO_WIDTH * sl) + scr_x] =
+				uint8_t res =
 					(ram[tileset + (tile_index << 4) + (y_in_tile << 1) + ((x & 0x4) ? 1 : 0)] &
 					(0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
+				// if NOT (transparent AND 0b00) then pixel must be written
+				if (!((l->flags & 0b100) && !res)) {
+					buffer[(VIDEO_WIDTH * sl) + scr_x] = l->palette[res];
+				}
 			}
 		}
 	}
@@ -104,7 +113,7 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 {
 	if (s->flags & 0b1) {
 		// Determine tileset
-		uint16_t tileset = (s->flags & 0b10) ? TILESET_1 : TILESET_0;
+		uint16_t tileset = (s->flags & 0b10) ? VDC_TILESET_1 : VDC_TILESET_0;
 
 		// Subtract y position from scanline, remainder is y position in sprite
 		uint8_t y = sl - s->y;
@@ -151,18 +160,10 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 
 void vdc_t::update_scanline(uint8_t s)
 {
-	// draw layer 3
-	// draw sprites 255-192 (in that order)
-	// draw layer 2
-	// draw sprites 191-128 (in that order)
-	// draw layer 1
-	// draw sprites 127-164 (in that order)
-
-	// draw layer 0
-	draw_layer(&layer[0], s);
-
-	// draw sprites 63-0 (in that order)
-	for (int i=63; i >= 0; i--) {
-		draw_sprite(&sprite[i], s, &layer[0]);
+	for (int l=3; l>=0; l--) {
+		draw_layer(&layer[l], s);
+		for (uint8_t i=0; i<64; i++) {
+			draw_sprite(&sprite[(64*l) + (63-i)], s, &layer[l]);
+		}
 	}
 }

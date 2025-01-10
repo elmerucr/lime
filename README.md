@@ -2,7 +2,7 @@
 
 ![icon](./docs/icon_80x80.png)
 
-..... is a virtual computer system that draws inspiration from iconic computing platforms such as the Commodore 64, Amiga 500, and Atari ST. Notable features include:
+Lime is a virtual computer system that draws inspiration from iconic computing platforms such as the Commodore 64, Amiga 500, and Atari ST. Notable features include:
 
 * Utilization of the MC6809 CPU using the [MC6809](https://github.com/elmerucr/MC6809) library
 * A total of 64k RAM
@@ -38,6 +38,7 @@ Below some more OS specific intructions on how to prepare the build environment.
 * When it asks to install command line tools, do that
 * Install Homebrew
 * From the Homebrew command line, install cmake and SDL2 libraries
+* Follow general CMake instructions
 
 ### Ubuntu / Debian specific
 

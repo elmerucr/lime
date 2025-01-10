@@ -11,20 +11,21 @@
 // ---------------------------------------------------------------------
 // Version information
 // ---------------------------------------------------------------------
-#define LIME_MAJOR_VERSION  0
-#define LIME_MINOR_VERSION  1
-#define LIME_BUILD          20250110
-#define LIME_YEAR           2025
+#define LIME_MAJOR_VERSION	0
+#define LIME_MINOR_VERSION	1
+#define LIME_BUILD			20250110
+#define LIME_YEAR			2025
 
 // ---------------------------------------------------------------------
 // Video
 // ---------------------------------------------------------------------
-#define VRAM_SIZE        0x10000
-#define VIDEO_WIDTH     240
-#define VIDEO_HEIGHT    160
+#define VRAM_SIZE		0x10000
+#define VIDEO_WIDTH		240
+#define VIDEO_HEIGHT	160
 
-#define LAYER_0    		0x0400
-#define TILESET_0       0x2000
-#define TILESET_1       0x2800
+#define VDC_TILESET_0	0x0800
+#define VDC_TILESET_1	0x1000
+
+#define VDC_LAYERS		0x2000
 
 #endif
