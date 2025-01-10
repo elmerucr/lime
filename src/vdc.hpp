@@ -26,6 +26,17 @@
 struct layer_t {
 	uint8_t x{0};
 	uint8_t y{0};
+
+	// -----------------------------------------------------------------
+	// flags
+	//
+	// bit 7 6 5 4 3 2 1 0
+	//       | | | | | | |
+	//       | | | | | | +- unactive (0b0) / active (1)
+	//       | | | | | +--- tileset 0 (0) / tileset 1 (1)
+	//
+	// -----------------------------------------------------------------
+	uint8_t flags{0b00000000};
 };
 
 struct sprite_t {
@@ -59,7 +70,7 @@ class vdc_t {
 private:
     uint8_t *ram;
     font_cbm_8x8_t font;
-	void draw_layer(layer_t *l);
+	void draw_layer(layer_t *l, uint8_t sl);
 	void draw_sprite(sprite_t *s, uint8_t sl, layer_t *t);
 public:
     vdc_t();

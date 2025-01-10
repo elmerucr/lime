@@ -33,6 +33,8 @@ void system_t::run()
 {
     running = true;
 
+	vdc->layer[0].flags = 0b01;
+
 	// icon
 	vdc->sprite[0] = { 112, 64, 0b00001101, 0x01 };
 	vdc->sprite[1] = { 120, 64, 0b00001101, 0x02 };

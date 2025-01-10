@@ -77,9 +77,27 @@ void vdc_t::reset()
     }
 }
 
-void vdc_t::draw_layer(layer_t *l)
+void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 {
-	//
+	if (l->flags & 0b1) {
+		// Determine tileset
+		uint16_t tileset = (l->flags & 0b10) ? TILESET_1 : TILESET_0;
+
+		if (sl < VIDEO_HEIGHT) {
+			uint8_t y = (l->y + sl) & 0xff;
+			uint8_t y_in_tile = y % 8;
+
+			for (uint16_t scr_x = 0; scr_x < VIDEO_WIDTH; scr_x++) {
+				uint8_t x = (l->x + scr_x) & 0xff;
+				uint8_t px = x % 4;
+				uint8_t tile_index = ram[LAYER_0 + ((y >> 3) << 5) + (x >> 3)];
+
+				buffer[(VIDEO_WIDTH * sl) + scr_x] =
+					(ram[tileset + (tile_index << 4) + (y_in_tile << 1) + ((x & 0x4) ? 1 : 0)] &
+					(0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
+			}
+		}
+	}
 }
 
 void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
@@ -115,21 +133,16 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 				if (s->flags & 0b00010000) x = 7 - x;
 
 				// test flip xy flag, if 1, swap x and y
-				if (s->flags & 0b01000000) {
-					uint8_t t = x;
-					x = y;
-					y = t;
-				}
+				if (s->flags & 0b01000000) { uint8_t t = x; x = y; y = t; }
 
-				uint8_t res =
-					(ram[tileset + (s->index << 4) + (y << 1) + ((x & 0x4) ? 1 : 0)] &
+				uint8_t res = (ram[tileset + (s->index << 4) + (y << 1) + ((x & 0x4) ? 1 : 0)] &
 					(0b11 << (2 * (3 - (x%4))))) >> (2 * (3 - (x%4)));
 				// if NOT (transparent AND 0b00) then pixel must be written
 				if (!((s->flags & 0b100) && !res)) {
 					buffer[(VIDEO_WIDTH * sl) + scr_x] = s->palette[res];
 				}
 
-				// restore y, if needed
+				// restore y, if xy flip was done before
 				if (s->flags & 0b01000000) y = x;
 			}
 		}
@@ -146,22 +159,7 @@ void vdc_t::update_scanline(uint8_t s)
 	// draw sprites 127-164 (in that order)
 
 	// draw layer 0
-	if (s < VIDEO_HEIGHT) {
-        uint8_t y = (layer[0].y + s) & 0xff;
-        uint8_t y_in_tile = y % 8;
-
-        for (uint16_t scr_x = 0; scr_x < VIDEO_WIDTH; scr_x++) {
-            uint8_t x = (layer[0].x + scr_x) & 0xff;
-            uint8_t px = x % 4;
-            uint8_t tile_index = ram[LAYER_0 + ((y >> 3) << 5) + (x >> 3)];
-
-            buffer[(VIDEO_WIDTH * s) + scr_x] =
-            	(ram[TILESET_1 + (tile_index << 4) + (y_in_tile << 1) + ((x & 0x4) ? 1 : 0)] &
-				(0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
-		}
-	}
-
-	draw_layer(&layer[0]);
+	draw_layer(&layer[0], s);
 
 	// draw sprites 63-0 (in that order)
 	for (int i=63; i >= 0; i--) {

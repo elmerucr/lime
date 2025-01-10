@@ -14,7 +14,7 @@
 
 ### Startup screen
 
-*wip*
+![icon](./docs/20250110_screenshot_startup.png)
 
 ### Debug screen
 
