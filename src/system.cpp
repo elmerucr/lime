@@ -7,7 +7,15 @@
 
 system_t::system_t()
 {
+	system_start_time = std::chrono::steady_clock::now();
+
+	printf("lime v%i.%i.%i (C)%i elmerucr\n",
+	       LIME_MAJOR_VERSION,
+	       LIME_MINOR_VERSION,
+	       LIME_BUILD, LIME_YEAR);
+
     host = new host_t(this);
+
 	core = new core_t();
     vdc = new vdc_t();
 
@@ -72,4 +80,9 @@ void system_t::run()
 
         host->update_screen();
     }
+}
+
+void system_t::switch_mode()
+{
+	printf("toedeloe\n");
 }

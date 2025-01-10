@@ -1,10 +1,27 @@
+// ---------------------------------------------------------------------
+// common.hpp
+// lime
+//
+// Copyright © 2025 elmerucr. All rights reserved.
+// ---------------------------------------------------------------------
+
 #ifndef COMMON_HPP
 #define COMMON_HPP
 
+// ---------------------------------------------------------------------
+// Version information
+// ---------------------------------------------------------------------
+#define LIME_MAJOR_VERSION  0
+#define LIME_MINOR_VERSION  1
+#define LIME_BUILD          20250110
+#define LIME_YEAR           2025
+
+// ---------------------------------------------------------------------
+// Video
+// ---------------------------------------------------------------------
+#define VRAM_SIZE        0x10000
 #define VIDEO_WIDTH     240
 #define VIDEO_HEIGHT    160
-
-#define RAM_SIZE        0x10000
 
 #define LAYER_0    		0x0400
 #define TILESET_0       0x2000

@@ -10,9 +10,13 @@ private:
     system_t *system;
 
     const uint8_t *sdl_keyboard_state;
-    int window_scaling{1};
-    SDL_Window *window;
-    SDL_Renderer *renderer;
+
+    // video related
+    int video_scaling{1};
+    SDL_Window *video_window;
+    SDL_Renderer *video_renderer;
+    bool video_scanlines{true};
+    const uint8_t video_scanline_alpha = 176;
     SDL_Texture *screen;
     uint32_t *framebuffer;
     bool video_fullscreen{false};
@@ -27,11 +31,6 @@ private:
         0xff88c070,
         0xffe0f8d0
     };
-
-    const uint8_t scanline_alpha = 176;
-
-    uint8_t scanline_mode{1};
-
 public:
     host_t(system_t *s);
 

@@ -10,7 +10,7 @@
 
 vdc_t::vdc_t()
 {
-    ram = new uint8_t[RAM_SIZE];
+    ram = new uint8_t[VRAM_SIZE];
     buffer = new uint8_t[VIDEO_WIDTH * VIDEO_HEIGHT];
 }
 
@@ -18,6 +18,63 @@ vdc_t::~vdc_t()
 {
     delete [] buffer;
     delete [] ram;
+}
+
+void vdc_t::reset()
+{
+    // fill memory with alternating pattern
+    for (int i = 0; i < VRAM_SIZE; i++) {
+        ram[i] = (i & 0x40) ? 0xff : 0x00;
+    }
+
+	// clear full tileset memory (6kb)
+    for (int i = 0; i < 0x1800; i++) {
+        ram[TILESET_0 + i] = 0;
+    }
+
+    // tileset 0
+	const uint8_t icon[64] = {
+		0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'01, 0b00'00'00'00,	// tile 1 (icon upper left)
+		0b00'00'01'11, 0b10'00'00'00, 0b00'00'01'11, 0b10'10'00'00,
+		0b00'01'11'10, 0b11'11'10'00, 0b00'01'11'10, 0b10'10'11'11,
+		0b00'01'11'10, 0b10'10'10'10, 0b00'01'11'10, 0b10'10'11'11,
+		0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00,	// tile 2 (icon upper right)
+		0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00,
+		0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00,
+		0b11'00'00'00, 0b00'00'00'00, 0b10'11'00'00, 0b00'00'00'00,
+		0b00'01'11'10, 0b11'11'10'10, 0b00'00'01'11, 0b10'10'10'10,	// tile 3 (icon bottom left)
+		0b00'00'01'11, 0b10'10'10'11, 0b00'00'00'01, 0b11'10'10'11,
+		0b00'00'00'00, 0b01'11'11'10, 0b00'00'00'00, 0b00'01'01'11,
+		0b00'00'00'00, 0b00'00'00'01, 0b00'00'00'00, 0b00'00'00'00,
+		0b11'10'11'00, 0b00'00'00'00, 0b11'10'11'10, 0b00'00'00'00,	// tile 4 (icon bottom right)
+		0b10'10'10'11, 0b10'00'00'00, 0b10'10'10'11, 0b10'10'00'00,
+		0b10'10'10'10, 0b11'11'01'00, 0b11'11'11'11, 0b01'01'00'00,
+		0b01'01'01'01, 0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00
+	};
+
+	for (int i = 0; i < 80; i++) {
+		// skip tile 0, is empty
+		ram[TILESET_0 + (1 * 16) + i] = icon[i];
+	}
+
+    // tileset 1
+    for (int i = 0; i < (8 * font.size); i++) {
+        uint16_t index = i >> 3;
+        int index_pos = 7 - (i & 0b111);
+
+        uint16_t address = TILESET_1 + (i >> 2);
+        uint8_t address_pos = 6 - ((i & 0b11) << 1);
+
+        if (font.data[index] & (0b1 << index_pos)) {
+            ram[address] |= (0b11 << address_pos);
+        }
+    }
+
+    // have something to display
+    for (int i=0; i<0x400; i++) {
+		ram[LAYER_0 + i] = i & 0xff;
+		//ram[LAYER_0 + i] = 0;
+    }
 }
 
 void vdc_t::draw_layer(layer_t *l)
@@ -77,63 +134,6 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 			}
 		}
 	}
-}
-
-void vdc_t::reset()
-{
-    // fill memory with alternating pattern
-    for (int i = 0; i < RAM_SIZE; i++) {
-        ram[i] = (i & 0x40) ? 0xff : 0x00;
-    }
-
-	// clear full tileset memory (6kb)
-    for (int i = 0; i < 0x1800; i++) {
-        ram[TILESET_0 + i] = 0;
-    }
-
-    // tileset 0
-	const uint8_t icon[64] = {
-		0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'01, 0b00'00'00'00,	// tile 1 (icon upper left)
-		0b00'00'01'11, 0b10'00'00'00, 0b00'00'01'11, 0b10'10'00'00,
-		0b00'01'11'10, 0b11'11'10'00, 0b00'01'11'10, 0b10'10'11'11,
-		0b00'01'11'10, 0b10'10'10'10, 0b00'01'11'10, 0b10'10'11'11,
-		0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00,	// tile 2 (icon upper right)
-		0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00,
-		0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00,
-		0b11'00'00'00, 0b00'00'00'00, 0b10'11'00'00, 0b00'00'00'00,
-		0b00'01'11'10, 0b11'11'10'10, 0b00'00'01'11, 0b10'10'10'10,	// tile 3 (icon bottom left)
-		0b00'00'01'11, 0b10'10'10'11, 0b00'00'00'01, 0b11'10'10'11,
-		0b00'00'00'00, 0b01'11'11'10, 0b00'00'00'00, 0b00'01'01'11,
-		0b00'00'00'00, 0b00'00'00'01, 0b00'00'00'00, 0b00'00'00'00,
-		0b11'10'11'00, 0b00'00'00'00, 0b11'10'11'10, 0b00'00'00'00,	// tile 4 (icon bottom right)
-		0b10'10'10'11, 0b10'00'00'00, 0b10'10'10'11, 0b10'10'00'00,
-		0b10'10'10'10, 0b11'11'01'00, 0b11'11'11'11, 0b01'01'00'00,
-		0b01'01'01'01, 0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00
-	};
-
-	for (int i = 0; i < 80; i++) {
-		// skip tile 0, is empty
-		ram[TILESET_0 + (1 * 16) + i] = icon[i];
-	}
-
-    // tileset 1
-    for (int i = 0; i < (8 * font.size); i++) {
-        uint16_t index = i >> 3;
-        int index_pos = 7 - (i & 0b111);
-
-        uint16_t address = TILESET_1 + (i >> 2);
-        uint8_t address_pos = 6 - ((i & 0b11) << 1);
-
-        if (font.data[index] & (0b1 << index_pos)) {
-            ram[address] |= (0b11 << address_pos);
-        }
-    }
-
-    // have something to display
-    for (int i=0; i<0x400; i++) {
-		ram[LAYER_0 + i] = i & 0xff;
-		//ram[LAYER_0 + i] = 0;
-    }
 }
 
 void vdc_t::update_scanline(uint8_t s)

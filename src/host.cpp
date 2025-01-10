@@ -15,29 +15,29 @@ host_t::host_t(system_t *s)
     SDL_DisplayMode dm;
 	SDL_GetCurrentDisplayMode(0, &dm);
     printf("desktop screen height: %i\n", dm.h);
-    window_scaling = (4 * dm.h) / (5 * VIDEO_HEIGHT);
-	if (window_scaling & 0b1) window_scaling--;
-    printf("window scaling: %i\n", window_scaling);
+    video_scaling = (4 * dm.h) / (5 * VIDEO_HEIGHT);
+	if (video_scaling & 0b1) video_scaling--;
+    printf("window scaling: %i\n", video_scaling);
 
-    window = SDL_CreateWindow(
+    video_window = SDL_CreateWindow(
         "lime",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        window_scaling * VIDEO_WIDTH,
-        window_scaling * VIDEO_HEIGHT,
+        video_scaling * VIDEO_WIDTH,
+        video_scaling * VIDEO_HEIGHT,
         SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
     );
 
     SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    video_renderer = SDL_CreateRenderer(video_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
-	SDL_RenderSetLogicalSize(renderer, VIDEO_WIDTH, VIDEO_HEIGHT);
+	SDL_RenderSetLogicalSize(video_renderer, VIDEO_WIDTH, VIDEO_HEIGHT);
     SDL_ShowCursor(SDL_DISABLE);
 
-    // black clearcolor
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    // black = clear color
+    SDL_SetRenderDrawColor(video_renderer, 0, 0, 0, 255);
 
-    screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VIDEO_WIDTH, 2 * VIDEO_HEIGHT);
+    screen = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VIDEO_WIDTH, 2 * VIDEO_HEIGHT);
     SDL_SetTextureBlendMode(screen, SDL_BLENDMODE_BLEND);
 
     // one extra line, needed for scanline effect
@@ -53,8 +53,8 @@ host_t::~host_t()
     printf("quitting\n");
     delete [] framebuffer;
     SDL_DestroyTexture(screen);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
+    SDL_DestroyRenderer(video_renderer);
+    SDL_DestroyWindow(video_window);
     SDL_Quit();
 }
 
@@ -75,10 +75,14 @@ bool host_t::process_events()
 					events_wait_until_key_released(SDLK_f);
 					video_toggle_fullscreen();
                 } else if ((event.key.keysym.sym == SDLK_s) && alt_pressed) {
-                    if (++scanline_mode > 1) scanline_mode = 0;
+                    video_scanlines = !video_scanlines;
+                    //if (++video_scanlines > 1) video_scanlines = 0;
                 } else if ((event.key.keysym.sym == SDLK_q) && alt_pressed) {
                     events_wait_until_key_released(SDLK_q);
                     return_value = false;
+                } else if (event.key.keysym.sym == SDLK_F9) {
+                    events_wait_until_key_released(SDLK_F9);
+                    system->switch_mode();
                 }
                 break;
             case SDL_QUIT:
@@ -97,12 +101,12 @@ uint32_t host_t::blend(uint32_t c0, uint32_t c1)
     return
     ((((c0 & 0x00ff00ff) + (c1 & 0x00ff00ff)) >> 1) & 0x00ff00ff) |
     ((((c0 & 0x0000ff00) + (c1 & 0x0000ff00)) >> 1) & 0x0000ff00) |
-    (scanline_alpha << 24);
+    (video_scanline_alpha << 24);
 }
 
 void host_t::update_screen()
 {
-    SDL_RenderClear(renderer);
+    SDL_RenderClear(video_renderer);
 
     for (int y=0; y < VIDEO_HEIGHT; y++) {
         for (int x=0; x < VIDEO_WIDTH; x ++) {
@@ -110,30 +114,27 @@ void host_t::update_screen()
         }
     }
 
-    switch (scanline_mode) {
-        case 1:
-            for (int y=0; y < VIDEO_HEIGHT; y++) {
-                for (int x=0; x < VIDEO_WIDTH; x++) {
-                    framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] = blend(
-                        framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x],
-                        framebuffer[(((y << 1) + 2) * VIDEO_WIDTH) + x]
-                    );
-                }
+    if (video_scanlines) {
+        for (int y=0; y < VIDEO_HEIGHT; y++) {
+            for (int x=0; x < VIDEO_WIDTH; x++) {
+                framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] = blend(
+                    framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x],
+                    framebuffer[(((y << 1) + 2) * VIDEO_WIDTH) + x]
+                );
             }
-            break;
-        default:
-            for (int y=0; y < VIDEO_HEIGHT; y++) {
-                for (int x=0; x < VIDEO_WIDTH; x++) {
-                    framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] =
-                        framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x];
-                }
+        }
+    } else {
+        for (int y=0; y < VIDEO_HEIGHT; y++) {
+            for (int x=0; x < VIDEO_WIDTH; x++) {
+                framebuffer[(((y << 1) + 1) * VIDEO_WIDTH) + x] =
+                    framebuffer[(((y << 1) + 0) * VIDEO_WIDTH) + x];
             }
-            break;
+        }
     }
 
     SDL_UpdateTexture(screen, nullptr, (void *)framebuffer, VIDEO_WIDTH*sizeof(uint32_t));
-    SDL_RenderCopy(renderer, screen, nullptr, nullptr);
-    SDL_RenderPresent(renderer);
+    SDL_RenderCopy(video_renderer, screen, nullptr, nullptr);
+    SDL_RenderPresent(video_renderer);
 
 }
 
@@ -152,12 +153,12 @@ void host_t::video_toggle_fullscreen()
 {
 	video_fullscreen = !video_fullscreen;
 	if (video_fullscreen) {
-		SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-		//SDL_GetWindowSize(window, &window_width, &window_height);
+		SDL_SetWindowFullscreen(video_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+		//SDL_GetWindowSize(video_window, &window_width, &window_height);
 		//SDL_RenderSetLogicalSize(video_renderer, window_width, window_height);
 		//printf("[SDL] Fullscreen size: %i x %i\n", window_width, window_height);
 	} else {
-		SDL_SetWindowFullscreen(window, SDL_WINDOW_RESIZABLE);
+		SDL_SetWindowFullscreen(video_window, SDL_WINDOW_RESIZABLE);
 		//SDL_GetWindowSize(video_window, &window_width, &window_height);
 		//SDL_RenderSetLogicalSize(video_renderer, window_width, window_height);
 		//printf("[SDL] Window size: %i x %i\n", window_width, window_height);

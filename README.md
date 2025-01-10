@@ -26,7 +26,6 @@
 
 *work in progress*
 
-
 ## Building with CMake
 
 Create a build directory in the source tree ```mkdir build```, run ```cmake ..``` from that directory and run ```make```. Alternatively do ```mkdir Debug```, run ```cmake -DCMAKE_BUILD_TYPE=Debug ..``` from that directory and run ```make```.
