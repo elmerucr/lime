@@ -1,5 +1,6 @@
 // ---------------------------------------------------------------------
 // vdc.cpp
+// lime
 //
 // video display controller
 // ---------------------------------------------------------------------
@@ -11,7 +12,7 @@
 vdc_t::vdc_t()
 {
     ram = new uint8_t[VRAM_SIZE];
-    buffer = new uint8_t[VIDEO_WIDTH * VIDEO_HEIGHT];
+    buffer = new uint32_t[PIXELS_PER_SCANLINE * SCANLINES];
 
 	layer[0].address = VDC_LAYERS + 0x0000;
 	layer[1].address = VDC_LAYERS + 0x0400;
@@ -88,11 +89,11 @@ void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 		// Determine tileset
 		uint16_t tileset = (l->flags & 0b10) ? VDC_TILESET_1 : VDC_TILESET_0;
 
-		if (sl < VIDEO_HEIGHT) {
+		if (sl < SCANLINES) {
 			uint8_t y = (l->y + sl) & 0xff;
 			uint8_t y_in_tile = y % 8;
 
-			for (uint16_t scr_x = 0; scr_x < VIDEO_WIDTH; scr_x++) {
+			for (uint16_t scr_x = 0; scr_x < PIXELS_PER_SCANLINE; scr_x++) {
 				uint8_t x = (l->x + scr_x) & 0xff;
 				uint8_t px = x % 4;
 				uint8_t tile_index = ram[l->address + ((y >> 3) << 5) + (x >> 3)];
@@ -102,7 +103,7 @@ void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 					(0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
 				// if NOT (transparent AND 0b00) then pixel must be written
 				if (!((l->flags & 0b100) && !res)) {
-					buffer[(VIDEO_WIDTH * sl) + scr_x] = l->palette[res];
+					buffer[(PIXELS_PER_SCANLINE * sl) + scr_x] = palette[l->palette[res]];
 				}
 			}
 		}
@@ -125,9 +126,9 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 
 			uint8_t start_x{0}, end_x{0};
 
-			if (s->x < VIDEO_WIDTH) {
+			if (s->x < PIXELS_PER_SCANLINE) {
 				start_x = adj_x;
-				end_x = ((adj_x + 8) > VIDEO_WIDTH) ? VIDEO_WIDTH : (adj_x + 8);
+				end_x = ((adj_x + 8) > PIXELS_PER_SCANLINE) ? PIXELS_PER_SCANLINE : (adj_x + 8);
 			} else if (adj_x >= 248) {
 				end_x = adj_x + 8;
 			}
@@ -148,7 +149,7 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 					(0b11 << (2 * (3 - (x%4))))) >> (2 * (3 - (x%4)));
 				// if NOT (transparent AND 0b00) then pixel must be written
 				if (!((s->flags & 0b100) && !res)) {
-					buffer[(VIDEO_WIDTH * sl) + scr_x] = s->palette[res];
+					buffer[(PIXELS_PER_SCANLINE * sl) + scr_x] = palette[s->palette[res]];
 				}
 
 				// restore y, if xy flip was done before

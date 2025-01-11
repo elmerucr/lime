@@ -1,3 +1,10 @@
+// ---------------------------------------------------------------------
+// host.hpp
+// lime
+//
+// Copyright © 2025 elmerucr. All rights reserved.
+// ---------------------------------------------------------------------
+
 #ifndef HOST_HPP
 #define HOST_HPP
 
@@ -17,24 +24,27 @@ private:
     SDL_Renderer *video_renderer;
     bool video_scanlines{true};
     const uint8_t video_scanline_alpha = 176;
-    SDL_Texture *screen;
-    uint32_t *framebuffer;
     bool video_fullscreen{false};
+
+    SDL_Texture *core_texture;
+    uint32_t *core_framebuffer;
+
+	SDL_Texture *debugger_texture;
+	uint32_t *debugger_framebuffer;
+
+	const SDL_Rect viewer = {
+		PIXELS_PER_SCANLINE/2, 0, PIXELS_PER_SCANLINE/2, SCANLINES/2
+	};
 
     uint32_t blend(uint32_t c0, uint32_t c1);
 
-    // gameboy green palette
-    // https://lospec.com/palette-list/nintendo-gameboy-bgb
-    const uint32_t palette[4] = {
-        0xff081820,
-        0xff346856,
-        0xff88c070,
-        0xffe0f8d0
-    };
 public:
     host_t(system_t *s);
 
     ~host_t();
+
+	void video_init();
+	void video_stop();
 
     bool process_events();
     void events_wait_until_key_released(SDL_KeyCode key);

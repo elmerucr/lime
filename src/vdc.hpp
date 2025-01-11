@@ -1,5 +1,6 @@
 // ---------------------------------------------------------------------
 // vdc.hpp
+// lime
 //
 // video display controller
 // ---------------------------------------------------------------------
@@ -22,6 +23,15 @@
 
 #include <cstdint>
 #include "font_cbm_8x8.hpp"
+
+// gameboy green palette
+// https://lospec.com/palette-list/nintendo-gameboy-bgb
+const uint32_t palette[4] = {
+	0xff081820,
+	0xff346856,
+	0xff88c070,
+	0xffe0f8d0
+};
 
 struct layer_t {
 	uint8_t x{0};
@@ -86,7 +96,7 @@ public:
 	layer_t layer[4];
 	sprite_t sprite[256];
 
-    uint8_t *buffer;
+    uint32_t *buffer;
 
 	void reset();
 

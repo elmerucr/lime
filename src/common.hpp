@@ -19,10 +19,11 @@
 // ---------------------------------------------------------------------
 // Video
 // ---------------------------------------------------------------------
-#define VRAM_SIZE		0x10000
-#define VIDEO_WIDTH		240
-#define VIDEO_HEIGHT	160
+#define VRAM_SIZE			0x10000
+#define PIXELS_PER_SCANLINE	240
+#define SCANLINES			160
 
+// vdc
 #define VDC_TILESET_0	0x0800
 #define VDC_TILESET_1	0x1000
 

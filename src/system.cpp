@@ -1,6 +1,14 @@
+// ---------------------------------------------------------------------
+// system.cpp
+// lime
+//
+// Copyright © 2025 elmerucr. All rights reserved.
+// ---------------------------------------------------------------------
+
 #include "system.hpp"
 #include "host.hpp"
 #include "core.hpp"
+#include "debugger.hpp"
 #include "vdc.hpp"
 #include <cmath>
 #include "rca.hpp"
@@ -17,14 +25,18 @@ system_t::system_t()
     host = new host_t(this);
 
 	core = new core_t();
-    vdc = new vdc_t();
+	debugger = new debugger_t();
 
+	switch_to_run_mode();
+
+    vdc = new vdc_t();
 	vdc->reset();
 }
 
 system_t::~system_t()
 {
     delete vdc;
+	delete debugger;
 	delete core;
     delete host;
 }
@@ -71,7 +83,7 @@ void system_t::run()
 		t++;
 		vdc->layer[1].y++;
 
-		for (uint8_t s=0; s < VIDEO_HEIGHT; s++) {
+		for (uint8_t s=0; s < SCANLINES; s++) {
 			//vdc->layer[0].x += (abs(60 - (s >> 5)) % 14);
         	vdc->update_scanline(s);
 		}
@@ -88,5 +100,21 @@ void system_t::run()
 
 void system_t::switch_mode()
 {
-	printf("toedeloe\n");
+	if (current_mode == RUN_MODE) {
+		switch_to_debug_mode();
+	} else {
+		switch_to_run_mode();
+	}
+}
+
+void system_t::switch_to_run_mode()
+{
+	current_mode = RUN_MODE;
+	printf("[system] switching to run mode\n");
+}
+
+void system_t::switch_to_debug_mode()
+{
+	current_mode = DEBUG_MODE;
+	printf("[system] switching to debug mode\n");
 }

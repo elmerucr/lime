@@ -1,16 +1,16 @@
-/*
- * rca.hpp
- * punch
- *
- * Copyright © 2012-2025 elmerucr. All rights reserved.
- */
+// ---------------------------------------------------------------------
+// rca.hpp
+// lime
+//
+// Copyright © 2012-2025 elmerucr. All rights reserved.
+// ---------------------------------------------------------------------
 
-/*
- * rca: random number generation with cellular automaton
- *
- * 2012-01-21 c version
- * 2013-11-11 c++ version
- */
+// ---------------------------------------------------------------------
+// rca: random number generation with cellular automaton
+//
+// 2012-01-21 c version
+// 2013-11-11 c++ version
+// ---------------------------------------------------------------------
 
 #ifndef RCA_HPP
 #define RCA_HPP
