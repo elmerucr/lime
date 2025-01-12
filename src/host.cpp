@@ -7,6 +7,7 @@
 
 #include "host.hpp"
 #include "common.hpp"
+#include "core.hpp"
 #include "vdc.hpp"
 #include <thread>
 #include <chrono>
@@ -15,10 +16,13 @@ host_t::host_t(system_t *s)
 {
     // one extra line, needed for proper scanline effect
     core_framebuffer = new uint32_t[PIXELS_PER_SCANLINE * ((2 * SCANLINES) + 1)];
+	for (int i=0; i<PIXELS_PER_SCANLINE * ((2 * SCANLINES) + 1); i++) core_framebuffer[i] = 0;
 
-    for (int i=0; i<PIXELS_PER_SCANLINE * ((2 * SCANLINES) + 1); i++) {
-        core_framebuffer[i] = 0;
-    }
+	debugger_framebuffer = new uint32_t[4 * PIXELS_PER_SCANLINE * SCANLINES];
+	rca_t rca;
+	for (int i=0; i<4*PIXELS_PER_SCANLINE*SCANLINES; i++) {
+		debugger_framebuffer[i] = 0xff000000 | rca.byte() << 8;
+	}
 
     system = s;
 
@@ -33,8 +37,11 @@ host_t::host_t(system_t *s)
 	if (video_scaling & 0b1) video_scaling--;
     printf("window scaling: %i\n", video_scaling);
 
+	char title[64];
+	snprintf(title, 64, "lime  v%i.%i  %i", LIME_MAJOR_VERSION, LIME_MINOR_VERSION, LIME_BUILD);
+
     video_window = SDL_CreateWindow(
-        "lime",
+        title,
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
         video_scaling * PIXELS_PER_SCANLINE,
@@ -53,12 +60,17 @@ host_t::host_t(system_t *s)
 
     core_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, PIXELS_PER_SCANLINE, 2 * SCANLINES);
     SDL_SetTextureBlendMode(core_texture, SDL_BLENDMODE_BLEND);
+
+    debugger_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 2 * PIXELS_PER_SCANLINE, 2 * SCANLINES);
+    SDL_SetTextureBlendMode(core_texture, SDL_BLENDMODE_BLEND);
 }
 
 host_t::~host_t()
 {
     printf("quitting\n");
+	delete [] debugger_framebuffer;
     delete [] core_framebuffer;
+	SDL_DestroyTexture(debugger_texture);
     SDL_DestroyTexture(core_texture);
     SDL_DestroyRenderer(video_renderer);
     SDL_DestroyWindow(video_window);
@@ -113,38 +125,42 @@ uint32_t host_t::blend(uint32_t c0, uint32_t c1)
 
 void host_t::update_screen()
 {
+	for (int y=0; y < SCANLINES; y++) {
+		for (int x=0; x < PIXELS_PER_SCANLINE; x ++) {
+			core_framebuffer[((y << 1) * PIXELS_PER_SCANLINE) + x] = system->core->vdc->buffer[(PIXELS_PER_SCANLINE * y) + x];
+		}
+	}
+	if (video_scanlines) {
+		for (int y=0; y < SCANLINES; y++) {
+			for (int x=0; x < PIXELS_PER_SCANLINE; x++) {
+				core_framebuffer[(((y << 1) + 1) * PIXELS_PER_SCANLINE) + x] = blend(
+					core_framebuffer[(((y << 1) + 0) * PIXELS_PER_SCANLINE) + x],
+					core_framebuffer[(((y << 1) + 2) * PIXELS_PER_SCANLINE) + x]
+				);
+			}
+		}
+	} else {
+		for (int y=0; y < SCANLINES; y++) {
+			for (int x=0; x < PIXELS_PER_SCANLINE; x++) {
+				core_framebuffer[(((y << 1) + 1) * PIXELS_PER_SCANLINE) + x] =
+					core_framebuffer[(((y << 1) + 0) * PIXELS_PER_SCANLINE) + x];
+			}
+		}
+	}
+
+	SDL_UpdateTexture(core_texture, nullptr, (void *)core_framebuffer, PIXELS_PER_SCANLINE*sizeof(uint32_t));
     SDL_RenderClear(video_renderer);
 
 	switch (system->current_mode) {
 		case RUN_MODE:
-			for (int y=0; y < SCANLINES; y++) {
-				for (int x=0; x < PIXELS_PER_SCANLINE; x ++) {
-					core_framebuffer[((y << 1) * PIXELS_PER_SCANLINE) + x] = system->vdc->buffer[(PIXELS_PER_SCANLINE * y) + x];
-				}
-			}
-			if (video_scanlines) {
-				for (int y=0; y < SCANLINES; y++) {
-					for (int x=0; x < PIXELS_PER_SCANLINE; x++) {
-						core_framebuffer[(((y << 1) + 1) * PIXELS_PER_SCANLINE) + x] = blend(
-							core_framebuffer[(((y << 1) + 0) * PIXELS_PER_SCANLINE) + x],
-							core_framebuffer[(((y << 1) + 2) * PIXELS_PER_SCANLINE) + x]
-						);
-					}
-				}
-			} else {
-				for (int y=0; y < SCANLINES; y++) {
-					for (int x=0; x < PIXELS_PER_SCANLINE; x++) {
-						core_framebuffer[(((y << 1) + 1) * PIXELS_PER_SCANLINE) + x] =
-							core_framebuffer[(((y << 1) + 0) * PIXELS_PER_SCANLINE) + x];
-					}
-				}
-			}
-			SDL_UpdateTexture(core_texture, nullptr, (void *)core_framebuffer, PIXELS_PER_SCANLINE*sizeof(uint32_t));
 			SDL_RenderCopy(video_renderer, core_texture, nullptr, nullptr);
 			break;
 		case DEBUG_MODE:
-			SDL_RenderCopy(video_renderer, core_texture, nullptr, &viewer);
+			SDL_UpdateTexture(debugger_texture, nullptr, (void *)debugger_framebuffer, 2*PIXELS_PER_SCANLINE*sizeof(uint32_t));
+			SDL_RenderCopy(video_renderer, debugger_texture, nullptr, nullptr);
 
+			SDL_RenderFillRect(video_renderer, &viewer);
+			SDL_RenderCopy(video_renderer, core_texture, nullptr, &viewer);
 			break;
 	}
 
@@ -167,14 +183,8 @@ void host_t::video_toggle_fullscreen()
 	video_fullscreen = !video_fullscreen;
 	if (video_fullscreen) {
 		SDL_SetWindowFullscreen(video_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-		//SDL_GetWindowSize(video_window, &window_width, &window_height);
-		//SDL_RenderSetLogicalSize(video_renderer, window_width, window_height);
-		//printf("[SDL] Fullscreen size: %i x %i\n", window_width, window_height);
 	} else {
 		SDL_SetWindowFullscreen(video_window, SDL_WINDOW_RESIZABLE);
-		//SDL_GetWindowSize(video_window, &window_width, &window_height);
-		//SDL_RenderSetLogicalSize(video_renderer, window_width, window_height);
-		//printf("[SDL] Window size: %i x %i\n", window_width, window_height);
 	}
 }
 

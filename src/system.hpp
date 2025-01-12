@@ -32,7 +32,6 @@ public:
     host_t *host;
 	core_t *core;
 	debugger_t *debugger;
-    vdc_t *vdc;
 
 	enum mode current_mode;
 	void switch_mode();

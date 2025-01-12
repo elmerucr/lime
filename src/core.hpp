@@ -16,9 +16,22 @@
 #ifndef CORE_HPP
 #define CORE_HPP
 
+#include "system.hpp"
+#include "vdc.hpp"
+#include "rca.hpp"
+
 class core_t {
 private:
+	system_t *system;
+
+	rca_t rca;
 public:
+	core_t(system_t *s);
+	~core_t();
+
+	vdc_t *vdc;
+
+	void run();
 };
 
 #endif
