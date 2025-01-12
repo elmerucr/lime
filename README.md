@@ -2,7 +2,7 @@
 
 ![icon](./docs/icon_80x80.png)
 
-Lime is a virtual computer system that draws inspiration from iconic computing platforms such as the Commodore 64, Amiga 500, and Atari ST. Notable features include:
+Lime is a virtual computer system that draws inspiration from computing platforms such as the Commodore 64 and the Nintendo Gameboy. Notable features include:
 
 * Utilization of the MC6809 CPU using the [MC6809](https://github.com/elmerucr/MC6809) library
 * A total of 64k RAM
@@ -18,7 +18,7 @@ Lime is a virtual computer system that draws inspiration from iconic computing p
 
 ### Debug screen
 
-*wip*
+*tbd*
 
 ## Memory Map
 
@@ -59,6 +59,7 @@ To be done
 * [MC6809](https://github.com/elmerucr/mC6809) - MC6809 cpu emulator written in C++.
 * [Mega65](http://mega65.org) - The 21st century realization of the C65 heritage.
 * [Moira](https://github.com/dirkwhoffmann/Moira) - Motorola 68000 cpu emulator written in C++ by Dirk W. Hoffmann.
+* [punch]()
 * [reSID](http://www.zimmers.net/anonftp/pub/cbm/crossplatform/emulators/resid/index.html) - ReSID is a Commodore 6581 and 8580 Sound Interface Device emulator by Dag Lem.
 * [SDL Simple DirectMedia Layer](https://www.libsdl.org) - A cross-platform development library by Sam Lantinga designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware.
 * [Squirrel](http://squirrel-lang.org) - Squirrel is a high level imperative, object-oriented programming language, designed to be a light-weight scripting language that fits in the size, memory bandwidth, and real-time requirements of applications like video games.
