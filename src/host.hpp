@@ -30,7 +30,6 @@ private:
     uint32_t *core_framebuffer;
 
 	SDL_Texture *debugger_texture;
-	uint32_t *debugger_framebuffer;
 
 	const SDL_Rect viewer = {
 		PIXELS_PER_SCANLINE/2, 0, PIXELS_PER_SCANLINE/2, SCANLINES/2

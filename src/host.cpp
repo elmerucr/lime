@@ -9,6 +9,7 @@
 #include "common.hpp"
 #include "core.hpp"
 #include "vdc.hpp"
+#include "debugger.hpp"
 #include <thread>
 #include <chrono>
 
@@ -17,12 +18,6 @@ host_t::host_t(system_t *s)
     // one extra line, needed for proper scanline effect
     core_framebuffer = new uint32_t[PIXELS_PER_SCANLINE * ((2 * SCANLINES) + 1)];
 	for (int i=0; i<PIXELS_PER_SCANLINE * ((2 * SCANLINES) + 1); i++) core_framebuffer[i] = 0;
-
-	debugger_framebuffer = new uint32_t[4 * PIXELS_PER_SCANLINE * SCANLINES];
-	rca_t rca;
-	for (int i=0; i<4*PIXELS_PER_SCANLINE*SCANLINES; i++) {
-		debugger_framebuffer[i] = 0xff000000 | rca.byte() << 8;
-	}
 
     system = s;
 
@@ -62,13 +57,12 @@ host_t::host_t(system_t *s)
     SDL_SetTextureBlendMode(core_texture, SDL_BLENDMODE_BLEND);
 
     debugger_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 2 * PIXELS_PER_SCANLINE, 2 * SCANLINES);
-    SDL_SetTextureBlendMode(core_texture, SDL_BLENDMODE_BLEND);
+    SDL_SetTextureBlendMode(debugger_texture, SDL_BLENDMODE_BLEND);
 }
 
 host_t::~host_t()
 {
     printf("quitting\n");
-	delete [] debugger_framebuffer;
     delete [] core_framebuffer;
 	SDL_DestroyTexture(debugger_texture);
     SDL_DestroyTexture(core_texture);
@@ -95,7 +89,6 @@ bool host_t::process_events()
 					video_toggle_fullscreen();
                 } else if ((event.key.keysym.sym == SDLK_s) && alt_pressed) {
                     video_scanlines = !video_scanlines;
-                    //if (++video_scanlines > 1) video_scanlines = 0;
                 } else if ((event.key.keysym.sym == SDLK_q) && alt_pressed) {
                     events_wait_until_key_released(SDLK_q);
                     return_value = false;
@@ -156,10 +149,13 @@ void host_t::update_screen()
 			SDL_RenderCopy(video_renderer, core_texture, nullptr, nullptr);
 			break;
 		case DEBUG_MODE:
-			SDL_UpdateTexture(debugger_texture, nullptr, (void *)debugger_framebuffer, 2*PIXELS_PER_SCANLINE*sizeof(uint32_t));
+			system->debugger->redraw();
+			SDL_UpdateTexture(debugger_texture, nullptr, (void *)system->debugger->buffer, 2*PIXELS_PER_SCANLINE*sizeof(uint32_t));
 			SDL_RenderCopy(video_renderer, debugger_texture, nullptr, nullptr);
 
+			// draw black rectangle
 			SDL_RenderFillRect(video_renderer, &viewer);
+			// render core texture
 			SDL_RenderCopy(video_renderer, core_texture, nullptr, &viewer);
 			break;
 	}
