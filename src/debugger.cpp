@@ -37,6 +37,7 @@ void debugger_t::redraw()
 	//
 
 	//
+	chars[(rca.byte() << 8 | rca.byte()) % (PIXELS_PER_SCANLINE * SCANLINES / 16)] = rca.byte();
 
 	// update buffer
 	for (int y=0; y<(2*SCANLINES); y++) {
