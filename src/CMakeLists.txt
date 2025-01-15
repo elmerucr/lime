@@ -3,5 +3,6 @@ add_library(system STATIC
 	debugger.cpp
 	host.cpp
 	system.cpp
+	terminal.cpp
 	vdc.cpp
 )

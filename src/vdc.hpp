@@ -22,15 +22,16 @@
 #define VC_HPP
 
 #include <cstdint>
+#include "common.hpp"
 #include "font_cbm_8x8.hpp"
 
 // gameboy green palette
 // https://lospec.com/palette-list/nintendo-gameboy-bgb
 const uint32_t palette[4] = {
-	0xff081820,
-	0xff346856,
-	0xff88c070,
-	0xffe0f8d0
+	GB_COLOR_0,
+	GB_COLOR_1,
+	GB_COLOR_2,
+	GB_COLOR_3
 };
 
 struct layer_t {

@@ -29,4 +29,10 @@
 
 #define VDC_LAYERS		0x2000
 
+// gameboy colors
+#define	GB_COLOR_0	0xff081820
+#define GB_COLOR_1	0xff346856
+#define GB_COLOR_2	0xff88c070
+#define GB_COLOR_3	0xffe0f8d0
+
 #endif
