@@ -56,7 +56,7 @@ host_t::host_t(system_t *s)
     core_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, PIXELS_PER_SCANLINE, 2 * SCANLINES);
     SDL_SetTextureBlendMode(core_texture, SDL_BLENDMODE_BLEND);
 
-    debugger_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 2 * PIXELS_PER_SCANLINE, 2 * SCANLINES);
+    debugger_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, DEBUGGER_WIDTH, DEBUGGER_HEIGHT);
     SDL_SetTextureBlendMode(debugger_texture, SDL_BLENDMODE_BLEND);
 }
 
@@ -88,7 +88,9 @@ bool host_t::process_events()
 					events_wait_until_key_released(SDLK_f);
 					video_toggle_fullscreen();
                 } else if ((event.key.keysym.sym == SDLK_s) && alt_pressed) {
-                    video_scanlines = !video_scanlines;
+					if (system->current_mode == RUN_MODE) {
+                    	video_scanlines = !video_scanlines;
+					}
                 } else if ((event.key.keysym.sym == SDLK_q) && alt_pressed) {
                     events_wait_until_key_released(SDLK_q);
                     return_value = false;
@@ -123,7 +125,8 @@ void host_t::update_screen()
 			core_framebuffer[((y << 1) * PIXELS_PER_SCANLINE) + x] = system->core->vdc->buffer[(PIXELS_PER_SCANLINE * y) + x];
 		}
 	}
-	if (video_scanlines) {
+
+	if (video_scanlines && (system->current_mode == RUN_MODE)) {
 		for (int y=0; y < SCANLINES; y++) {
 			for (int x=0; x < PIXELS_PER_SCANLINE; x++) {
 				core_framebuffer[(((y << 1) + 1) * PIXELS_PER_SCANLINE) + x] = blend(
@@ -150,7 +153,7 @@ void host_t::update_screen()
 			break;
 		case DEBUG_MODE:
 			system->debugger->redraw();
-			SDL_UpdateTexture(debugger_texture, nullptr, (void *)system->debugger->buffer, 2*PIXELS_PER_SCANLINE*sizeof(uint32_t));
+			SDL_UpdateTexture(debugger_texture, nullptr, (void *)system->debugger->buffer, DEBUGGER_WIDTH*sizeof(uint32_t));
 			SDL_RenderCopy(video_renderer, debugger_texture, nullptr, nullptr);
 
 			// draw black rectangle
