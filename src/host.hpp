@@ -32,7 +32,7 @@ private:
 	SDL_Texture *debugger_texture;
 
 	const SDL_Rect viewer = {
-		PIXELS_PER_SCANLINE/2, 0, PIXELS_PER_SCANLINE/2, SCANLINES/2
+		116, 4, PIXELS_PER_SCANLINE/2, SCANLINES/2
 	};
 
     uint32_t blend(uint32_t c0, uint32_t c1);
