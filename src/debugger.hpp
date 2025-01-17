@@ -14,11 +14,14 @@ private:
 	uint32_t *fg_colors;
 	uint32_t *bg_colors;
 	rca_t rca;
-	terminal_t *terminal;
 	terminal_t *status;
 public:
 	debugger_t();
 	~debugger_t();
+
+	terminal_t *terminal;
+	void prompt();
+
 	uint32_t *buffer;
 	void redraw();
 };

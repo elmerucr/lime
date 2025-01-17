@@ -72,3 +72,8 @@ void debugger_t::redraw()
 		}
 	}
 }
+
+void debugger_t::prompt()
+{
+	terminal->printf("\n.");
+}

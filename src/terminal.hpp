@@ -56,13 +56,13 @@ public:
 private:
 	uint16_t total_tiles;
 
-	uint16_t cursor_position{0};
-	uint8_t  cursor_interval{20};
-	uint8_t  cursor_countdown{0};
-	char     cursor_original_char{0x20};
-	uint8_t  cursor_original_color;
-	uint8_t  cursor_original_background_color;
-	bool     cursor_blinking{false};
+	uint16_t	cursor_position{0};
+	uint8_t		cursor_interval{20};
+	uint8_t		cursor_countdown{0};
+	char		cursor_original_char{0x20};
+	uint32_t	cursor_original_color;
+	uint32_t	cursor_original_background_color;
+	bool		cursor_blinking{false};
 
 	enum output_type check_output(bool top_down, uint32_t *address, uint32_t *w);
 

@@ -13,21 +13,39 @@
 // ---------------------------------------------------------------------
 #define LIME_MAJOR_VERSION	0
 #define LIME_MINOR_VERSION	1
-#define LIME_BUILD			20250116
+#define LIME_BUILD			20250117
 #define LIME_YEAR			2025
 
 // ---------------------------------------------------------------------
-// Video
+// video
 // ---------------------------------------------------------------------
 #define VRAM_SIZE			0x10000
 #define PIXELS_PER_SCANLINE	240
 #define SCANLINES			160
+#define	FPS					60
 
-// vdc
+// ---------------------------------------------------------------------
+// vdc (video display controller)
+// ---------------------------------------------------------------------
 #define VDC_TILESET_0	0x0800
 #define VDC_TILESET_1	0x1000
 
 #define VDC_LAYERS		0x2000
+
+// ---------------------------------------------------------------------
+// audio
+// ---------------------------------------------------------------------
+#define SAMPLE_RATE				48000
+#define AUDIO_BUFFER_SIZE		8000.0
+#define SID_CLOCK_SPEED			985248
+#define SID_CYCLES_PER_FRAME	(SID_CLOCK_SPEED/FPS)
+
+// ---------------------------------------------------------------------
+// cpu
+// ---------------------------------------------------------------------
+#define CPU_CLOCK_MULTIPLY		1
+#define CPU_CLOCK_SPEED			(CPU_CLOCK_MULTIPLY*SID_CLOCK_SPEED)
+#define CPU_CYCLES_PER_FRAME	(CPU_CLOCK_SPEED/FPS)
 
 // ---------------------------------------------------------------------
 // debugger

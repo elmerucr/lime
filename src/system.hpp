@@ -19,7 +19,7 @@ enum mode {
 class host_t;
 class core_t;
 class debugger_t;
-class vdc_t;
+class stats_t;
 
 class system_t {
 private:
@@ -32,6 +32,7 @@ public:
     host_t *host;
 	core_t *core;
 	debugger_t *debugger;
+	stats_t *stats;
 
 	enum mode current_mode;
 	void switch_mode();
