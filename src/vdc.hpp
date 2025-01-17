@@ -86,13 +86,14 @@ struct sprite_t {
 
 class vdc_t {
 private:
-    uint8_t *ram;
     font_cbm_8x8_t font;
 	void draw_layer(layer_t *l, uint8_t sl);
 	void draw_sprite(sprite_t *s, uint8_t sl, layer_t *t);
 public:
     vdc_t();
     ~vdc_t();
+
+    uint8_t *ram;
 
 	layer_t layer[4];
 	sprite_t sprite[256];

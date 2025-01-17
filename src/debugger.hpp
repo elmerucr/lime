@@ -6,6 +6,7 @@
 #include "font_4x8.hpp"
 #include "rca.hpp"
 #include "terminal.hpp"
+#include "system.hpp"
 
 class debugger_t {
 private:
@@ -15,8 +16,9 @@ private:
 	uint32_t *bg_colors;
 	rca_t rca;
 	terminal_t *status;
+	system_t *system;
 public:
-	debugger_t();
+	debugger_t(system_t *s);
 	~debugger_t();
 
 	terminal_t *terminal;

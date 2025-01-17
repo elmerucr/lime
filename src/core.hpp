@@ -18,6 +18,7 @@
 
 #include "system.hpp"
 #include "vdc.hpp"
+#include "cpu.hpp"
 #include "rca.hpp"
 
 class core_t {
@@ -30,6 +31,12 @@ public:
 	~core_t();
 
 	vdc_t *vdc;
+	cpu_t *cpu;
+
+	void reset();
+
+	uint8_t read8(uint16_t address);
+	void write8(uint16_t address, uint8_t value);
 
 	void run();
 };

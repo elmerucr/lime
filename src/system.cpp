@@ -24,14 +24,14 @@ system_t::system_t()
     host = new host_t(this);
 
 	core = new core_t(this);
-	debugger = new debugger_t();
+	debugger = new debugger_t(this);
 	stats = new stats_t(this);
 
 	// default start mode
 	switch_to_run_mode();
 	//switch_to_debug_mode();
 
-	//core->reset();
+	core->reset();
 }
 
 system_t::~system_t()

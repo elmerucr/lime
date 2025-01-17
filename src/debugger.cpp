@@ -1,8 +1,11 @@
 #include "debugger.hpp"
+#include "core.hpp"
 #include <cstdint>
 
-debugger_t::debugger_t()
+debugger_t::debugger_t(system_t *s)
 {
+	system = s;
+
 	buffer = new uint32_t[DEBUGGER_WIDTH * DEBUGGER_HEIGHT];
 
 	tiles = new uint8_t[(DEBUGGER_WIDTH >> 2) * (DEBUGGER_HEIGHT >> 3)];
@@ -22,9 +25,11 @@ debugger_t::debugger_t()
 
 	status = new terminal_t(60, 17, GB_COLOR_2, GB_COLOR_0);
 	status->clear();
-	status->printf("$d021 lda #$00\n");
-	status->printf("$d024 ldx $d400,y");
-	status->activate_cursor();
+
+	char buffer[1024];
+	system->core->cpu->status(buffer, 1024);
+
+	status->printf("%s", buffer);
 }
 
 debugger_t::~debugger_t()
@@ -48,7 +53,6 @@ void debugger_t::redraw()
 		}
 	}
 
-	status->process_cursor_state();
 	for (int y = 0; y<status->height; y++) {
 		for (int x = 0; x<status->width; x++) {
 			tiles[(y+22)*120 + x + 58] = status->tiles[(y*status->width)+x];

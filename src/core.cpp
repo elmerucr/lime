@@ -14,7 +14,7 @@ core_t::core_t(system_t *s)
 
 	vdc = new vdc_t();
 
-	vdc->reset();
+	cpu = new cpu_t(system);
 
 	vdc->layer[0].flags = 0b101;
 	vdc->layer[1].palette[0b11] = 0b01;
@@ -46,6 +46,7 @@ core_t::core_t(system_t *s)
 
 core_t::~core_t()
 {
+	delete cpu;
 	delete vdc;
 }
 
@@ -67,4 +68,20 @@ void core_t::run()
 		vdc->sprite[i].y++;
 		if (vdc->sprite[i].y == 240) vdc->sprite[i].x = rca.byte();
 	}
+}
+
+uint8_t core_t::read8(uint16_t address)
+{
+	return vdc->ram[address];
+}
+
+void core_t::write8(uint16_t address, uint8_t value)
+{
+	vdc->ram[address] = value;
+}
+
+void core_t::reset()
+{
+	cpu->reset();
+	vdc->reset();
 }
