@@ -29,7 +29,8 @@ debugger_t::debugger_t(system_t *s)
 	char buffer[1024];
 	system->core->cpu->status(buffer, 1024);
 
-	status->printf("%s", buffer);
+	status->printf("__cpu_________________________________________________\n%s", buffer);
+	status->printf("\n\n__disassembly_________________________________________");
 }
 
 debugger_t::~debugger_t()
