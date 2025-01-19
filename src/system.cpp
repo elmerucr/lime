@@ -8,6 +8,7 @@
 #include "system.hpp"
 #include "host.hpp"
 #include "core.hpp"
+#include "keyboard.hpp"
 #include "debugger.hpp"
 #include "stats.hpp"
 #include <cmath>
@@ -24,7 +25,13 @@ system_t::system_t()
     host = new host_t(this);
 
 	core = new core_t(this);
+
+	keyboard = new keyboard_t(this);
+	keyboard->reset();
+	keyboard->enable_events();
+
 	debugger = new debugger_t(this);
+
 	stats = new stats_t(this);
 
 	// default start mode
@@ -38,6 +45,7 @@ system_t::~system_t()
 {
 	delete stats;
 	delete debugger;
+	delete keyboard;
 	delete core;
     delete host;
 
@@ -56,11 +64,14 @@ void system_t::run()
 
         if (host->events_process_events() == QUIT_EVENT) running = false;
 
+		keyboard->process();
+
 		switch (current_mode) {
 			case RUN_MODE:
 				core->run();
 				break;
 			case DEBUG_MODE:
+				debugger->run();
 				//
 				break;
 		};

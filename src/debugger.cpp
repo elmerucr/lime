@@ -1,5 +1,6 @@
 #include "debugger.hpp"
 #include "core.hpp"
+#include "keyboard.hpp"
 #include <cstdint>
 
 debugger_t::debugger_t(system_t *s)
@@ -29,8 +30,8 @@ debugger_t::debugger_t(system_t *s)
 	char buffer[1024];
 	system->core->cpu->status(buffer, 1024);
 
-	status->printf("__cpu_________________________________________________\n%s", buffer);
-	status->printf("\n\n__disassembly_________________________________________");
+	status->printf("__cpu_______________________________________________________%s", buffer);
+	status->printf("\n\n__disassembly_______________________________________________");
 }
 
 debugger_t::~debugger_t()
@@ -45,7 +46,6 @@ debugger_t::~debugger_t()
 
 void debugger_t::redraw()
 {
-	terminal->process_cursor_state();
 	for (int y = 0; y<terminal->height; y++) {
 		for (int x = 0; x<terminal->width; x++) {
 			tiles[(y+1)*120 + x + 2] = terminal->tiles[(y*terminal->width)+x];
@@ -81,4 +81,58 @@ void debugger_t::redraw()
 void debugger_t::prompt()
 {
 	terminal->printf("\n.");
+}
+
+void debugger_t::run()
+{
+	uint8_t symbol = 0;
+
+	terminal->process_cursor_state();
+
+	while (system->keyboard->events_waiting()) {
+		terminal->deactivate_cursor();
+		symbol = system->keyboard->pop_event();
+		switch (symbol) {
+			// case ASCII_F1:
+			// 	system->core->run(true);
+			// 	status();
+			// 	prompt();
+			// 	break;
+			// case ASCII_F2:
+			// 	status();
+			// 	prompt();
+			// 	break;
+//			case ASCII_F3:
+//				terminal->deactivate_cursor();
+//				terminal->printf("run");
+//				system->switch_to_run_mode();
+//				system->host->events_wait_until_key_released(SDLK_F3);
+//				break;
+			case ASCII_CURSOR_LEFT:
+				terminal->cursor_left();
+				break;
+			case ASCII_CURSOR_RIGHT:
+				terminal->cursor_right();
+				break;
+			case ASCII_CURSOR_UP:
+				terminal->cursor_up();
+				break;
+			case ASCII_CURSOR_DOWN:
+				terminal->cursor_down();
+				break;
+			case ASCII_BACKSPACE:
+				terminal->backspace();
+				break;
+			case ASCII_LF:
+				// TODO: supply textbuffer here to isolate command?
+				char command_buffer[256];
+				terminal->get_command(command_buffer, 256);
+				//process_command(command_buffer);
+				break;
+			default:
+				terminal->putchar(symbol);
+				break;
+		}
+		terminal->activate_cursor();
+	}
 }

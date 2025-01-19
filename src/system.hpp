@@ -18,6 +18,7 @@ enum mode {
 
 class host_t;
 class core_t;
+class keyboard_t;
 class debugger_t;
 class stats_t;
 
@@ -31,6 +32,7 @@ public:
 
     host_t *host;
 	core_t *core;
+	keyboard_t *keyboard;
 	debugger_t *debugger;
 	stats_t *stats;
 

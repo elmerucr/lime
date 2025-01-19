@@ -3,6 +3,7 @@ add_library(system STATIC
 	cpu.cpp
 	debugger.cpp
 	host.cpp
+	keyboard.cpp
 	stats.cpp
 	system.cpp
 	terminal.cpp

@@ -26,6 +26,8 @@ public:
 
 	uint32_t *buffer;
 	void redraw();
+
+	void run();
 };
 
 #endif
