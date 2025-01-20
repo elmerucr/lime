@@ -2,6 +2,7 @@
 #define TERMINAL_HPP
 
 #include <cstdint>
+#include "system.hpp"
 
 #define TEXT_BUFFER_SIZE	256
 
@@ -14,7 +15,7 @@ enum output_type {
 
 class terminal_t {
 public:
-	terminal_t(uint8_t w, uint8_t h, uint32_t fg, uint32_t bg);
+	terminal_t(system_t *s, uint8_t w, uint8_t h, uint32_t fg, uint32_t bg);
 	~terminal_t();
 
 	void clear();
@@ -54,6 +55,7 @@ public:
 	uint32_t *bg_colors;
 
 private:
+	system_t *system;
 	uint16_t total_tiles;
 
 	uint16_t	cursor_position{0};

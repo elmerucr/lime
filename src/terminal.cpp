@@ -1,10 +1,13 @@
-#include "terminal.hpp"
 #include <cstdio>
 #include <cstdarg>
 #include <cstring>
+#include "terminal.hpp"
+#include "debugger.hpp"
 
-terminal_t::terminal_t(uint8_t w, uint8_t h, uint32_t fg, uint32_t bg)
+terminal_t::terminal_t(system_t *s, uint8_t w, uint8_t h, uint32_t fg, uint32_t bg)
 {
+	system = s;
+
 	width = w;
 	height = h;
 
@@ -182,14 +185,12 @@ void terminal_t::cursor_up()
 				break;
 			case MEMORY:
 				add_top_row();
-				// TODO: !!!
-				//system->debugger->memory_dump((address - 8) & 0xffff);
+				system->debugger->memory_dump((address - 8) & 0xffff);
 				break;
 			case MEMORY_BINARY:
 				add_top_row();
 				printf("\r");
-				// TODO: !!!
-				//system->debugger->vram_binary_dump((address - width) & VRAM_SIZE_MASK, width);
+				system->debugger->memory_binary_dump((address - 2) & 0xffff);
 				break;
 			case DISASSEMBLY:
 				break;
@@ -215,13 +216,11 @@ void terminal_t::cursor_down()
 				break;
 			case MEMORY:
 				add_bottom_row();
-				// TODO: !!!
-				//system->debugger->memory_dump((address + 8) & 0xffff);
+				system->debugger->memory_dump((address + 8) & 0xffff);
 				break;
 			case MEMORY_BINARY:
 				printf("\n");
-				// TODO: !!!
-				//system->debugger->vram_binary_dump((address + w) & VRAM_SIZE_MASK, width);
+				system->debugger->memory_binary_dump((address + 2) & 0xffff);
 				break;
 			case DISASSEMBLY:
 				// TODO: !!!
@@ -299,24 +298,15 @@ enum output_type terminal_t::check_output(bool top_down, uint32_t *address, uint
 				potential_address[j] = tiles[i + 2 + j];
 			}
 			potential_address[4] = 0;
-			// TODO: !!!
-			//system->debugger->hex_string_to_int(potential_address, address);
+			system->debugger->hex_string_to_int(potential_address, address);
 			if (top_down) break;
-		} else if (tiles[i + 1] == '\'') {
+		} else if (tiles[i + 1] == ';') {
 			output = MEMORY_BINARY;
 			for (int j=0; j<4; j++) {
 				potential_address[j] = tiles[i + 2 + j];
 			}
 			potential_address[4] = 0;
-			// TODO: !!!
-			//system->debugger->hex_string_to_int(potential_address, address);
-
-			potential_address[0] = tiles[i + 9];
-			potential_address[1] = 0;
-
-			// TODO: !!!
-			//system->debugger->hex_string_to_int(potential_address, w);
-
+			system->debugger->hex_string_to_int(potential_address, address);
 			if (top_down) break;
 		} else if (tiles[i + 1] == ',') {
 			output = DISASSEMBLY;

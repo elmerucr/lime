@@ -17,12 +17,22 @@ private:
 	rca_t rca;
 	terminal_t *status;
 	system_t *system;
+
+	bool have_prompt;
 public:
 	debugger_t(system_t *s);
 	~debugger_t();
 
 	terminal_t *terminal;
+
+	void process_command(char *c);
 	void prompt();
+	void print_version();
+	void memory_dump(uint16_t address);
+	void enter_memory_line(char *buffer);
+	void memory_binary_dump(uint16_t address);
+
+	bool hex_string_to_int(const char *temp_string, uint32_t *return_value);
 
 	uint32_t *buffer;
 	void redraw();

@@ -1,19 +1,19 @@
-/*
- * font_4x6.hpp
- * punch
- *
- * Copyright © 2024 elmerucr. All rights reserved.
- */
+// ---------------------------------------------------------------------
+// font_4x8.hpp
+// punch
+//
+// Copyright © 2024 elmerucr. All rights reserved.
+// ---------------------------------------------------------------------
 
-/*
- * Inspired by:
- * https://hackaday.io/project/6309-vga-graphics-over-spi-and-serial-vgatonic/log/20759-a-tiny-4x6-pixel-font-that-will-fit-on-almost-any-microcontroller-license-mit
- */
+// ---------------------------------------------------------------------
+// Inspired by:
+// https://hackaday.io/project/6309-vga-graphics-over-spi-and-serial-vgatonic/log/20759-a-tiny-4x6-pixel-font-that-will-fit-on-almost-any-microcontroller-license-mit
+// ---------------------------------------------------------------------
 
 #include <cstdint>
 
-#ifndef FONT_4X6_HPP
-#define FONT_4X6_HPP
+#ifndef FONT_4X8_HPP
+#define FONT_4X8_HPP
 
 class font_4x8_t {
 public:
