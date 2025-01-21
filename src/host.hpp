@@ -139,6 +139,7 @@ public:
     enum events_output_state events_process_events();
 	uint8_t keyboard_state[128];
     void events_wait_until_key_released(SDL_KeyCode key);
+	bool events_yes_no();	// return true on 'y' and false on 'n'
 };
 
 #endif

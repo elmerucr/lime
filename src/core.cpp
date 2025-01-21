@@ -82,6 +82,8 @@ void core_t::write8(uint16_t address, uint8_t value)
 
 void core_t::reset()
 {
+	vdc->reset();	// vdc before cpu, as vdc also inits ram
+	write8(0xfffe, 0xab);
+	write8(0xffff, 0xba);
 	cpu->reset();
-	vdc->reset();
 }

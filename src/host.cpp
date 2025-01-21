@@ -331,3 +331,23 @@ void host_t::video_stop()
     SDL_DestroyRenderer(video_renderer);
     SDL_DestroyWindow(video_window);
 }
+
+bool host_t::events_yes_no()
+{
+	SDL_Event event;
+	bool checking = true;
+	bool return_value = true;
+	while (checking) {
+		SDL_PollEvent(&event);
+		if (event.type == SDL_KEYDOWN) {
+			if (event.key.keysym.sym == SDLK_y) {
+				checking = false;
+			} else if (event.key.keysym.sym == SDLK_n) {
+				return_value = false;
+				checking = false;
+			}
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(5));
+	}
+	return return_value;
+}

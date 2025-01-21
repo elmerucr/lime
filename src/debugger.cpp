@@ -73,19 +73,12 @@ debugger_t::debugger_t(system_t *s)
 		bg_colors[i] = C64_LIGHTBLUE;
 	}
 
-	terminal = new terminal_t(system, 54, 38, C64_LIGHTBLUE, C64_BLUE);
+	terminal = new terminal_t(system, 54, 20, C64_LIGHTBLUE, C64_BLUE);
 	terminal->clear();
 	print_version();
 	terminal->activate_cursor();
 
-	status = new terminal_t(system, 60, 17, GB_COLOR_2, GB_COLOR_0);
-	status->clear();
-
-	char buffer[1024];
-	system->core->cpu->status(buffer, 1024);
-
-	status->printf("__cpu_______________________________________________________%s", buffer);
-	status->printf("\n\n__disassembly_______________________________________________");
+	status = new terminal_t(system, 116, 17, GB_COLOR_2, GB_COLOR_0);
 }
 
 debugger_t::~debugger_t()
@@ -108,11 +101,17 @@ void debugger_t::redraw()
 		}
 	}
 
+	status->clear();
+	char text_buffer[1024];
+	system->core->cpu->status(text_buffer, 1024);
+	status->printf("__cpu_______________________________________________________\n%s", text_buffer);
+	status->printf("\n\n__disassembly_______________________________________________");
+
 	for (int y = 0; y<status->height; y++) {
 		for (int x = 0; x<status->width; x++) {
-			tiles[(y+22)*120 + x + 58] = status->tiles[(y*status->width)+x];
-			fg_colors[(y+22)*120 + x + 58] = status->fg_colors[(y*status->width)+x];
-			bg_colors[(y+22)*120 + x + 58] = status->bg_colors[(y*status->width)+x];
+			tiles[(y+22)*120 + x + 2] = status->tiles[(y*status->width)+x];
+			fg_colors[(y+22)*120 + x + 2] = status->fg_colors[(y*status->width)+x];
+			bg_colors[(y+22)*120 + x + 2] = status->bg_colors[(y*status->width)+x];
 		}
 	}
 
@@ -271,18 +270,17 @@ void debugger_t::process_command(char *c)
 	// 			}
 	// 		}
 	// 	}
-	// } else if (strcmp(token0, "x") == 0) {
-	// 	terminal->printf("\nexit punch (y/n)");
-	// 	redraw();
-	// 	system->host->update_debugger_texture((uint32_t *)&blitter->vram[FRAMEBUFFER_ADDRESS]);
-	// 	system->host->update_screen();
-	// 	if (system->host->events_yes_no()) {
-	// 		system->running = false;
-	// 		system->host->events_wait_until_key_released(SDLK_y);
-	// 		have_prompt = false;
-	// 	} else {
-	// 		system->host->events_wait_until_key_released(SDLK_n);
-	// 	}
+	} else if (strcmp(token0, "x") == 0) {
+		terminal->printf("\nexit punch (y/n)");
+		redraw();
+		system->host->update_screen();
+		if (system->host->events_yes_no()) {
+			system->running = false;
+			system->host->events_wait_until_key_released(SDLK_y);
+			have_prompt = false;
+		} else {
+			system->host->events_wait_until_key_released(SDLK_n);
+		}
 	} else if (strcmp(token0, "m") == 0) {
 		have_prompt = false;
 		token1 = strtok(NULL, " ");
@@ -310,7 +308,7 @@ void debugger_t::process_command(char *c)
 				}
 			}
 		}
-	} else if (strcmp(token0, "mb") == 0) {
+	} else if (strcmp(token0, "g") == 0) {
 		have_prompt = false;
 		token1 = strtok(NULL, " ");
 
