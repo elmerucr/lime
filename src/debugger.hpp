@@ -31,8 +31,10 @@ public:
 	void memory_dump(uint16_t address);
 	void enter_memory_line(char *buffer);
 	void memory_binary_dump(uint16_t address);
+	void enter_memory_binary_line(char *buffer);
 
 	bool hex_string_to_int(const char *temp_string, uint32_t *return_value);
+	bool binary_string_to_int(const char *temp_string, uint32_t *return_value);
 
 	uint32_t *buffer;
 	void redraw();

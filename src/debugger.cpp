@@ -35,6 +35,28 @@ bool debugger_t::hex_string_to_int(const char *temp_string, uint32_t *return_val
 	return true;
 }
 
+bool debugger_t::binary_string_to_int(const char *temp_string, uint32_t *return_value)
+{
+	uint32_t val = 0;
+	while (*temp_string) {
+		/* Get current character then increment */
+		uint8_t c = *temp_string++;
+
+		if (c == '1') {
+			c = 0b1;
+		} else if (c == '.') {
+			c = 0b0;
+		} else {
+			/* Problem, return false and do not write the return value */
+			return false;
+		}
+		/* Shift 1 to make space for new digit, and add the 4 bits of the new digit */
+		val = (val << 1) | c;
+	}
+	*return_value = val;
+	return true;
+}
+
 debugger_t::debugger_t(system_t *s)
 {
 	system = s;
@@ -187,9 +209,9 @@ void debugger_t::process_command(char *c)
 	} else if (token0[0] == ':') {
 		have_prompt = false;
 		enter_memory_line(c);
-	// } else if (token0[0] == ';') {
-	// 	have_prompt = false;
-	// 	enter_vram_line(c);
+	} else if (token0[0] == ';') {
+		have_prompt = false;
+		enter_memory_binary_line(c);
 	// } else if (token0[0] == '\'') {
 	// 	have_prompt = false;
 	// 	enter_vram_binary_line(c);
@@ -507,5 +529,91 @@ void debugger_t::memory_binary_dump(uint16_t address)
 
 	for (int i=0; i<40; i++) {
 		terminal->cursor_left();
+	}
+}
+
+void debugger_t::enter_memory_binary_line(char *buffer)
+{
+	have_prompt = true;
+
+	uint32_t address;
+	uint32_t arg0, arg1, arg2, arg3;
+	uint32_t arg4, arg5, arg6, arg7;
+
+	buffer[5]  = '\0';
+	buffer[8]  = '\0';
+	buffer[11] = '\0';
+	buffer[14] = '\0';
+	buffer[17] = '\0';
+	buffer[20] = '\0';
+	buffer[23] = '\0';
+	buffer[26] = '\0';
+	buffer[29] = '\0';
+
+	if (!hex_string_to_int(&buffer[1], &address)) {
+		terminal->putchar('\r');
+		terminal->cursor_right();
+		terminal->cursor_right();
+		terminal->puts("????");
+	} else if (!binary_string_to_int(&buffer[6], &arg0)) {
+		terminal->putchar('\r');
+		for (int i=0; i<7; i++) terminal->cursor_right();
+		terminal->puts("??");
+	} else if (!binary_string_to_int(&buffer[9], &arg1)) {
+		terminal->putchar('\r');
+		for (int i=0; i<10; i++) terminal->cursor_right();
+		terminal->puts("??");
+	} else if (!binary_string_to_int(&buffer[12], &arg2)) {
+		terminal->putchar('\r');
+		for (int i=0; i<13; i++) terminal->cursor_right();
+		terminal->puts("??");
+	} else if (!binary_string_to_int(&buffer[15], &arg3)) {
+		terminal->putchar('\r');
+		for (int i=0; i<16; i++) terminal->cursor_right();
+		terminal->puts("??");
+	} else if (!binary_string_to_int(&buffer[18], &arg4)) {
+		terminal->putchar('\r');
+		for (int i=0; i<19; i++) terminal->cursor_right();
+		terminal->puts("??");
+	} else if (!binary_string_to_int(&buffer[21], &arg5)) {
+		terminal->putchar('\r');
+		for (int i=0; i<22; i++) terminal->cursor_right();
+		terminal->puts("??");
+	} else if (!binary_string_to_int(&buffer[24], &arg6)) {
+		terminal->putchar('\r');
+		for (int i=0; i<25; i++) terminal->cursor_right();
+		terminal->puts("??");
+	} else if (!binary_string_to_int(&buffer[27], &arg7)) {
+		terminal->putchar('\r');
+		for (int i=0; i<28; i++) terminal->cursor_right();
+		terminal->puts("??");
+	} else {
+		uint16_t original_address = address;
+
+		arg0 &= 0b11;
+		arg1 &= 0b11;
+		arg2 &= 0b11;
+		arg3 &= 0b11;
+		arg4 &= 0b11;
+		arg5 &= 0b11;
+		arg6 &= 0b11;
+		arg7 &= 0b11;
+
+
+
+		system->core->write8(address, (arg0 << 6) | (arg1 << 4) | (arg2 << 2) | arg3);
+		address +=1;
+		address &= 0xffff;
+
+		system->core->write8(address, (arg4 << 6) | (arg5 << 4) | (arg6 << 2) | arg7);
+
+		terminal->putchar('\r');
+
+		memory_binary_dump(original_address);
+
+		original_address += 2;
+		original_address &= 0xffff;
+		terminal->printf("\n.;%04x ", original_address);
+		have_prompt = false;
 	}
 }
