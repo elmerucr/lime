@@ -20,11 +20,19 @@
 #include "vdc.hpp"
 #include "cpu.hpp"
 #include "rca.hpp"
+#include "rom.hpp"
+
+#define ROM_PAGE	0xff
+
+enum output_states {
+	NORMAL,
+	BREAKPOINT,
+};
 
 class core_t {
 private:
 	system_t *system;
-
+	rom_t *rom;
 	rca_t rca;
 public:
 	core_t(system_t *s);
@@ -38,7 +46,7 @@ public:
 	uint8_t read8(uint16_t address);
 	void write8(uint16_t address, uint8_t value);
 
-	void run();
+	enum output_states run(bool debug);
 };
 
 #endif

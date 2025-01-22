@@ -68,7 +68,7 @@ void system_t::run()
 
 		switch (current_mode) {
 			case RUN_MODE:
-				core->run();
+				core->run(true);
 				break;
 			case DEBUG_MODE:
 				debugger->run();

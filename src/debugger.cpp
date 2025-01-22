@@ -93,6 +93,7 @@ debugger_t::~debugger_t()
 
 void debugger_t::redraw()
 {
+	// copy terminal tiles into tiles buffer
 	for (int y = 0; y<terminal->height; y++) {
 		for (int x = 0; x<terminal->width; x++) {
 			tiles[(y+1)*120 + x + 2] = terminal->tiles[(y*terminal->width)+x];
@@ -101,12 +102,17 @@ void debugger_t::redraw()
 		}
 	}
 
+	// redraw status
 	status->clear();
-	char text_buffer[1024];
 	system->core->cpu->status(text_buffer, 1024);
 	status->printf("__cpu_______________________________________________________\n%s", text_buffer);
 	status->printf("\n\n__disassembly_______________________________________________");
-
+	uint16_t pc = system->core->cpu->get_pc();
+	for (int i=0; i<12; i++) {
+		status->putchar('\n');
+		pc += disassemble_instruction(pc);
+	}
+	// copy status tiles into tiles buffer
 	for (int y = 0; y<status->height; y++) {
 		for (int x = 0; x<status->width; x++) {
 			tiles[(y+22)*120 + x + 2] = status->tiles[(y*status->width)+x];
@@ -114,8 +120,6 @@ void debugger_t::redraw()
 			bg_colors[(y+22)*120 + x + 2] = status->bg_colors[(y*status->width)+x];
 		}
 	}
-
-	//
 
 	// update buffer
 	for (int y=0; y<DEBUGGER_HEIGHT; y++) {
@@ -146,11 +150,10 @@ void debugger_t::run()
 		terminal->deactivate_cursor();
 		symbol = system->keyboard->pop_event();
 		switch (symbol) {
-			// case ASCII_F1:
-			// 	system->core->run(true);
-			// 	status();
-			// 	prompt();
-			// 	break;
+			case ASCII_F1:
+				system->core->run(true);
+				system->core->cpu->execute();
+				break;
 			// case ASCII_F2:
 			// 	status();
 			// 	prompt();
@@ -217,32 +220,32 @@ void debugger_t::process_command(char *c)
 	// } else if (token0[0] == ',') {
 	// 	have_prompt = false;
 	// 	enter_assembly_line(c);
-	// } else if (strcmp(token0, "b") == 0) {
-	// 	bool breakpoints_present = false;
-	// 	token1 = strtok(NULL, " ");
-	// 	if (token1 == NULL) {
-	// 		terminal->printf("\nbreakpoints:");
-	// 		for (int i=0; i<65536; i++) {
-	// 			if (system->core->cpu->breakpoint_array[i]) {
-	// 				breakpoints_present = true;
-	// 				terminal->printf("\n$%04x", i);
-	// 			}
-	// 		}
-	// 		if (!breakpoints_present) terminal->printf("\nnone");
-	// 	} else {
-	// 		uint32_t address;
-	// 		if (!hex_string_to_int(token1, &address)) {
-	// 			terminal->printf("\nerror: '%s' is not a hex number", token1);
-	// 		} else {
-	// 			address &= 0xffff;
-	// 			system->core->cpu->toggle_breakpoint(address);
-	// 			if (system->core->cpu->breakpoint_array[address]) {
-	// 				terminal->printf("\nbreakpoint set at $%04x", address);
-	// 			} else {
-	// 				terminal->printf("\nbreakpoint removed at $%04x", address);
-	// 			}
-	// 		}
-	// 	}
+	} else if (strcmp(token0, "b") == 0) {
+		bool breakpoints_present = false;
+		token1 = strtok(NULL, " ");
+		if (token1 == NULL) {
+			terminal->printf("\nbreakpoints:");
+			for (int i=0; i<65536; i++) {
+				if (system->core->cpu->breakpoint_array[i]) {
+					breakpoints_present = true;
+					terminal->printf("\n$%04x", i);
+				}
+			}
+			if (!breakpoints_present) terminal->printf("\nnone");
+		} else {
+			uint32_t address;
+			if (!hex_string_to_int(token1, &address)) {
+				terminal->printf("\nerror: '%s' is not a hex number", token1);
+			} else {
+				address &= 0xffff;
+				system->core->cpu->toggle_breakpoint(address);
+				if (system->core->cpu->breakpoint_array[address]) {
+					terminal->printf("\nbreakpoint set at $%04x", address);
+				} else {
+					terminal->printf("\nbreakpoint removed at $%04x", address);
+				}
+			}
+		}
 	} else if (strcmp(token0, "cls") == 0) {
 		terminal->clear();
 	// } else if (strcmp(token0, "d") == 0) {
@@ -614,4 +617,21 @@ void debugger_t::enter_memory_binary_line(char *buffer)
 		terminal->printf("\n.;%04x ", original_address);
 		have_prompt = false;
 	}
+}
+
+uint32_t debugger_t::disassemble_instruction(uint16_t address)
+{
+	uint32_t cycles;
+	if (system->core->cpu->breakpoint_array[address]) {
+		status->fg_color = 0xffe04040;	// red
+		//terminal->bg_color = bg_acc;
+	}
+	cycles = system->core->cpu->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
+	status->printf("%s", text_buffer);
+	status->fg_color = GB_COLOR_2;
+	//terminal->bg_color = bg;
+
+	status->putchar('\r');
+	for (int i=0; i<7; i++) status->cursor_right();
+	return cycles;
 }
