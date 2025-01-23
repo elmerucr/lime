@@ -5,6 +5,7 @@
 // (c)2025 elmerucr
 // ---------------------------------------------------------------------
 
+#include <cmath>
 #include "core.hpp"
 #include "common.hpp"
 
