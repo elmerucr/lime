@@ -9,17 +9,33 @@ private:
 public:
 	// TODO: is the rest initialized to 0?
 	const uint8_t data[256] = {
-		[0x00] = 0x10, 0xce, 0x04, 0x00,	// $ff00 lds $0400		; this enables NMI's on the 6809
-		[0x04] = 0xce, 0xff, 0x00,			// $ff04 ldu $ff00
+		0x10, 0xce, 0x04, 0x00,				// ff00 lds $0400		; this enables NMI's on the 6809
+		0xce, 0xff, 0x00,					// ff04 ldu $ff00
 
-		[0xf0] = 0x00, 0x00,				// $fff0 VECTOR_ILL_OPC	= 0x0000
-		[0xf2] = 0x00, 0x00,				// $fff2 VECTOR_SWI3	= 0x0000
-		[0xf4] = 0x00, 0x00,				// $fff4 VECTOR_SWI2	= 0x0000
-		[0xf6] = 0x00, 0x00,				// $fff6 VECTOR_FIRQ	= 0x0000
-		[0xf8] = 0x00, 0x00,				// $fff8 VECTOR_IRQ		= 0x0000
-		[0xfa] = 0x00, 0x00,				// $fffa VECTOR_SWI		= 0x0000
-		[0xfc] = 0x00, 0x00,				// $fffc VECTOR_NMI		= 0x0000
-		[0xfe] = 0xff, 0x00					// $fffe VECTOR_RESET	= 0xff00
+		0,0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	// $ff10
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	// $ff20
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	// $ff30
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	// $ff40
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	// $ff50
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	// $ff60
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	// $ff70
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	// $ff80
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	// $ff90
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	// $ffa0
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	// $ffb0
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	// $ffc0
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	// $ffd0
+		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	// $ffe0
+
+		0x00, 0x00,							// $fff0 VECTOR_ILL_OPC	= 0x0000
+		0x00, 0x00,							// $fff2 VECTOR_SWI3	= 0x0000
+		0x00, 0x00,							// $fff4 VECTOR_SWI2	= 0x0000
+		0x00, 0x00,							// $fff6 VECTOR_FIRQ	= 0x0000
+		0x00, 0x00,							// $fff8 VECTOR_IRQ		= 0x0000
+		0x00, 0x00,							// $fffa VECTOR_SWI		= 0x0000
+		0x00, 0x00,							// $fffc VECTOR_NMI		= 0x0000
+		0xff, 0x00							// $fffe VECTOR_RESET	= 0xff00
 	};
 };
 
