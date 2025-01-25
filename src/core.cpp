@@ -19,36 +19,14 @@ core_t::core_t(system_t *s)
 
 	cpu = new cpu_t(system);
 
-	vdc->layer[0].flags = 0b101;
-	vdc->layer[1].palette[0b11] = 0b01;
-	vdc->layer[1].flags = 0b001;
-
-	// icon
-	vdc->sprite[0] = { 112, 64, 0b00000101, 0x01 };
-	vdc->sprite[1] = { 120, 64, 0b00000101, 0x02 };
-	vdc->sprite[2] = { 112, 72, 0b00000101, 0x03 };
-	vdc->sprite[3] = { 120, 72, 0b00000101, 0x04 };
-
-	// text
-	vdc->sprite[4] = { 107, 80, 0b00000111, 0x6c };	// l
-	vdc->sprite[5] = { 112, 80, 0b00000111, 0x69 };	// i
-	vdc->sprite[6] = { 118, 80, 0b00000111, 0x6d };	// m
-	vdc->sprite[7] = { 126, 80, 0b00000111, 0x65 };	// e
-
-	for (int i=8; i<256; i++) {
-		vdc->sprite[i].x = rca.byte();
-		vdc->sprite[i].y = rca.byte();
-		vdc->sprite[i].flags = 0b111 | (rca.byte() & 0b1000);
-		vdc->sprite[i].index = rca.byte();
-		vdc->sprite[i].palette[0] = rca.byte() & 0b11;
-		vdc->sprite[i].palette[1] = rca.byte() & 0b11;
-		vdc->sprite[i].palette[2] = rca.byte() & 0b11;
-		vdc->sprite[i].palette[3] = rca.byte() & 0b11;
-	}
+	exceptions = new exceptions_ic();
+	cpu->assign_nmi_line(&exceptions->nmi_output_pin);
+	cpu->assign_irq_line(&exceptions->irq_output_pin);
 }
 
 core_t::~core_t()
 {
+	delete exceptions;
 	delete cpu;
 	delete vdc;
 	delete rom;
@@ -56,29 +34,17 @@ core_t::~core_t()
 
 enum output_states core_t::run(bool debug)
 {
-	static uint8_t t = 0;
-	vdc->layer[0].x = int(32 * cos(4*M_PI*(t/255.0)));
-	vdc->layer[0].y = int(32 * sin(4*M_PI*(t/255.0)));
-	t++;
-	vdc->layer[1].y++;
-
-	for (uint8_t s=0; s < SCANLINES; s++) {
-		//vdc->layer[0].x += (abs(60 - (s >> 5)) % 14);
-		vdc->update_scanline(s);
+	for (uint8_t s=0; s < VIDEO_YRES; s++) {
+		vdc->draw_scanline(s);
 	}
-
-	for (int i=8; i<255; i++) {
-		vdc->sprite[i].x--;
-		vdc->sprite[i].y++;
-		if (vdc->sprite[i].y == 240) vdc->sprite[i].x = rca.byte();
-	}
-
 	return BREAKPOINT;
 }
 
 uint8_t core_t::read8(uint16_t address)
 {
 	switch (address >> 8) {
+		case VDC_PAGE:
+			return vdc->io_read8(address);
 		case ROM_PAGE:
 			return rom->data[address & 0xff];
 		default:
@@ -88,11 +54,21 @@ uint8_t core_t::read8(uint16_t address)
 
 void core_t::write8(uint16_t address, uint8_t value)
 {
-	vdc->ram[address] = value;
+	switch (address >> 8) {
+		case VDC_PAGE:
+			vdc->io_write8(address, value);
+			break;
+		default:
+			vdc->ram[address] = value;
+			break;
+	}
 }
 
 void core_t::reset()
 {
+	cpu_cycle_saldo = 0;
+	irq_line_frame_done = true;
+
 	vdc->reset();	// vdc before cpu, as vdc also inits ram
 	cpu->reset();
 }

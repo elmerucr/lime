@@ -19,9 +19,11 @@
 #include "system.hpp"
 #include "vdc.hpp"
 #include "cpu.hpp"
+#include "exceptions.hpp"
 #include "rca.hpp"
 #include "rom.hpp"
 
+#define VDC_PAGE	0x02
 #define ROM_PAGE	0xff
 
 enum output_states {
@@ -31,6 +33,9 @@ enum output_states {
 
 class core_t {
 private:
+	int32_t cpu_cycle_saldo{0};
+	bool irq_line_frame_done{true};
+
 	system_t *system;
 	rom_t *rom;
 	rca_t rca;
@@ -39,6 +44,7 @@ public:
 	~core_t();
 
 	vdc_t *vdc;
+	exceptions_ic *exceptions;
 	cpu_t *cpu;
 
 	void reset();

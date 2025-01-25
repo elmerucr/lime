@@ -12,12 +12,12 @@
 vdc_t::vdc_t()
 {
     ram = new uint8_t[VRAM_SIZE];
-    buffer = new uint32_t[PIXELS_PER_SCANLINE * SCANLINES];
+    buffer = new uint32_t[VIDEO_XRES * VIDEO_YRES];
 
-	layer[0].address = VDC_LAYERS + 0x0000;
-	layer[1].address = VDC_LAYERS + 0x0400;
-	layer[2].address = VDC_LAYERS + 0x0800;
-	layer[3].address = VDC_LAYERS + 0x0c00;
+	layer[0].address = VDC_LAYERS_ADDRESS + 0x0000;
+	layer[1].address = VDC_LAYERS_ADDRESS + 0x0400;
+	layer[2].address = VDC_LAYERS_ADDRESS + 0x0800;
+	layer[3].address = VDC_LAYERS_ADDRESS + 0x0c00;
 }
 
 vdc_t::~vdc_t()
@@ -35,11 +35,12 @@ void vdc_t::reset()
 
 	// clear full tileset memory (6kb)
     for (int i = 0; i < 0x1800; i++) {
-        ram[VDC_TILESET_0 + i] = 0;
+		// takes care of both TILESET_0 and TILESET_1
+        ram[VDC_TILESET_0_ADDRESS + i] = 0;
     }
 
     // tileset 0
-	const uint8_t icon[64] = {
+	const uint8_t lime_icon[64] = {
 		0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'01, 0b00'00'00'00,	// tile 1 (icon upper left)
 		0b00'00'01'11, 0b10'00'00'00, 0b00'00'01'11, 0b10'10'00'00,
 		0b00'01'11'10, 0b11'11'10'00, 0b00'01'11'10, 0b10'10'11'11,
@@ -60,15 +61,15 @@ void vdc_t::reset()
 
 	for (int i = 0; i < 64; i++) {
 		// skip tile 0, is empty
-		ram[VDC_TILESET_0 + (1 * 16) + i] = icon[i];
+		ram[VDC_TILESET_0_ADDRESS + (1 * 16) + i] = lime_icon[i];
 	}
 
-    // tileset 1
+    // tileset 1 contains all CBM characters
     for (int i = 0; i < (8 * font.size); i++) {
         uint16_t index = i >> 3;
         int index_pos = 7 - (i & 0b111);
 
-        uint16_t address = VDC_TILESET_1 + (i >> 2);
+        uint16_t address = VDC_TILESET_1_ADDRESS + (i >> 2);
         uint8_t address_pos = 6 - ((i & 0b11) << 1);
 
         if (font.data[index] & (0b1 << index_pos)) {
@@ -76,24 +77,30 @@ void vdc_t::reset()
         }
     }
 
-    // have something to display
-    for (int i=0; i<0x400; i++) {
-		ram[layer[0].address + i] = i & 0xff;
-		//ram[layer[0].address + i] = 0;
-    }
+	// icon
+	sprite[0] = { 112, 64, 0b00000101, 0x01 };
+	sprite[1] = { 120, 64, 0b00000101, 0x02 };
+	sprite[2] = { 112, 72, 0b00000101, 0x03 };
+	sprite[3] = { 120, 72, 0b00000101, 0x04 };
+
+	// text
+	sprite[4] = { 107, 80, 0b00000111, 0x6c };	// l
+	sprite[5] = { 112, 80, 0b00000111, 0x69 };	// i
+	sprite[6] = { 118, 80, 0b00000111, 0x6d };	// m
+	sprite[7] = { 126, 80, 0b00000111, 0x65 };	// e
 }
 
 void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 {
 	if (l->flags & 0b1) {
 		// Determine tileset
-		uint16_t tileset = (l->flags & 0b10) ? VDC_TILESET_1 : VDC_TILESET_0;
+		uint16_t tileset = (l->flags & 0b10) ? VDC_TILESET_1_ADDRESS : VDC_TILESET_0_ADDRESS;
 
-		if (sl < SCANLINES) {
+		if (sl < VIDEO_YRES) {
 			uint8_t y = (l->y + sl) & 0xff;
 			uint8_t y_in_tile = y % 8;
 
-			for (uint16_t scr_x = 0; scr_x < PIXELS_PER_SCANLINE; scr_x++) {
+			for (uint16_t scr_x = 0; scr_x < VIDEO_XRES; scr_x++) {
 				uint8_t x = (l->x + scr_x) & 0xff;
 				uint8_t px = x % 4;
 				uint8_t tile_index = ram[l->address + ((y >> 3) << 5) + (x >> 3)];
@@ -103,7 +110,7 @@ void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 					(0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
 				// if NOT (transparent AND 0b00) then pixel must be written
 				if (!((l->flags & 0b100) && !res)) {
-					buffer[(PIXELS_PER_SCANLINE * sl) + scr_x] = palette[l->palette[res]];
+					buffer[(VIDEO_XRES * sl) + scr_x] = palette[l->palette[res]];
 				}
 			}
 		}
@@ -114,7 +121,7 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 {
 	if (s->flags & 0b1) {
 		// Determine tileset
-		uint16_t tileset = (s->flags & 0b10) ? VDC_TILESET_1 : VDC_TILESET_0;
+		uint16_t tileset = (s->flags & 0b10) ? VDC_TILESET_1_ADDRESS : VDC_TILESET_0_ADDRESS;
 
 		// Subtract y position from scanline, remainder is y position in sprite
 		uint8_t y = sl - s->y;
@@ -126,9 +133,9 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 
 			uint8_t start_x{0}, end_x{0};
 
-			if (s->x < PIXELS_PER_SCANLINE) {
+			if (s->x < VIDEO_XRES) {
 				start_x = adj_x;
-				end_x = ((adj_x + 8) > PIXELS_PER_SCANLINE) ? PIXELS_PER_SCANLINE : (adj_x + 8);
+				end_x = ((adj_x + 8) > VIDEO_XRES) ? VIDEO_XRES : (adj_x + 8);
 			} else if (adj_x >= 248) {
 				end_x = adj_x + 8;
 			}
@@ -149,7 +156,7 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 					(0b11 << (2 * (3 - (x%4))))) >> (2 * (3 - (x%4)));
 				// if NOT (transparent AND 0b00) then pixel must be written
 				if (!((s->flags & 0b100) && !res)) {
-					buffer[(PIXELS_PER_SCANLINE * sl) + scr_x] = palette[s->palette[res]];
+					buffer[(VIDEO_XRES * sl) + scr_x] = palette[s->palette[res]];
 				}
 
 				// restore y, if xy flip was done before
@@ -159,12 +166,38 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 	}
 }
 
-void vdc_t::update_scanline(uint8_t s)
+void vdc_t::draw_scanline(uint8_t scanline)
 {
+	for (int x=0; x<VIDEO_XRES; x++) {
+		buffer[(VIDEO_XRES * scanline) + x] = palette[bg_color & 0b11];
+	}
+
 	for (int l=3; l>=0; l--) {
-		draw_layer(&layer[l], s);
+		draw_layer(&layer[l], scanline);
+
 		for (uint8_t i=0; i<64; i++) {
-			draw_sprite(&sprite[(64*l) + (63-i)], s, &layer[l]);
+			draw_sprite(&sprite[(64*l) + (63-i)], scanline, &layer[l]);
 		}
+	}
+}
+
+uint8_t vdc_t::io_read8(uint16_t address)
+{
+	switch (address & 0xff) {
+		case 0x04:
+			return bg_color & 0b11;
+		default:
+			return 0;
+	}
+}
+
+void vdc_t::io_write8(uint16_t address, uint8_t value)
+{
+	switch (address & 0xff) {
+	case 0x04:
+		bg_color = value & 0b11;
+		break;
+	default:
+		break;
 	}
 }

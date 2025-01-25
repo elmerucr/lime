@@ -116,7 +116,7 @@ private:
 	int video_window_height;
 
 	const SDL_Rect viewer = {
-		116, 4, PIXELS_PER_SCANLINE/2, SCANLINES/2
+		116, 4, VIDEO_XRES/2, VIDEO_YRES/2
 	};
 
     uint32_t video_blend(uint32_t c0, uint32_t c1);

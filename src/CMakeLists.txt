@@ -2,6 +2,7 @@ add_library(system STATIC
 	core.cpp
 	cpu.cpp
 	debugger.cpp
+	exceptions.cpp
 	host.cpp
 	keyboard.cpp
 	stats.cpp

@@ -125,6 +125,8 @@ void system_t::switch_to_run_mode()
 
 void system_t::switch_mode()
 {
+	keyboard->purge();
+
 	if (current_mode == RUN_MODE) {
 		switch_to_debug_mode();
 	} else {

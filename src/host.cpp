@@ -16,8 +16,8 @@
 host_t::host_t(system_t *s)
 {
     // one extra line, needed for proper scanline effect
-    core_framebuffer = new uint32_t[PIXELS_PER_SCANLINE * ((2 * SCANLINES) + 1)];
-	for (int i=0; i<PIXELS_PER_SCANLINE * ((2 * SCANLINES) + 1); i++) core_framebuffer[i] = 0;
+    core_framebuffer = new uint32_t[VIDEO_XRES * ((2 * VIDEO_YRES) + 1)];
+	for (int i=0; i<VIDEO_XRES * ((2 * VIDEO_YRES) + 1); i++) core_framebuffer[i] = 0;
 
     system = s;
 
@@ -189,31 +189,31 @@ uint32_t host_t::video_blend(uint32_t c0, uint32_t c1)
 
 void host_t::update_screen()
 {
-	for (int y=0; y < SCANLINES; y++) {
-		for (int x=0; x < PIXELS_PER_SCANLINE; x ++) {
-			core_framebuffer[((y << 1) * PIXELS_PER_SCANLINE) + x] = system->core->vdc->buffer[(PIXELS_PER_SCANLINE * y) + x];
+	for (int y=0; y < VIDEO_YRES; y++) {
+		for (int x=0; x < VIDEO_XRES; x ++) {
+			core_framebuffer[((y << 1) * VIDEO_XRES) + x] = system->core->vdc->buffer[(VIDEO_XRES * y) + x];
 		}
 	}
 
 	if (video_scanlines && (system->current_mode == RUN_MODE)) {
-		for (int y=0; y < SCANLINES; y++) {
-			for (int x=0; x < PIXELS_PER_SCANLINE; x++) {
-				core_framebuffer[(((y << 1) + 1) * PIXELS_PER_SCANLINE) + x] = video_blend(
-					core_framebuffer[(((y << 1) + 0) * PIXELS_PER_SCANLINE) + x],
-					core_framebuffer[(((y << 1) + 2) * PIXELS_PER_SCANLINE) + x]
+		for (int y=0; y < VIDEO_YRES; y++) {
+			for (int x=0; x < VIDEO_XRES; x++) {
+				core_framebuffer[(((y << 1) + 1) * VIDEO_XRES) + x] = video_blend(
+					core_framebuffer[(((y << 1) + 0) * VIDEO_XRES) + x],
+					core_framebuffer[(((y << 1) + 2) * VIDEO_XRES) + x]
 				);
 			}
 		}
 	} else {
-		for (int y=0; y < SCANLINES; y++) {
-			for (int x=0; x < PIXELS_PER_SCANLINE; x++) {
-				core_framebuffer[(((y << 1) + 1) * PIXELS_PER_SCANLINE) + x] =
-					core_framebuffer[(((y << 1) + 0) * PIXELS_PER_SCANLINE) + x];
+		for (int y=0; y < VIDEO_YRES; y++) {
+			for (int x=0; x < VIDEO_XRES; x++) {
+				core_framebuffer[(((y << 1) + 1) * VIDEO_XRES) + x] =
+					core_framebuffer[(((y << 1) + 0) * VIDEO_XRES) + x];
 			}
 		}
 	}
 
-	SDL_UpdateTexture(core_texture, nullptr, (void *)core_framebuffer, PIXELS_PER_SCANLINE*sizeof(uint32_t));
+	SDL_UpdateTexture(core_texture, nullptr, (void *)core_framebuffer, VIDEO_XRES*sizeof(uint32_t));
     SDL_RenderClear(video_renderer);
 
 	switch (system->current_mode) {
@@ -270,8 +270,8 @@ void host_t::video_init()
 	SDL_GetCurrentDisplayMode(0, &dm);
 	printf("[SDL] Display current desktop dimension: %i x %i\n", dm.w, dm.h);
 
-    video_scaling = dm.h / SCANLINES;
-	while ((10 * video_scaling * SCANLINES) > (9 * dm.h)) video_scaling--;
+    video_scaling = dm.h / VIDEO_YRES;
+	while ((10 * video_scaling * VIDEO_YRES) > (9 * dm.h)) video_scaling--;
 	if (video_scaling & 0b1) video_scaling--;
     printf("[SDL] Video scaling will be %i times\n", video_scaling);
 
@@ -282,8 +282,8 @@ void host_t::video_init()
         title,
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        video_scaling * PIXELS_PER_SCANLINE,
-        video_scaling * SCANLINES,
+        video_scaling * VIDEO_XRES,
+        video_scaling * VIDEO_YRES,
         SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
     );
 
@@ -314,13 +314,13 @@ void host_t::video_init()
 	printf("[SDL] Renderer vsync is %s\n", vsync ? "enabled" : "disabled");
 	printf("[SDL] Renderer does%s support rendering to target texture\n", current_renderer.flags & SDL_RENDERER_TARGETTEXTURE ? "" : "n't");
 
-    core_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, PIXELS_PER_SCANLINE, 2 * SCANLINES);
+    core_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VIDEO_XRES, 2 * VIDEO_YRES);
     SDL_SetTextureBlendMode(core_texture, SDL_BLENDMODE_BLEND);
 
     debugger_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, DEBUGGER_WIDTH, DEBUGGER_HEIGHT);
     SDL_SetTextureBlendMode(debugger_texture, SDL_BLENDMODE_BLEND);
 
-	SDL_RenderSetLogicalSize(video_renderer, PIXELS_PER_SCANLINE, SCANLINES);
+	SDL_RenderSetLogicalSize(video_renderer, VIDEO_XRES, VIDEO_YRES);
     SDL_ShowCursor(SDL_DISABLE);	// make sure cursor isn't visible
 }
 

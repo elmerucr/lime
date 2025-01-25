@@ -16,6 +16,12 @@
 // sprites 192-255    .
 // layer 3          back
 //
+// 0x00: SR
+// 0x01: CR
+// 0x02: read
+// 0x03:
+// 0x04: bg color
+//
 // ---------------------------------------------------------------------
 
 #ifndef VC_HPP
@@ -89,6 +95,9 @@ private:
     font_cbm_8x8_t font;
 	void draw_layer(layer_t *l, uint8_t sl);
 	void draw_sprite(sprite_t *s, uint8_t sl, layer_t *t);
+
+	uint8_t bg_color{0b00};
+
 public:
     vdc_t();
     ~vdc_t();
@@ -100,9 +109,12 @@ public:
 
     uint32_t *buffer;
 
+	uint8_t io_read8(uint16_t address);
+	void io_write8(uint16_t address, uint8_t value);
+
 	void reset();
 
-    void update_scanline(uint8_t s);
+    void draw_scanline(uint8_t scanline);
 };
 
 #endif

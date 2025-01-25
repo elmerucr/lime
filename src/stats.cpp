@@ -33,7 +33,7 @@ void stats_t::reset()
 
 	smoothed_framerate = FPS;
 
-	smoothed_cpu_mhz = CPU_CLOCK_MULTIPLY*SID_CLOCK_SPEED/(1000*1000);
+	smoothed_cpu_mhz = CPU_CLOCK_SPEED/(1000*1000);
 	//old_cpu_ticks = system->core->cpu->clock_ticks();
 
 	smoothed_core_per_frame = 1000000 / (FPS * 4);
