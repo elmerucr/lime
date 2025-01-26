@@ -82,6 +82,9 @@ enum events_output_state host_t::events_process_events()
 			    if ((event.key.keysym.sym == SDLK_f) && alt_pressed) {
 					events_wait_until_key_released(SDLK_f);
 					video_toggle_fullscreen();
+				} else if ((event.key.keysym.sym == SDLK_r) && alt_pressed) {
+					events_wait_until_key_released(SDLK_r);
+					system->core->reset();
                 } else if ((event.key.keysym.sym == SDLK_s) && alt_pressed) {
 					if (system->current_mode == RUN_MODE) {
                     	video_scanlines = !video_scanlines;

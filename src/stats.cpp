@@ -34,7 +34,7 @@ void stats_t::reset()
 	smoothed_framerate = FPS;
 
 	smoothed_cpu_mhz = CPU_CLOCK_SPEED/(1000*1000);
-	//old_cpu_ticks = system->core->cpu->clock_ticks();
+	old_cpu_ticks = system->core->cpu->clock_ticks();
 
 	smoothed_core_per_frame = 1000000 / (FPS * 4);
 	smoothed_idle_per_frame = 1000000 / (FPS * 4);
@@ -65,7 +65,7 @@ void stats_t::process_parameters()
 		/*
 		 * cpu speed
 		 */
-		//cpu_ticks = system->core->cpu->clock_ticks();
+		cpu_ticks = system->core->cpu->clock_ticks();
 		cpu_mhz = (double)(cpu_ticks - old_cpu_ticks) / total_time;
 		smoothed_cpu_mhz =
 			(alpha_cpu * smoothed_cpu_mhz) +
@@ -98,11 +98,12 @@ void stats_t::process_parameters()
 		status_bar_framecounter = 0;
 
 		snprintf(statistics_string, 256,
-			"\n  frametime: %5.2f ms     cpu load:%6.2f %%\n"
+			"\n  frametime: %5.2f ms     host cpu:%6.2f %%\n"
 			"       core: %5.2f ms  audiobuffer: %5.2f ms\n"
 			"        cpu: %5.2f mHz   framerate:%6.2f fps\n",
 			(smoothed_core_per_frame+smoothed_idle_per_frame)/1000, cpu_percentage,
 			smoothed_core_per_frame/1000, smoothed_audio_queue_size_ms,
 			smoothed_cpu_mhz, smoothed_framerate);
+		printf("%s", statistics_string);
 	}
 }

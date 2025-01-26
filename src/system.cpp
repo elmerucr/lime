@@ -74,7 +74,6 @@ void system_t::run()
 				break;
 			case DEBUG_MODE:
 				debugger->run();
-				//
 				break;
 		};
 

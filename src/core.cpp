@@ -35,18 +35,19 @@ core_t::~core_t()
 enum output_states core_t::run(bool debug)
 {
 	enum output_states output_state = NORMAL;
+	bool frame_done;
 
 	do {
 
 		uint16_t cpu_cycles = cpu->execute();
-		vdc->run(cpu_cycles);
+		frame_done = vdc->run(cpu_cycles);
 		//timer->run(cpu_cycles);
 		//uint16_t sound_cycles = cpu2sid->clock(cpu_cycles);
 		//sound->run(sound_cycles);
 		cpu_cycle_saldo += cpu_cycles;
 		//sound_cycle_saldo += sound_cycles;
 
-	} while ((!cpu->breakpoint()) && (cpu_cycle_saldo < CPU_CYCLES_PER_FRAME) && (!debug));
+	} while ((!cpu->breakpoint()) && (!frame_done) && (!debug));
 
 	if (cpu->breakpoint()) output_state = BREAKPOINT;
 

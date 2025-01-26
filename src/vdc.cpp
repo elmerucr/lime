@@ -8,6 +8,7 @@
 #include "vdc.hpp"
 #include "common.hpp"
 #include <cstdio>
+#include "rca.hpp"
 
 vdc_t::vdc_t()
 {
@@ -28,6 +29,20 @@ vdc_t::~vdc_t()
 
 void vdc_t::reset()
 {
+	// fill video buffer with something
+	rca_t rca;
+	int8_t c = 0;
+	for (int i=0; i<(VIDEO_XRES*VIDEO_YRES); i++) {
+		//if (rca.byte() < 10) buffer[i] = palette[rca.byte() & 0b11];
+		if (c < 10) {
+			buffer[i] = palette[rca.byte() & 0b11];
+		} else {
+			buffer[i] = palette[0b00];
+		}
+		// buffer[i] = c & 0b1000 ? palette[0b1] : palette[0b0];
+		if (c++ == 37) c = 0;
+	}
+
     // fill memory with alternating pattern
     for (int i = 0; i < VRAM_SIZE; i++) {
         ram[i] = (i & 0x40) ? 0xff : 0x00;
@@ -90,7 +105,7 @@ void vdc_t::reset()
 	sprite[7] = { 126, 80, 0b00000111, 0x65 };	// e
 
 	cycles_run = 0;
-	next_scanline = 0;
+	current_scanline = 0;
 }
 
 void vdc_t::draw_layer(layer_t *l, uint8_t sl)
@@ -189,6 +204,10 @@ void vdc_t::draw_scanline(uint16_t scanline)
 uint8_t vdc_t::io_read8(uint16_t address)
 {
 	switch (address & 0xff) {
+		case 0x02:
+			return current_scanline >> 8;
+		case 0x03:
+			return current_scanline & 0xff;
 		case 0x04:
 			return bg_color & 0b11;
 		default:
@@ -207,14 +226,22 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 	}
 }
 
-void vdc_t::run(uint32_t number_of_cycles)
+bool vdc_t::run(uint32_t number_of_cycles)
 {
+	bool frame_done = false;
+
 	cycles_run += number_of_cycles;
 
 	if (cycles_run >= CPU_CYCLES_PER_SCANLINE) {
-		draw_scanline(next_scanline);
+		draw_scanline(current_scanline);
 		cycles_run -= CPU_CYCLES_PER_SCANLINE;
-		next_scanline++;
-		if (next_scanline == VIDEO_SCANLINES) next_scanline = 0;
+		current_scanline++;
+
+		if (current_scanline == VIDEO_SCANLINES) {
+			current_scanline = 0;
+			frame_done = true;
+		}
 	}
+
+	return frame_done;
 }

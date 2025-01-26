@@ -108,10 +108,14 @@ void debugger_t::redraw()
 	status->printf("__cpu_______________________________________________________\n%s", text_buffer);
 	status->printf("\n\n__disassembly_______________________________________________");
 	uint16_t pc = system->core->cpu->get_pc();
-	for (int i=0; i<12; i++) {
+	for (int i=0; i<5; i++) {
 		status->putchar('\n');
 		pc += disassemble_instruction(pc);
 	}
+	status->printf("\n\n__vdc_______________________________________________________");
+	status->printf("\ncycles: %3i of %i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
+	status->printf("\nprocessing scanline %3i of %i", system->core->vdc->get_next_scanline(), VIDEO_SCANLINES);
+
 	// copy status tiles into tiles buffer
 	for (int y = 0; y<status->height; y++) {
 		for (int x = 0; x<status->width; x++) {
@@ -152,10 +156,6 @@ void debugger_t::run()
 		switch (symbol) {
 			case ASCII_F1:
 				system->core->run(true);
-				terminal->printf("\ncycles run: %4i next scanline: %i",
-					system->core->vdc->get_cycles_run(),
-					system->core->vdc->get_next_scanline());
-				prompt();
 				break;
 			// case ASCII_F2:
 			// 	status();
@@ -344,17 +344,16 @@ void debugger_t::process_command(char *c)
 	// } else if (strcmp(token0, "n") == 0) {
 	// 	system->core->run(true);
 	// 	status();
-	// } else if (strcmp(token0, "reset") == 0) {
-	// 	terminal->printf("\nreset lime (y/n)");
-	// 	redraw();
-	// 	system->host->update_debugger_texture((uint32_t *)&blitter->vram[FRAMEBUFFER_ADDRESS]);
-	// 	system->host->update_screen();
-	// 	if (system->host->events_yes_no()) {
-	// 		system->core->reset();
-	// 		system->host->events_wait_until_key_released(SDLK_y);
-	// 	} else {
-	// 		system->host->events_wait_until_key_released(SDLK_n);
-	// 	}
+	} else if (strcmp(token0, "reset") == 0) {
+		terminal->printf("\nreset lime (y/n)");
+		redraw();
+		system->host->update_screen();
+		if (system->host->events_yes_no()) {
+			system->core->reset();
+			system->host->events_wait_until_key_released(SDLK_y);
+		} else {
+			system->host->events_wait_until_key_released(SDLK_n);
+		}
 	} else if (strcmp(token0, "run") == 0) {
 		have_prompt = false;
 		system->switch_to_run_mode();
