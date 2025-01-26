@@ -88,6 +88,9 @@ void vdc_t::reset()
 	sprite[5] = { 112, 80, 0b00000111, 0x69 };	// i
 	sprite[6] = { 118, 80, 0b00000111, 0x6d };	// m
 	sprite[7] = { 126, 80, 0b00000111, 0x65 };	// e
+
+	cycles_run = 0;
+	next_scanline = 0;
 }
 
 void vdc_t::draw_layer(layer_t *l, uint8_t sl)
@@ -166,17 +169,19 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 	}
 }
 
-void vdc_t::draw_scanline(uint8_t scanline)
+void vdc_t::draw_scanline(uint16_t scanline)
 {
-	for (int x=0; x<VIDEO_XRES; x++) {
-		buffer[(VIDEO_XRES * scanline) + x] = palette[bg_color & 0b11];
-	}
+	if (scanline < VIDEO_YRES) {
+		for (int x=0; x<VIDEO_XRES; x++) {
+			buffer[(VIDEO_XRES * scanline) + x] = palette[bg_color & 0b11];
+		}
 
-	for (int l=3; l>=0; l--) {
-		draw_layer(&layer[l], scanline);
+		for (int l=3; l>=0; l--) {
+			draw_layer(&layer[l], scanline);
 
-		for (uint8_t i=0; i<64; i++) {
-			draw_sprite(&sprite[(64*l) + (63-i)], scanline, &layer[l]);
+			for (uint8_t i=0; i<64; i++) {
+				draw_sprite(&sprite[(64*l) + (63-i)], scanline, &layer[l]);
+			}
 		}
 	}
 }
@@ -199,5 +204,17 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 		break;
 	default:
 		break;
+	}
+}
+
+void vdc_t::run(uint32_t number_of_cycles)
+{
+	cycles_run += number_of_cycles;
+
+	if (cycles_run >= CPU_CYCLES_PER_SCANLINE) {
+		draw_scanline(next_scanline);
+		cycles_run -= CPU_CYCLES_PER_SCANLINE;
+		next_scanline++;
+		if (next_scanline == VIDEO_SCANLINES) next_scanline = 0;
 	}
 }

@@ -35,8 +35,8 @@ system_t::system_t()
 	stats = new stats_t(this);
 
 	// default start mode
-	switch_to_run_mode();
-	//switch_to_debug_mode();
+	//switch_to_run_mode();
+	switch_to_debug_mode();
 
 	core->reset();
 }
@@ -68,7 +68,9 @@ void system_t::run()
 
 		switch (current_mode) {
 			case RUN_MODE:
-				core->run(true);
+				if (core->run(false) == BREAKPOINT) {
+					switch_mode();
+				}
 				break;
 			case DEBUG_MODE:
 				debugger->run();
@@ -128,6 +130,7 @@ void system_t::switch_mode()
 	keyboard->purge();
 
 	if (current_mode == RUN_MODE) {
+		debugger->terminal->printf("\nbreak at $%04x", core->cpu->get_pc());
 		switch_to_debug_mode();
 	} else {
 		switch_to_run_mode();

@@ -98,6 +98,9 @@ private:
 
 	uint8_t bg_color{0b00};
 
+	uint16_t next_scanline;
+	int32_t cycles_run;
+
 public:
     vdc_t();
     ~vdc_t();
@@ -112,9 +115,14 @@ public:
 	uint8_t io_read8(uint16_t address);
 	void io_write8(uint16_t address, uint8_t value);
 
+	inline int32_t get_cycles_run() { return cycles_run ; }
+	inline uint16_t get_next_scanline() { return next_scanline; }
+
 	void reset();
 
-    void draw_scanline(uint8_t scanline);
+	void run(uint32_t number_of_cycles);
+
+    void draw_scanline(uint16_t scanline);
 };
 
 #endif

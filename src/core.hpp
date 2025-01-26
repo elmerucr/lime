@@ -48,6 +48,7 @@ public:
 	cpu_t *cpu;
 
 	void reset();
+	int32_t get_cpu_cycle_saldo() { return cpu_cycle_saldo; }
 
 	uint8_t read8(uint16_t address);
 	void write8(uint16_t address, uint8_t value);

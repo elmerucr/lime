@@ -152,7 +152,10 @@ void debugger_t::run()
 		switch (symbol) {
 			case ASCII_F1:
 				system->core->run(true);
-				system->core->cpu->execute();
+				terminal->printf("\ncycles run: %4i next scanline: %i",
+					system->core->vdc->get_cycles_run(),
+					system->core->vdc->get_next_scanline());
+				prompt();
 				break;
 			// case ASCII_F2:
 			// 	status();

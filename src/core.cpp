@@ -34,10 +34,31 @@ core_t::~core_t()
 
 enum output_states core_t::run(bool debug)
 {
-	for (uint8_t s=0; s < VIDEO_YRES; s++) {
-		vdc->draw_scanline(s);
+	enum output_states output_state = NORMAL;
+
+	do {
+
+		uint16_t cpu_cycles = cpu->execute();
+		vdc->run(cpu_cycles);
+		//timer->run(cpu_cycles);
+		//uint16_t sound_cycles = cpu2sid->clock(cpu_cycles);
+		//sound->run(sound_cycles);
+		cpu_cycle_saldo += cpu_cycles;
+		//sound_cycle_saldo += sound_cycles;
+
+	} while ((!cpu->breakpoint()) && (cpu_cycle_saldo < CPU_CYCLES_PER_FRAME) && (!debug));
+
+	if (cpu->breakpoint()) output_state = BREAKPOINT;
+
+	if (cpu_cycle_saldo >= CPU_CYCLES_PER_FRAME) {
+		cpu_cycle_saldo -= CPU_CYCLES_PER_FRAME;
+		// if (generate_interrupts_frame_done) {
+		// 	exceptions->pull(irq_number);
+		// 	irq_line_frame_done = false;
+		// }
 	}
-	return BREAKPOINT;
+
+	return output_state;
 }
 
 uint8_t core_t::read8(uint16_t address)
