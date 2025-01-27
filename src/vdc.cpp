@@ -106,6 +106,7 @@ void vdc_t::reset()
 
 	cycles_run = 0;
 	current_scanline = 0;
+	new_scanline = true;
 }
 
 void vdc_t::draw_layer(layer_t *l, uint8_t sl)
@@ -228,6 +229,7 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 
 bool vdc_t::run(uint32_t number_of_cycles)
 {
+	new_scanline = false;
 	bool frame_done = false;
 
 	cycles_run += number_of_cycles;
@@ -236,6 +238,7 @@ bool vdc_t::run(uint32_t number_of_cycles)
 		draw_scanline(current_scanline);
 		cycles_run -= CPU_CYCLES_PER_SCANLINE;
 		current_scanline++;
+		new_scanline = true;
 
 		if (current_scanline == VIDEO_SCANLINES) {
 			current_scanline = 0;

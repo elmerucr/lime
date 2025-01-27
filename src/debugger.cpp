@@ -114,7 +114,7 @@ void debugger_t::redraw()
 	}
 	status->printf("\n\n__vdc_______________________________________________________");
 	status->printf("\ncycles: %3i of %i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
-	status->printf("\nprocessing scanline %3i of %i", system->core->vdc->get_next_scanline(), VIDEO_SCANLINES);
+	status->printf("\nprocessing scanline %3i of %i", system->core->vdc->get_current_scanline(), VIDEO_SCANLINES);
 
 	// copy status tiles into tiles buffer
 	for (int y = 0; y<status->height; y++) {
@@ -137,6 +137,34 @@ void debugger_t::redraw()
 				bg_colors[((y>>3) * (DEBUGGER_WIDTH >> 2)) + (x >> 2)] ;
 		}
 	}
+
+	const int16_t arrows[16][2] = {
+		{227,-3},
+		{227,-2},{228,-2},
+		{227,-1},{228,-1},{229,-1},
+		{227,0},{228,0},{229,0},{230,0},
+		{227,1},{228,1},{229,1},
+		{227,2},{228,2},
+		{227,3}
+	};
+
+	if (system->core->vdc->get_current_scanline() < VIDEO_YRES) {
+		for (int i=0; i<16; i++) {
+			buffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*DEBUGGER_WIDTH) + arrows[i][0]] = GB_COLOR_2;
+			buffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*DEBUGGER_WIDTH) + (703-arrows[i][0])] = GB_COLOR_2;
+		}
+	}
+
+	// progress bar for cycles done for scanline
+	for (int x=232; x<472; x++) {
+		if (x < ((system->core->vdc->get_cycles_run()*VIDEO_XRES)/CPU_CYCLES_PER_SCANLINE)+232) {
+			buffer[(3*DEBUGGER_WIDTH) + x] = GB_COLOR_2;
+			buffer[(4*DEBUGGER_WIDTH) + x] = GB_COLOR_2;
+		} else {
+			buffer[(3*DEBUGGER_WIDTH) + x] = GB_COLOR_0;
+			buffer[(4*DEBUGGER_WIDTH) + x] = GB_COLOR_0;
+		}
+	}
 }
 
 void debugger_t::prompt()
@@ -157,10 +185,11 @@ void debugger_t::run()
 			case ASCII_F1:
 				system->core->run(true);
 				break;
-			// case ASCII_F2:
-			// 	status();
-			// 	prompt();
-			// 	break;
+			case ASCII_F2:
+				do {
+					system->core->run(true);
+				} while (!system->core->vdc->started_new_scanline());
+				break;
 //			case ASCII_F3:
 //				terminal->deactivate_cursor();
 //				terminal->printf("run");
@@ -625,7 +654,7 @@ uint32_t debugger_t::disassemble_instruction(uint16_t address)
 {
 	uint32_t cycles;
 	if (system->core->cpu->breakpoint_array[address]) {
-		status->fg_color = 0xffe04040;	// red
+		status->fg_color = 0xffe04040;	// orange
 		//terminal->bg_color = bg_acc;
 	}
 	cycles = system->core->cpu->disassemble_instruction(text_buffer, 1024, address) & 0xffff;

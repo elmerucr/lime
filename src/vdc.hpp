@@ -101,6 +101,8 @@ private:
 	uint16_t current_scanline;
 	int32_t cycles_run;
 
+	bool new_scanline;
+
 public:
     vdc_t();
     ~vdc_t();
@@ -116,7 +118,7 @@ public:
 	void io_write8(uint16_t address, uint8_t value);
 
 	inline int32_t get_cycles_run() { return cycles_run ; }
-	inline uint16_t get_next_scanline() { return current_scanline; }
+	inline uint16_t get_current_scanline() { return current_scanline; }
 
 	void reset();
 
@@ -124,6 +126,8 @@ public:
 	bool run(uint32_t number_of_cycles);
 
     void draw_scanline(uint16_t scanline);
+
+	bool started_new_scanline() { return new_scanline; }
 };
 
 #endif
