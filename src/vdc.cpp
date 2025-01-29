@@ -8,7 +8,6 @@
 #include "vdc.hpp"
 #include "common.hpp"
 #include <cstdio>
-#include "rca.hpp"
 
 vdc_t::vdc_t()
 {
@@ -29,18 +28,14 @@ vdc_t::~vdc_t()
 
 void vdc_t::reset()
 {
-	// fill video buffer with something
-	rca_t rca;
-	int8_t c = 0;
-	for (int i=0; i<(VIDEO_XRES*VIDEO_YRES); i++) {
-		//if (rca.byte() < 10) buffer[i] = palette[rca.byte() & 0b11];
-		if (c < 10) {
-			buffer[i] = palette[rca.byte() & 0b11];
+	// initial video buffer status
+	// buffer can't be addressed directly by system
+	for (int i=0; i<(VIDEO_YRES*VIDEO_XRES); i++) {
+		if ((i%VIDEO_YRES) & 0b100) {
+			buffer[i] = palette[0b01];
 		} else {
 			buffer[i] = palette[0b00];
 		}
-		// buffer[i] = c & 0b1000 ? palette[0b1] : palette[0b0];
-		if (c++ == 37) c = 0;
 	}
 
     // fill memory with alternating pattern
@@ -48,55 +43,11 @@ void vdc_t::reset()
         ram[i] = (i & 0x40) ? 0xff : 0x00;
     }
 
-	// clear full tileset memory (6kb)
-    for (int i = 0; i < 0x1800; i++) {
-		// takes care of both TILESET_0 and TILESET_1
-        ram[VDC_TILESET_0_ADDRESS + i] = 0;
-    }
-
-    // tileset 0
-	const uint8_t lime_icon[64] = {
-		0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'01, 0b00'00'00'00,	// tile 1 (icon upper left)
-		0b00'00'01'11, 0b10'00'00'00, 0b00'00'01'11, 0b10'10'00'00,
-		0b00'01'11'10, 0b11'11'10'00, 0b00'01'11'10, 0b10'10'11'11,
-		0b00'01'11'10, 0b10'10'10'10, 0b00'01'11'10, 0b10'10'11'11,
-		0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00,	// tile 2 (icon upper right)
-		0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00,
-		0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00,
-		0b11'00'00'00, 0b00'00'00'00, 0b10'11'00'00, 0b00'00'00'00,
-		0b00'01'11'10, 0b11'11'10'10, 0b00'00'01'11, 0b10'10'10'10,	// tile 3 (icon bottom left)
-		0b00'00'01'11, 0b10'10'10'11, 0b00'00'00'01, 0b11'10'10'11,
-		0b00'00'00'00, 0b01'11'11'10, 0b00'00'00'00, 0b00'01'01'11,
-		0b00'00'00'00, 0b00'00'00'01, 0b00'00'00'00, 0b00'00'00'00,
-		0b11'10'11'00, 0b00'00'00'00, 0b11'10'11'10, 0b00'00'00'00,	// tile 4 (icon bottom right)
-		0b10'10'10'11, 0b10'00'00'00, 0b10'10'10'11, 0b10'10'00'00,
-		0b10'10'10'10, 0b11'11'01'00, 0b11'11'11'11, 0b01'01'00'00,
-		0b01'01'01'01, 0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00
-	};
-
-	for (int i = 0; i < 64; i++) {
-		// skip tile 0, is empty
-		ram[VDC_TILESET_0_ADDRESS + (1 * 16) + i] = lime_icon[i];
-	}
-
-    // tileset 1 contains all CBM characters
-    for (int i = 0; i < (8 * font.size); i++) {
-        uint16_t index = i >> 3;
-        int index_pos = 7 - (i & 0b111);
-
-        uint16_t address = VDC_TILESET_1_ADDRESS + (i >> 2);
-        uint8_t address_pos = 6 - ((i & 0b11) << 1);
-
-        if (font.data[index] & (0b1 << index_pos)) {
-            ram[address] |= (0b11 << address_pos);
-        }
-    }
-
 	// icon
-	sprite[0] = { 112, 64, 0b00000101, 0x01 };
-	sprite[1] = { 120, 64, 0b00000101, 0x02 };
-	sprite[2] = { 112, 72, 0b00000101, 0x03 };
-	sprite[3] = { 120, 72, 0b00000101, 0x04 };
+	sprite[0] = { 112, 64, 0b00000111, 0x1c };
+	sprite[1] = { 120, 64, 0b00000111, 0x1d };
+	sprite[2] = { 112, 72, 0b00000111, 0x1e };
+	sprite[3] = { 120, 72, 0b00000111, 0x1f };
 
 	// text
 	sprite[4] = { 107, 80, 0b00000111, 0x6c };	// l
@@ -105,7 +56,7 @@ void vdc_t::reset()
 	sprite[7] = { 126, 80, 0b00000111, 0x65 };	// e
 
 	cycles_run = 0;
-	current_scanline = 0;
+	next_scanline = 1;
 	new_scanline = true;
 }
 
@@ -206,9 +157,9 @@ uint8_t vdc_t::io_read8(uint16_t address)
 {
 	switch (address & 0xff) {
 		case 0x02:
-			return current_scanline >> 8;
+			return next_scanline >> 8;
 		case 0x03:
-			return current_scanline & 0xff;
+			return next_scanline & 0xff;
 		case 0x04:
 			return bg_color & 0b11;
 		default:
@@ -235,13 +186,13 @@ bool vdc_t::run(uint32_t number_of_cycles)
 	cycles_run += number_of_cycles;
 
 	if (cycles_run >= CPU_CYCLES_PER_SCANLINE) {
-		draw_scanline(current_scanline);
+		draw_scanline(next_scanline);
 		cycles_run -= CPU_CYCLES_PER_SCANLINE;
-		current_scanline++;
+		next_scanline++;
 		new_scanline = true;
 
-		if (current_scanline == VIDEO_SCANLINES) {
-			current_scanline = 0;
+		if (next_scanline == VIDEO_SCANLINES) {
+			next_scanline = 0;
 			frame_done = true;
 		}
 	}

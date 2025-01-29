@@ -22,9 +22,11 @@
 #include "exceptions.hpp"
 #include "rca.hpp"
 #include "rom.hpp"
+#include "font_cbm_8x8.hpp"
 
-#define VDC_PAGE	0x02
-#define ROM_PAGE	0xff
+#define CBM_FONT_PAGE	0x10
+#define VDC_PAGE		0x02
+#define ROM_PAGE		0xff
 
 enum output_states {
 	NORMAL,
@@ -39,6 +41,8 @@ private:
 	system_t *system;
 	rom_t *rom;
 	rca_t rca;
+
+	bool cbm_font_visible;
 public:
 	core_t(system_t *s);
 	~core_t();
@@ -46,6 +50,7 @@ public:
 	vdc_t *vdc;
 	exceptions_ic *exceptions;
 	cpu_t *cpu;
+	font_cbm_8x8_t *font;
 
 	void reset();
 	int32_t get_cpu_cycle_saldo() { return cpu_cycle_saldo; }

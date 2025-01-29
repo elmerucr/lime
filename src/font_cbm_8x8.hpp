@@ -10,7 +10,8 @@
 // The order of characters and characters themselves have been altered to
 // match code page 437.
 //
-// 2020-10-23 elmerucr
+// 2020-10-23 first version
+// 2025-01-29 lime icons added, and in lime format
 //
 // Part of lime - Character ROM 2kb
 // ---------------------------------------------------------------------
@@ -22,9 +23,62 @@
 
 class font_cbm_8x8_t {
 public:
-	uint16_t size{2048};
+	font_cbm_8x8_t() {
+		data = new uint8_t[0x1000];
 
-	uint8_t data[2048] = {
+		for (int i = 0; i < 0x1000; i++)
+			data[i] = 0;
+
+		for (int i = 0; i < (8 * 2048); i++) {
+			uint16_t index = i >> 3;
+			int index_pos = 7 - (i & 0b111);
+
+			uint16_t address = (i >> 2);
+			uint8_t address_pos = 6 - ((i & 0b11) << 1);
+
+			if (original_data[index] & (0b1 << index_pos)) {
+				data[address] |= (0b11 << address_pos);
+			}
+		}
+
+			// characters 0x1c, 0x1d, 0x1e, 0x1f replaced with icon elements
+		const uint8_t lime_icon[64] = {
+			0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'01, 0b00'00'00'00,	// tile 1 (icon upper left)
+			0b00'00'01'11, 0b10'00'00'00, 0b00'00'01'11, 0b10'10'00'00,
+			0b00'01'11'10, 0b11'11'10'00, 0b00'01'11'10, 0b10'10'11'11,
+			0b00'01'11'10, 0b10'10'10'10, 0b00'01'11'10, 0b10'10'11'11,
+			0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00,	// tile 2 (icon upper right)
+			0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00,
+			0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00,
+			0b11'00'00'00, 0b00'00'00'00, 0b10'11'00'00, 0b00'00'00'00,
+			0b00'01'11'10, 0b11'11'10'10, 0b00'00'01'11, 0b10'10'10'10,	// tile 3 (icon bottom left)
+			0b00'00'01'11, 0b10'10'10'11, 0b00'00'00'01, 0b11'10'10'11,
+			0b00'00'00'00, 0b01'11'11'10, 0b00'00'00'00, 0b00'01'01'11,
+			0b00'00'00'00, 0b00'00'00'01, 0b00'00'00'00, 0b00'00'00'00,
+			0b11'10'11'00, 0b00'00'00'00, 0b11'10'11'10, 0b00'00'00'00,	// tile 4 (icon bottom right)
+			0b10'10'10'11, 0b10'00'00'00, 0b10'10'10'11, 0b10'10'00'00,
+			0b10'10'10'10, 0b11'11'01'00, 0b11'11'11'11, 0b01'01'00'00,
+			0b01'01'01'01, 0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'00
+		};
+
+		for (int i = 0; i < 64; i++) {
+			// skip tile 0, is empty
+			data[(0x1c * 0x10) + i] = lime_icon[i];
+		}
+    }
+
+	~font_cbm_8x8_t() {
+		delete [] data;
+	}
+
+	uint8_t read8(uint16_t address) {
+		return data[address & 0xfff];
+	}
+
+private:
+	uint8_t *data;
+
+	uint8_t original_data[2048] = {
 		0b00000000,		// $00 (space)
 		0b00000000,
 		0b00000000,

@@ -98,7 +98,7 @@ private:
 
 	uint8_t bg_color{0b00};
 
-	uint16_t current_scanline;
+	uint16_t next_scanline;
 	int32_t cycles_run;
 
 	bool new_scanline;
@@ -118,7 +118,8 @@ public:
 	void io_write8(uint16_t address, uint8_t value);
 
 	inline int32_t get_cycles_run() { return cycles_run ; }
-	inline uint16_t get_current_scanline() { return current_scanline; }
+	inline uint16_t get_current_scanline() { return next_scanline ? next_scanline - 1 : VIDEO_SCANLINES -1; }
+	inline uint16_t get_next_scanline() { return next_scanline; }
 
 	void reset();
 

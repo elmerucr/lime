@@ -113,8 +113,9 @@ void debugger_t::redraw()
 		pc += disassemble_instruction(pc);
 	}
 	status->printf("\n\n__vdc_______________________________________________________");
-	status->printf("\ncycles: %3i of %i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
-	status->printf("\nprocessing scanline %3i of %i", system->core->vdc->get_current_scanline(), VIDEO_SCANLINES);
+	status->printf("\ndrawing scanline: %3i", system->core->vdc->get_current_scanline());
+	status->printf("\n   next scanline: %3i in ", system->core->vdc->get_next_scanline());
+	status->printf("%3i cpu cycles", CPU_CYCLES_PER_SCANLINE - system->core->vdc->get_cycles_run());
 
 	// copy status tiles into tiles buffer
 	for (int y = 0; y<status->height; y++) {

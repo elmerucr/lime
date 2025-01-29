@@ -112,6 +112,8 @@ private:
 
 	SDL_Texture *debugger_texture;
 
+	SDL_Texture *osd_texture;
+
 	int video_window_width;
 	int video_window_height;
 
