@@ -11,7 +11,7 @@
 // match code page 437.
 //
 // 2020-10-23 first version
-// 2025-01-29 lime icons added, and in lime format
+// 2025-01-29 lime icons added, and in lime 2bpp format
 //
 // Part of lime - Character ROM 2kb
 // ---------------------------------------------------------------------
@@ -22,6 +22,8 @@
 #define FONT_CBM_8X8_HPP
 
 class font_cbm_8x8_t {
+private:
+	uint8_t *data;
 public:
 	font_cbm_8x8_t() {
 		data = new uint8_t[0x1000];
@@ -41,7 +43,7 @@ public:
 			}
 		}
 
-			// characters 0x1c, 0x1d, 0x1e, 0x1f replaced with icon elements
+		// characters 0x1c, 0x1d, 0x1e, 0x1f replaced with icon elements
 		const uint8_t lime_icon[64] = {
 			0b00'00'00'00, 0b00'00'00'00, 0b00'00'00'01, 0b00'00'00'00,	// tile 1 (icon upper left)
 			0b00'00'01'11, 0b10'00'00'00, 0b00'00'01'11, 0b10'10'00'00,
@@ -62,23 +64,20 @@ public:
 		};
 
 		for (int i = 0; i < 64; i++) {
-			// skip tile 0, is empty
 			data[(0x1c * 0x10) + i] = lime_icon[i];
+			data[(0x9c * 0x10) + i] = 0b11111111 - lime_icon[i];
 		}
-    }
+	}
 
 	~font_cbm_8x8_t() {
 		delete [] data;
 	}
 
-	uint8_t read8(uint16_t address) {
+	uint8_t io_read8(uint16_t address) {
 		return data[address & 0xfff];
 	}
 
-private:
-	uint8_t *data;
-
-	uint8_t original_data[2048] = {
+	const uint8_t original_data[2048] = {
 		0b00000000,		// $00 (space)
 		0b00000000,
 		0b00000000,

@@ -5,6 +5,7 @@ add_library(system STATIC
 	exceptions.cpp
 	host.cpp
 	keyboard.cpp
+	osd.cpp
 	stats.cpp
 	system.cpp
 	terminal.cpp

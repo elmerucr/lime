@@ -100,10 +100,9 @@ void stats_t::process_parameters()
 		snprintf(statistics_string, 256,
 			"\n  frametime: %5.2f ms     host cpu:%6.2f %%\n"
 			"       core: %5.2f ms  audiobuffer: %5.2f ms\n"
-			"        cpu: %5.2f mHz   framerate:%6.2f fps\n",
+			"        cpu: %5.2f mHz   framerate:%6.2f fps",
 			(smoothed_core_per_frame+smoothed_idle_per_frame)/1000, cpu_percentage,
 			smoothed_core_per_frame/1000, smoothed_audio_queue_size_ms,
 			smoothed_cpu_mhz, smoothed_framerate);
-		printf("%s", statistics_string);
 	}
 }

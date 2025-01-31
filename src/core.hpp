@@ -26,7 +26,7 @@
 
 #define CBM_FONT_PAGE	0x10
 #define VDC_PAGE		0x02
-#define ROM_PAGE		0xff
+#define SYSTEM_ROM_PAGE	0xff
 
 enum output_states {
 	NORMAL,
@@ -35,14 +35,15 @@ enum output_states {
 
 class core_t {
 private:
-	int32_t cpu_cycle_saldo{0};
 	bool irq_line_frame_done{true};
 
 	system_t *system;
 	rom_t *rom;
 	rca_t rca;
 
-	bool cbm_font_visible;
+	// memory configuration address $00
+	bool system_rom_visible;	// bit 0
+	bool character_rom_visible;	// bit 1
 public:
 	core_t(system_t *s);
 	~core_t();
@@ -53,7 +54,6 @@ public:
 	font_cbm_8x8_t *font;
 
 	void reset();
-	int32_t get_cpu_cycle_saldo() { return cpu_cycle_saldo; }
 
 	uint8_t read8(uint16_t address);
 	void write8(uint16_t address, uint8_t value);

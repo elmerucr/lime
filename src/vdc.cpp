@@ -56,7 +56,7 @@ void vdc_t::reset()
 	sprite[7] = { 126, 80, 0b00000111, 0x65 };	// e
 
 	cycles_run = 0;
-	next_scanline = 1;
+	next_scanline = 160;
 	new_scanline = true;
 }
 

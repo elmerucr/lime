@@ -11,6 +11,7 @@
 #include <SDL2/SDL.h>
 #include "common.hpp"
 #include "system.hpp"
+#include "osd.hpp"
 
 enum events_output_state {
 	QUIT_EVENT = -1,
@@ -113,6 +114,9 @@ private:
 	SDL_Texture *debugger_texture;
 
 	SDL_Texture *osd_texture;
+	bool osd_visible{false};
+	osd_t *osd;
+	SDL_Rect osd_pos;
 
 	int video_window_width;
 	int video_window_height;
@@ -121,7 +125,12 @@ private:
 		116, 4, VIDEO_XRES/2, VIDEO_YRES/2
 	};
 
-    uint32_t video_blend(uint32_t c0, uint32_t c1);
+    inline uint32_t video_blend(uint32_t c0, uint32_t c1) {
+		    return
+			((((c0 & 0x00ff00ff) + (c1 & 0x00ff00ff)) >> 1) & 0x00ff00ff) |
+			((((c0 & 0x0000ff00) + (c1 & 0x0000ff00)) >> 1) & 0x0000ff00) |
+			(video_scanline_alpha << 24);
+	}
 
 	char *home;
 public:

@@ -47,20 +47,11 @@ enum output_states core_t::run(bool debug)
 		//timer->run(cpu_cycles);
 		//uint16_t sound_cycles = cpu2sid->clock(cpu_cycles);
 		//sound->run(sound_cycles);
-		cpu_cycle_saldo += cpu_cycles;
 		//sound_cycle_saldo += sound_cycles;
 
 	} while ((!cpu->breakpoint()) && (!frame_done) && (!debug));
 
 	if (cpu->breakpoint()) output_state = BREAKPOINT;
-
-	if (cpu_cycle_saldo >= CPU_CYCLES_PER_FRAME) {
-		cpu_cycle_saldo -= CPU_CYCLES_PER_FRAME;
-		// if (generate_interrupts_frame_done) {
-		// 	exceptions->pull(irq_number);
-		// 	irq_line_frame_done = false;
-		// }
-	}
 
 	return output_state;
 }
@@ -85,21 +76,27 @@ uint8_t core_t::read8(uint16_t address)
 			case CBM_FONT_PAGE + 0xd:
 			case CBM_FONT_PAGE + 0xe:
 			case CBM_FONT_PAGE + 0xf:
-				if (cbm_font_visible) {
-					return font->read8(address);
+				if (character_rom_visible) {
+					return font->io_read8(address);
 				} else {
 					return vdc->ram[address];
 				}
 			case VDC_PAGE:
 				return vdc->io_read8(address);
-			case ROM_PAGE:
-				return rom->data[address & 0xff];
+			case SYSTEM_ROM_PAGE:
+				if (system_rom_visible) {
+					return rom->data[address & 0xff];
+				} else {
+					return vdc->ram[address];
+				}
 			default:
 				return vdc->ram[address];
 		}
 	} else {
 		// address = 0
-		return cbm_font_visible ? 0b10 : 0b00;
+		return
+			(system_rom_visible    ? 0b00000001 : 0b00000000) |
+			(character_rom_visible ? 0b00000010 : 0b00000000) ;
 	}
 }
 
@@ -115,16 +112,18 @@ void core_t::write8(uint16_t address, uint8_t value)
 				break;
 		}
 	} else {
-		cbm_font_visible = value & 0b10 ? true : false;
+		// address = 0
+		system_rom_visible    = value & 0b00000001 ? true : false;
+		character_rom_visible = value & 0b00000010 ? true : false;
 	}
 }
 
 void core_t::reset()
 {
-	cpu_cycle_saldo = 0;
 	irq_line_frame_done = true;
 
-	cbm_font_visible = false;
+	system_rom_visible = true;
+	character_rom_visible = false;
 
 	vdc->reset();	// vdc before cpu, as vdc also inits ram
 	cpu->reset();

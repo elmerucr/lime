@@ -52,12 +52,18 @@ host_t::host_t(system_t *s)
 #   error "Unknown compiler"
 #endif
 
+	osd = new osd_t(system);
+	osd_pos = {
+		VIDEO_XRES/2 - (osd->width*2), VIDEO_YRES - (osd->height*4), osd->width*4, osd->height*4
+	};
+
 	//audio_init();
 	video_init();
 }
 
 host_t::~host_t()
 {
+	delete osd;
     delete [] core_framebuffer;
 
 	video_stop();
@@ -95,7 +101,9 @@ enum events_output_state host_t::events_process_events()
                 } else if (event.key.keysym.sym == SDLK_F9) {
                     events_wait_until_key_released(SDLK_F9);
                     system->switch_mode();
-                }
+                } else if (event.key.keysym.sym == SDLK_F10) {
+					osd_visible = !osd_visible;
+				}
                 break;
             case SDL_QUIT:
 				return_value = QUIT_EVENT;
@@ -182,14 +190,6 @@ enum events_output_state host_t::events_process_events()
 	return return_value;
 }
 
-uint32_t host_t::video_blend(uint32_t c0, uint32_t c1)
-{
-    return
-    ((((c0 & 0x00ff00ff) + (c1 & 0x00ff00ff)) >> 1) & 0x00ff00ff) |
-    ((((c0 & 0x0000ff00) + (c1 & 0x0000ff00)) >> 1) & 0x0000ff00) |
-    (video_scanline_alpha << 24);
-}
-
 void host_t::update_screen()
 {
 	for (int y=0; y < VIDEO_YRES; y++) {
@@ -233,6 +233,12 @@ void host_t::update_screen()
 			// render core texture
 			SDL_RenderCopy(video_renderer, core_texture, nullptr, &viewer);
 			break;
+	}
+
+	if (osd_visible) {
+		osd->redraw();
+		SDL_UpdateTexture(osd_texture, nullptr, (void *)osd->buffer, osd->width*8*sizeof(uint32_t));
+		SDL_RenderCopy(video_renderer, osd_texture, nullptr, &osd_pos);
 	}
 
     SDL_RenderPresent(video_renderer);
@@ -323,12 +329,16 @@ void host_t::video_init()
     debugger_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, DEBUGGER_WIDTH, DEBUGGER_HEIGHT);
     SDL_SetTextureBlendMode(debugger_texture, SDL_BLENDMODE_BLEND);
 
+	osd_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, osd->width*8, osd->height*8);
+    SDL_SetTextureBlendMode(osd_texture, SDL_BLENDMODE_BLEND);
+
 	SDL_RenderSetLogicalSize(video_renderer, VIDEO_XRES, VIDEO_YRES);
     SDL_ShowCursor(SDL_DISABLE);	// make sure cursor isn't visible
 }
 
 void host_t::video_stop()
 {
+	SDL_DestroyTexture(osd_texture);
 	SDL_DestroyTexture(debugger_texture);
     SDL_DestroyTexture(core_texture);
     SDL_DestroyRenderer(video_renderer);
