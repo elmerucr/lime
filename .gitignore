@@ -1,5 +1,9 @@
 .vscode
 .DS_Store
+rom/mk_rom
+rom/rom.bin
+rom/rom.hpp
+rom/rom.list
 build/
 Debug/
 Release/
