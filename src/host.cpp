@@ -54,7 +54,7 @@ host_t::host_t(system_t *s)
 
 	osd = new osd_t(system);
 	osd_pos = {
-		VIDEO_XRES/2 - (osd->width*2), VIDEO_YRES - (osd->height*4), osd->width*4, osd->height*4
+		DEBUGGER_WIDTH/2 - (osd->width*4), DEBUGGER_HEIGHT - (osd->height*8), osd->width*8, osd->height*8
 	};
 
 	//audio_init();
@@ -323,6 +323,8 @@ void host_t::video_init()
 	printf("[SDL] Renderer vsync is %s\n", vsync ? "enabled" : "disabled");
 	printf("[SDL] Renderer does%s support rendering to target texture\n", current_renderer.flags & SDL_RENDERER_TARGETTEXTURE ? "" : "n't");
 
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+
     core_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VIDEO_XRES, 2 * VIDEO_YRES);
     SDL_SetTextureBlendMode(core_texture, SDL_BLENDMODE_BLEND);
 
@@ -334,7 +336,7 @@ void host_t::video_init()
 	osd_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, osd->width*8, osd->height*8);
     SDL_SetTextureBlendMode(osd_texture, SDL_BLENDMODE_BLEND);
 
-	SDL_RenderSetLogicalSize(video_renderer, VIDEO_XRES, VIDEO_YRES);
+	SDL_RenderSetLogicalSize(video_renderer, DEBUGGER_WIDTH, DEBUGGER_HEIGHT);
     SDL_ShowCursor(SDL_DISABLE);	// make sure cursor isn't visible
 }
 
