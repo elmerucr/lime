@@ -1,3 +1,10 @@
+// ---------------------------------------------------------------------
+// debugger.hpp
+// lime
+//
+// Copyright © 2025 elmerucr. All rights reserved.
+// ---------------------------------------------------------------------
+
 #ifndef DEBUGGER_HPP
 #define DEBUGGER_HPP
 

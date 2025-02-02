@@ -18,7 +18,7 @@ Lime is a virtual computer system that draws inspiration from computing platform
 
 ### Debug screen
 
-![icon](./docs/20250117_screenshot_debug.png)
+![icon](./docs/20250202_screenshot_debug.png)
 
 ## Memory Map
 
@@ -38,18 +38,20 @@ Below some more OS specific intructions on how to prepare the build environment.
 * When it asks to install command line tools, do that
 * Install Homebrew
 * From the Homebrew command line, install cmake and SDL2 libraries
-* Follow general CMake instructions
+* Commands:
+	* ```git clone https://github.com/elmerucr/lime```
 
 ### Ubuntu / Debian specific
 
-To be done
+* build-essential, cmake and sdl2-dev
 
 ### Windows specific
 
-To be done
+* Install msys2
 
 ## Websites and projects of interest
 
+* [asm6809](https://www.6809.org.uk/asm6809/) - A portable cross assembler targeting the Motorola 6809 and Hitachi 6309 by Ciaran Anscomb.
 * [CCS64](http://www.ccs64.com) - A Commodore 64 Emulator by Per Håkan Sundell.
 * [Commander X16](https://www.commanderx16.com) - The Commander X16 is a modern 8-bit computer currently in active development. It is the brainchild of David "the 8 Bit Guy" Murray.
 * [Commander X16 emulator](https://github.com/x16community/x16-emulator) - Software version of Commander X16.
@@ -59,10 +61,8 @@ To be done
 * [MC6809](https://github.com/elmerucr/mC6809) - MC6809 cpu emulator written in C++.
 * [Mega65](http://mega65.org) - The 21st century realization of the C65 heritage.
 * [Moira](https://github.com/dirkwhoffmann/Moira) - Motorola 68000 cpu emulator written in C++ by Dirk W. Hoffmann.
-* [punch]()
 * [reSID](http://www.zimmers.net/anonftp/pub/cbm/crossplatform/emulators/resid/index.html) - ReSID is a Commodore 6581 and 8580 Sound Interface Device emulator by Dag Lem.
 * [SDL Simple DirectMedia Layer](https://www.libsdl.org) - A cross-platform development library by Sam Lantinga designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware.
-* [Squirrel](http://squirrel-lang.org) - Squirrel is a high level imperative, object-oriented programming language, designed to be a light-weight scripting language that fits in the size, memory bandwidth, and real-time requirements of applications like video games.
 * [stb](https://github.com/nothings/stb) - single-file public domain (or MIT licensed) libraries for C/C++
 * [TIC-80](https://tic80.com) - TIC-80 is a free and open source fantasy computer for making, playing and sharing tiny games.
 * [vAmiga](https://dirkwhoffmann.github.io/vAmiga/) - An Amiga 500, 1000, or 2000 on your Apple Macintosh by Dirk W. Hoffmann.

@@ -1,16 +1,23 @@
+// ---------------------------------------------------------------------
+// debugger.cpp
+// lime
+//
+// Copyright © 2025 elmerucr. All rights reserved.
+// ---------------------------------------------------------------------
+
 #include "debugger.hpp"
 #include "core.hpp"
 #include "keyboard.hpp"
 #include <cstdint>
 
-/*
- * hex2int
- * take a hex string and convert it to a 32bit number (max 8 hex digits)
- * from https://stackoverflow.com/questions/10156409/convert-hex-string-char-to-int
- *
- * This function is slightly adopted to check for true values. It returns false
- * when there's wrong input.
- */
+// ---------------------------------------------------------------------
+// hex2int
+// take a hex string and convert it to a 32bit number (max 8 hex digits)
+// from https://stackoverflow.com/questions/10156409/convert-hex-string-char-to-int
+//
+// This function is slightly adopted to check for true values. It returns false
+// when there's wrong input.
+// ---------------------------------------------------------------------
 bool debugger_t::hex_string_to_int(const char *temp_string, uint32_t *return_value)
 {
 	uint32_t val = 0;
