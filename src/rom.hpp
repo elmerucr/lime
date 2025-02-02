@@ -17,7 +17,7 @@ public:
 		0x26, 0xf7,				// ff15 bne		$ff0e
 		0x86, 0x01,				// ff17	lda		#%00000001
 		0x97, 0x00,				// ff19	sta		$00			; make only sys rom visible in vram
-		0x7e, 0xff, 0x1b,		// ff1b jmp		$ff19
+		0x7e, 0xff, 0x1b,		// ff1b jmp		$ff1b
 
 		0,0,
 

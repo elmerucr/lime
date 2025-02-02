@@ -326,6 +326,8 @@ void host_t::video_init()
     core_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VIDEO_XRES, 2 * VIDEO_YRES);
     SDL_SetTextureBlendMode(core_texture, SDL_BLENDMODE_BLEND);
 
+	//SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+
     debugger_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, DEBUGGER_WIDTH, DEBUGGER_HEIGHT);
     SDL_SetTextureBlendMode(debugger_texture, SDL_BLENDMODE_BLEND);
 
