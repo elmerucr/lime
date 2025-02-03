@@ -7,20 +7,26 @@
 
 // ---------------------------------------------------------------------
 //
-// sprites 0-63     front
+// sprites 0-63      front
 // layer_0            .
 // sprites 64-127     .
 // layer 1            .
 // sprites 128-191    .
 // layer 2            .
 // sprites 192-255    .
-// layer 3          back
+// layer 3           back
 //
 // 0x00: SR
 // 0x01: CR
 // 0x02: read
 // 0x03:
 // 0x04: bg color
+//
+// 0x06: current layer (0-3)
+// 0x07: current sprite (0-255)
+//
+// 0x18: x_pos current sprite
+// 0x19: y_pos current sprite
 //
 // ---------------------------------------------------------------------
 
@@ -102,6 +108,9 @@ private:
 	int32_t cycles_run;
 
 	bool new_scanline;
+
+	uint8_t current_layer;
+	uint8_t current_sprite;
 
 public:
     vdc_t();

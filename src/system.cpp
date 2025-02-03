@@ -35,8 +35,8 @@ system_t::system_t()
 	stats = new stats_t(this);
 
 	// default start mode
-	//switch_to_run_mode();
-	switch_to_debug_mode();
+	switch_to_run_mode();
+	//switch_to_debug_mode();
 
 	core->reset();
 }

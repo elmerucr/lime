@@ -4,6 +4,7 @@ rom/mk_rom
 rom/rom.bin
 rom/rom.hpp
 rom/rom.list
+rom/rom.symbols
 build/
 Debug/
 Release/

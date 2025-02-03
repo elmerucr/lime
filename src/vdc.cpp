@@ -43,6 +43,9 @@ void vdc_t::reset()
         ram[i] = (i & 0x40) ? 0xff : 0x00;
     }
 
+	current_layer = 0;
+	current_sprite = 0;
+
 	// icon
 	sprite[0] = { 112, 64, 0b00000111, 0x1c };
 	sprite[1] = { 120, 64, 0b00000111, 0x1d };
@@ -162,6 +165,18 @@ uint8_t vdc_t::io_read8(uint16_t address)
 			return next_scanline & 0xff;
 		case 0x04:
 			return bg_color & 0b11;
+		case 0x06:
+			return current_layer;
+		case 0x07:
+			return current_sprite;
+		case 0x18:
+			return sprite[current_sprite].x;
+		case 0x19:
+			return sprite[current_sprite].y;
+		case 0x1a:
+			return sprite[current_sprite].flags;
+		case 0x1b:
+			return sprite[current_sprite].index;
 		default:
 			return 0;
 	}
@@ -172,6 +187,24 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 	switch (address & 0xff) {
 	case 0x04:
 		bg_color = value & 0b11;
+		break;
+	case 0x06:
+		current_layer = value &0b11;
+		break;
+	case 0x07:
+		current_sprite = value;
+		break;
+	case 0x18:
+		sprite[current_sprite].x = value;
+		break;
+	case 0x19:
+		sprite[current_sprite].y = value;
+		break;
+	case 0x1a:
+		sprite[current_sprite].flags = value & 0b01111111;
+		break;
+	case 0x1b:
+		sprite[current_sprite].index = value;
 		break;
 	default:
 		break;
