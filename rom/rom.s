@@ -41,7 +41,7 @@ logo	clrb			; holds current sprite
 	cmpx	#data+32	; did we reach end of data?
 	bne	1b		; no, continue at 1
 
-3	jmp	3b		; endless loop
+3	bra	3b		; endless loop
 
 data
 	fcb	112,64,%111,$1c	; icon top left
