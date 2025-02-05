@@ -11,7 +11,7 @@
 	org	$ff00
 
 	fcn	"lime rom v0.2 20250205"
-start
+reset
 	lds	#$0200		; sets system stackpointer + enables nmi
 	ldu	#$ff00		; sets user stackpointer
 
@@ -29,21 +29,30 @@ start
 	anda	#%11111101
 	sta	$00
 
-logo	clrb			; holds current sprite
-	ldx	#data		; x points to start of data
-1	stb	$0207		; set active sprite
-	ldy	#$0218		; y points to sprite registers
+; ----------------------------------------------------------------------
+; place logo
+; ----------------------------------------------------------------------
+	clrb			; holds current sprite
+	ldx	#logo_data	; x points to start of data
+1	stb	$0407		; set active sprite
+	ldy	#$0418		; y points to sprite registers
 2	lda	,x+		; copy data
 	sta	,y+
-	cmpy	#$021c		; did we copy 4 values?
+	cmpy	#$041c		; did we copy 4 values?
 	bne	2b		; not yet, continue at 2
 	incb			; we did, set next active sprite
-	cmpx	#data+32	; did we reach end of data?
+	cmpx	#logo_data+32	; did we reach end of data?
 	bne	1b		; no, continue at 1
+
+; ---------------
+; do jump vectors
+; ---------------
+	ldx	#exc_irq
+	stx	$0200
 
 3	bra	3b		; endless loop
 
-data
+logo_data
 	fcb	112,64,%111,$1c	; icon top left
 	fcb	120,64,%111,$1d	; icon top right
 	fcb	112,72,%111,$1e	; icon bottom left
@@ -54,6 +63,10 @@ data
 	fcb	118,80,%111,$6d	; m
 	fcb	126,80,%111,$65	; e
 
+exc_irq
+	rti
+
+1	jmp	[$0200]
 
 	org	$fff0
 vectors
@@ -61,7 +74,7 @@ vectors
 	fdb	$0000
 	fdb	$0000
 	fdb	$0000
+	fdb	1b		; irq vector
 	fdb	$0000
 	fdb	$0000
-	fdb	$0000
-	fdb	start		; reset vector
+	fdb	reset		; reset vector

@@ -11,7 +11,7 @@
 
 vdc_t::vdc_t()
 {
-    ram = new uint8_t[VRAM_SIZE];
+    ram = new uint8_t[RAM_SIZE];
     buffer = new uint32_t[VIDEO_XRES * VIDEO_YRES];
 
 	layer[0].address = VDC_LAYERS_ADDRESS + 0x0000;
@@ -38,7 +38,7 @@ void vdc_t::reset()
 	}
 
     // fill memory with alternating pattern
-    for (int i = 0; i < VRAM_SIZE; i++) {
+    for (int i = 0; i < RAM_SIZE; i++) {
         ram[i] = (i & 0x40) ? 0xff : 0x00;
     }
 
@@ -146,6 +146,7 @@ void vdc_t::draw_scanline(uint16_t scanline)
 uint8_t vdc_t::io_read8(uint16_t address)
 {
 	switch (address & 0xff) {
+		// general
 		case 0x02:
 			return next_scanline >> 8;
 		case 0x03:
@@ -156,6 +157,24 @@ uint8_t vdc_t::io_read8(uint16_t address)
 			return current_layer;
 		case 0x07:
 			return current_sprite;
+
+		// layers
+		case 0x10:
+			return layer[current_layer].x;
+		case 0x11:
+			return layer[current_layer].y;
+		case 0x12:
+			return layer[current_layer].flags;
+		//case 0x13:
+		//	return 0;
+		case 0x14:
+			return
+				(layer[current_layer].shades[0] << 0) & 0b00000011 |
+				(layer[current_layer].shades[1] << 2) & 0b00001100 |
+				(layer[current_layer].shades[2] << 4) & 0b00110000 |
+				(layer[current_layer].shades[3] << 6) & 0b11000000 ;
+
+		// sprites
 		case 0x18:
 			return sprite[current_sprite].x;
 		case 0x19:
@@ -170,6 +189,7 @@ uint8_t vdc_t::io_read8(uint16_t address)
 				(sprite[current_sprite].shades[1] << 2) & 0b00001100 |
 				(sprite[current_sprite].shades[2] << 4) & 0b00110000 |
 				(sprite[current_sprite].shades[3] << 6) & 0b11000000 ;
+
 		default:
 			return 0;
 	}
@@ -178,35 +198,58 @@ uint8_t vdc_t::io_read8(uint16_t address)
 void vdc_t::io_write8(uint16_t address, uint8_t value)
 {
 	switch (address & 0xff) {
-	case 0x04:
-		bg_color = value & 0b11;
-		break;
-	case 0x06:
-		current_layer = value &0b11;
-		break;
-	case 0x07:
-		current_sprite = value;
-		break;
-	case 0x18:
-		sprite[current_sprite].x = value;
-		break;
-	case 0x19:
-		sprite[current_sprite].y = value;
-		break;
-	case 0x1a:
-		sprite[current_sprite].flags = value & 0b01111111;
-		break;
-	case 0x1b:
-		sprite[current_sprite].index = value;
-		break;
-	case 0x1c:
-		sprite[current_sprite].shades[0] = (value >> 0) & 0b11;
-		sprite[current_sprite].shades[1] = (value >> 2) & 0b11;
-		sprite[current_sprite].shades[2] = (value >> 4) & 0b11;
-		sprite[current_sprite].shades[3] = (value >> 6) & 0b11;
-		break;
-	default:
-		break;
+		// general
+		case 0x04:
+			bg_color = value & 0b11;
+			break;
+		case 0x06:
+			current_layer = value &0b11;
+			break;
+		case 0x07:
+			current_sprite = value;
+			break;
+
+		// layers
+		case 0x10:
+			layer[current_layer].x = value;
+			break;
+		case 0x11:
+			layer[current_layer].y = value;
+			break;
+		case 0x12:
+			layer[current_layer].flags = value & 0b00000111;
+			break;
+		//case 0x13:
+		//	break;
+		case 0x14:
+			layer[current_layer].shades[0] = (value >> 0) & 0b11;
+			layer[current_layer].shades[1] = (value >> 2) & 0b11;
+			layer[current_layer].shades[2] = (value >> 4) & 0b11;
+			layer[current_layer].shades[3] = (value >> 6) & 0b11;
+			break;
+
+		// sprites
+		case 0x18:
+			sprite[current_sprite].x = value;
+			break;
+		case 0x19:
+			sprite[current_sprite].y = value;
+			break;
+		case 0x1a:
+			sprite[current_sprite].flags = value & 0b01111111;
+			break;
+		case 0x1b:
+			sprite[current_sprite].index = value;
+			break;
+		case 0x1c:
+			sprite[current_sprite].shades[0] = (value >> 0) & 0b11;
+			sprite[current_sprite].shades[1] = (value >> 2) & 0b11;
+			sprite[current_sprite].shades[2] = (value >> 4) & 0b11;
+			sprite[current_sprite].shades[3] = (value >> 6) & 0b11;
+			break;
+
+		default:
+			break;
 	}
 }
 

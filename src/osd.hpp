@@ -20,8 +20,8 @@ private:
 
 	//const uint32_t fg = 0xffff8010;
 	//const uint32_t bg = 0x80804008;
-	const uint32_t fg = GB_COLOR_3;
-	const uint32_t bg = (GB_COLOR_1 & 0x00ffffff) | 0x80000000;
+	const uint32_t fg = LIME_COLOR_3;
+	const uint32_t bg = (LIME_COLOR_1 & 0x00ffffff) | 0x80000000;
 
 	font_cbm_8x8_t font;
 	terminal_t *terminal;

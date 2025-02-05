@@ -25,7 +25,7 @@
 #include "font_cbm_8x8.hpp"
 
 #define CBM_FONT_PAGE	0x10
-#define VDC_PAGE		0x02
+#define VDC_PAGE		0x04
 #define SYSTEM_ROM_PAGE	0xff
 
 enum output_states {

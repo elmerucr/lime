@@ -85,7 +85,7 @@ debugger_t::debugger_t(system_t *s)
 	print_version();
 	terminal->activate_cursor();
 
-	status = new terminal_t(system, 116, 17, GB_COLOR_2, GB_COLOR_0);
+	status = new terminal_t(system, 116, 17, LIME_COLOR_2, LIME_COLOR_0);
 }
 
 debugger_t::~debugger_t()
@@ -158,19 +158,19 @@ void debugger_t::redraw()
 
 	if (system->core->vdc->get_current_scanline() < VIDEO_YRES) {
 		for (int i=0; i<16; i++) {
-			buffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*DEBUGGER_WIDTH) + 227 + arrows[i][0]] = GB_COLOR_2;
-			buffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*DEBUGGER_WIDTH) + -4 + (DEBUGGER_WIDTH-arrows[i][0])] = GB_COLOR_2;
+			buffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*DEBUGGER_WIDTH) + 227 + arrows[i][0]] = LIME_COLOR_2;
+			buffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*DEBUGGER_WIDTH) + -4 + (DEBUGGER_WIDTH-arrows[i][0])] = LIME_COLOR_2;
 		}
 	}
 
 	// progress bar for cycles done for scanline
 	for (int x=232; x<(232+VIDEO_XRES); x++) {
 		if (x < ((system->core->vdc->get_cycles_run()*VIDEO_XRES)/CPU_CYCLES_PER_SCANLINE)+232) {
-			buffer[(3*DEBUGGER_WIDTH) + x] = GB_COLOR_2;
-			buffer[(4*DEBUGGER_WIDTH) + x] = GB_COLOR_2;
+			buffer[(3*DEBUGGER_WIDTH) + x] = LIME_COLOR_2;
+			buffer[(4*DEBUGGER_WIDTH) + x] = LIME_COLOR_2;
 		} else {
-			buffer[(3*DEBUGGER_WIDTH) + x] = GB_COLOR_0;
-			buffer[(4*DEBUGGER_WIDTH) + x] = GB_COLOR_0;
+			buffer[(3*DEBUGGER_WIDTH) + x] = LIME_COLOR_0;
+			buffer[(4*DEBUGGER_WIDTH) + x] = LIME_COLOR_0;
 		}
 	}
 }
@@ -432,8 +432,8 @@ void debugger_t::memory_dump(uint16_t address)
 	}
 	temp_address = address;
 
-	terminal->bg_color = GB_COLOR_0;
-	terminal->fg_color = GB_COLOR_2;
+	terminal->bg_color = LIME_COLOR_0;
+	terminal->fg_color = LIME_COLOR_2;
 
 	for (int i=0; i<8; i++) {
 		uint8_t temp_byte = system->core->read8(temp_address);
@@ -558,10 +558,10 @@ void debugger_t::memory_binary_dump(uint16_t address)
 	}
 	for (int i=0; i<8; i++) {
 		switch (res[i]) {
-			case 0b00: terminal->bg_color = GB_COLOR_0; break;
-			case 0b01: terminal->bg_color = GB_COLOR_1; break;
-			case 0b10: terminal->bg_color = GB_COLOR_2; break;
-			case 0b11: terminal->bg_color = GB_COLOR_3; break;
+			case 0b00: terminal->bg_color = LIME_COLOR_0; break;
+			case 0b01: terminal->bg_color = LIME_COLOR_1; break;
+			case 0b10: terminal->bg_color = LIME_COLOR_2; break;
+			case 0b11: terminal->bg_color = LIME_COLOR_3; break;
 		}
 		terminal->printf("  ");
 	}
@@ -667,7 +667,7 @@ uint32_t debugger_t::disassemble_instruction(uint16_t address)
 	}
 	cycles = system->core->cpu->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
 	status->printf("%s", text_buffer);
-	status->fg_color = GB_COLOR_2;
+	status->fg_color = LIME_COLOR_2;
 	//terminal->bg_color = bg;
 
 	status->putchar('\r');

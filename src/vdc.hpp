@@ -39,10 +39,10 @@
 
 // gameboy green palette: https://lospec.com/palette-list/nintendo-gameboy-bgb
 const uint32_t palette[4] = {
-	GB_COLOR_0,
-	GB_COLOR_1,
-	GB_COLOR_2,
-	GB_COLOR_3
+	LIME_COLOR_0,
+	LIME_COLOR_1,
+	LIME_COLOR_2,
+	LIME_COLOR_3
 };
 
 struct layer_t {

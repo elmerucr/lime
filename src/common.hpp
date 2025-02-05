@@ -12,14 +12,14 @@
 // Version information
 // ---------------------------------------------------------------------
 #define LIME_MAJOR_VERSION	0
-#define LIME_MINOR_VERSION	2
+#define LIME_MINOR_VERSION	3
 #define LIME_BUILD			20250205
 #define LIME_YEAR			2025
 
 // ---------------------------------------------------------------------
 // video
 // ---------------------------------------------------------------------
-#define VRAM_SIZE		0x10000
+#define RAM_SIZE		0x10000
 #define VIDEO_XRES		240
 #define VIDEO_YRES		160
 #define VIDEO_SCANLINES	480
@@ -54,12 +54,12 @@
 #define DEBUGGER_HEIGHT	320
 
 // ---------------------------------------------------------------------
-// gameboy colors
+// color palette
 // ---------------------------------------------------------------------
-#define	GB_COLOR_0	0xff081820
-#define GB_COLOR_1	0xff346856
-#define GB_COLOR_2	0xff88c070
-#define GB_COLOR_3	0xffe0f8d0
+#define	LIME_COLOR_0	0xff081820	// gameboy color 0
+#define LIME_COLOR_1	0xff346856	// gameboy color 1
+#define LIME_COLOR_2	0xff88c070	// gameboy color 2
+#define LIME_COLOR_3	0xffe0f8d0	// gameboy color 3
 
 // ---------------------------------------------------------------------
 // C64 colors (VirtualC64)
