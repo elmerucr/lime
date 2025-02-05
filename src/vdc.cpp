@@ -28,8 +28,7 @@ vdc_t::~vdc_t()
 
 void vdc_t::reset()
 {
-	// initial video buffer status
-	// buffer can't be addressed directly by system
+	// initial video buffer status, buffer invisible to system
 	for (int i=0; i<(VIDEO_YRES*VIDEO_XRES); i++) {
 		if ((i%VIDEO_YRES) & 0b100) {
 			buffer[i] = palette[0b01];
@@ -45,18 +44,6 @@ void vdc_t::reset()
 
 	current_layer = 0;
 	current_sprite = 0;
-
-	// icon
-	sprite[0] = { 112, 64, 0b00000111, 0x1c };
-	sprite[1] = { 120, 64, 0b00000111, 0x1d };
-	sprite[2] = { 112, 72, 0b00000111, 0x1e };
-	sprite[3] = { 120, 72, 0b00000111, 0x1f };
-
-	// text
-	sprite[4] = { 107, 80, 0b00000111, 0x6c };	// l
-	sprite[5] = { 112, 80, 0b00000111, 0x69 };	// i
-	sprite[6] = { 118, 80, 0b00000111, 0x6d };	// m
-	sprite[7] = { 126, 80, 0b00000111, 0x65 };	// e
 
 	cycles_run = 0;
 	next_scanline = 160;
@@ -83,7 +70,7 @@ void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 					(0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
 				// if NOT (transparent AND 0b00) then pixel must be written
 				if (!((l->flags & 0b100) && !res)) {
-					buffer[(VIDEO_XRES * sl) + scr_x] = palette[l->palette[res]];
+					buffer[(VIDEO_XRES * sl) + scr_x] = palette[l->shades[res]];
 				}
 			}
 		}
@@ -129,7 +116,7 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 					(0b11 << (2 * (3 - (x%4))))) >> (2 * (3 - (x%4)));
 				// if NOT (transparent AND 0b00) then pixel must be written
 				if (!((s->flags & 0b100) && !res)) {
-					buffer[(VIDEO_XRES * sl) + scr_x] = palette[s->palette[res]];
+					buffer[(VIDEO_XRES * sl) + scr_x] = palette[s->shades[res]];
 				}
 
 				// restore y, if xy flip was done before
@@ -177,6 +164,12 @@ uint8_t vdc_t::io_read8(uint16_t address)
 			return sprite[current_sprite].flags;
 		case 0x1b:
 			return sprite[current_sprite].index;
+		case 0x1c:
+			return
+				(sprite[current_sprite].shades[0] << 0) & 0b00000011 |
+				(sprite[current_sprite].shades[1] << 2) & 0b00001100 |
+				(sprite[current_sprite].shades[2] << 4) & 0b00110000 |
+				(sprite[current_sprite].shades[3] << 6) & 0b11000000 ;
 		default:
 			return 0;
 	}
@@ -205,6 +198,12 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 		break;
 	case 0x1b:
 		sprite[current_sprite].index = value;
+		break;
+	case 0x1c:
+		sprite[current_sprite].shades[0] = (value >> 0) & 0b11;
+		sprite[current_sprite].shades[1] = (value >> 2) & 0b11;
+		sprite[current_sprite].shades[2] = (value >> 4) & 0b11;
+		sprite[current_sprite].shades[3] = (value >> 6) & 0b11;
 		break;
 	default:
 		break;

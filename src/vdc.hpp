@@ -37,8 +37,7 @@
 #include "common.hpp"
 #include "font_cbm_8x8.hpp"
 
-// gameboy green palette
-// https://lospec.com/palette-list/nintendo-gameboy-bgb
+// gameboy green palette: https://lospec.com/palette-list/nintendo-gameboy-bgb
 const uint32_t palette[4] = {
 	GB_COLOR_0,
 	GB_COLOR_1,
@@ -54,16 +53,15 @@ struct layer_t {
 	// flags
 	//
 	// bit 7 6 5 4 3 2 1 0
-	//       | | | | | | |
-	//       | | | | | | +- unactive (0b0) / active (1)
-	//       | | | | | +--- tileset 0 (0) / tileset 1 (1)
-	//       | | | | +----- 0b00 is opaque (0) or transparent (1)
+	//               | | |
+	//               | | +- unactive (0) / active (1)
+	//               | +--- tileset 0 (0) / tileset 1 (1)
+	//               +----- 0b00 patterns code to opaque (0) or transparent (1)
 	//
 	// -----------------------------------------------------------------
 	uint8_t flags{0b00000000};
 
-	// palette values can never be >0b11
-	uint8_t palette[4] = { 0b00, 0b01, 0b10, 0b11 };
+	uint8_t shades[4] = { 0b00, 0b01, 0b10, 0b11 };
 
 	// not to be changed
 	uint16_t address;
@@ -81,7 +79,7 @@ struct sprite_t {
 	//       | | | | | | |
 	//       | | | | | | +- unactive (0b0) / active (1)
 	//       | | | | | +--- tileset 0 (0) / tileset 1 (1)
-	//       | | | | +----- 0b00 is opaque (0) or transparent (1)
+	//       | | | | +----- 0b00 patterns code to opaque (0) or transparent (1)
 	//       | | | +------- x pos relative to screen (0) or associated layer (1)
 	//       | | +--------- flip h  (1)
 	//       | +----------- flip v  (1)
@@ -92,15 +90,12 @@ struct sprite_t {
 
 	uint8_t index{0};
 
-	// palette values can never be >0b11
-	uint8_t palette[4] = { 0b00, 0b01, 0b10, 0b11 };
+	uint8_t shades[4] = { 0b00, 0b01, 0b10, 0b11 };
 };
 
 class vdc_t {
 private:
     font_cbm_8x8_t font;
-	void draw_layer(layer_t *l, uint8_t sl);
-	void draw_sprite(sprite_t *s, uint8_t sl, layer_t *t);
 
 	uint8_t bg_color{0b00};
 
@@ -112,6 +107,9 @@ private:
 	uint8_t current_layer;
 	uint8_t current_sprite;
 
+    void draw_scanline(uint16_t scanline);
+	void draw_layer(layer_t *l, uint8_t sl);
+	void draw_sprite(sprite_t *s, uint8_t sl, layer_t *t);
 public:
     vdc_t();
     ~vdc_t();
@@ -134,8 +132,6 @@ public:
 
 	// returns true if frame done
 	bool run(uint32_t number_of_cycles);
-
-    void draw_scanline(uint16_t scanline);
 
 	bool started_new_scanline() { return new_scanline; }
 };
