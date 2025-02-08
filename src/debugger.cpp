@@ -381,6 +381,10 @@ void debugger_t::process_command(char *c)
 	// } else if (strcmp(token0, "n") == 0) {
 	// 	system->core->run(true);
 	// 	status();
+	} else if (strcmp(token0, "pal") == 0) {
+		terminal->printf("\n   00 01 10 11");
+		terminal->printf("\n00 ");
+
 	} else if (strcmp(token0, "reset") == 0) {
 		terminal->printf("\nreset lime (y/n)");
 		redraw();

@@ -1,0 +1,80 @@
+                      ; ----------------------------------------------------------------------
+                      ; rom.s (compiles with asm6809)
+                      ; lime
+                      ;
+                      ; Copyright (C)2025 elmerucr
+                      ; ----------------------------------------------------------------------
+                      
+0000                          setdp   $00             ; assembler now assumes dp = $00 and
+                                                      ; uses dp addressing when appropriate
+                      
+FF00                          org     $ff00
+                      
+FF00  6C696D6520726F6D2076302E3220323032353032303500         fcn     "lime rom v0.2 20250205"
+FF17                  reset
+FF17  10CE0200                lds     #$0200          ; sets system stackpointer + enables nmi
+FF1B  CEFF00                  ldu     #$ff00          ; sets user stackpointer
+                      
+FF1E  9600                    lda     $00             ; make font visible to cpu
+FF20  8A02                    ora     #%00000010
+FF22  9700                    sta     $00
+                      
+FF24  8E1000                  ldx     #$1000          ; copy font from rom to ram
+FF27  A684            1       lda     ,x
+FF29  A780                    sta     ,x+
+FF2B  8C2000                  cmpx    #$2000
+FF2E  26F7                    bne     1b
+                      
+FF30  9600                    lda     $00             ; only rom remains visible to cpu
+FF32  84FD                    anda    #%11111101
+FF34  9700                    sta     $00
+                      
+                      ; ----------------------------------------------------------------------
+                      ; place logo
+                      ; ----------------------------------------------------------------------
+FF36  5F                      clrb                    ; holds current sprite
+FF37  8EFF59                  ldx     #logo_data      ; x points to start of data
+FF3A  F70407          1       stb     $0407           ; set active sprite
+FF3D  108E0418                ldy     #$0418          ; y points to sprite registers
+FF41  A680            2       lda     ,x+             ; copy data
+FF43  A7A0                    sta     ,y+
+FF45  108C041C                cmpy    #$041c          ; did we copy 4 values?
+FF49  26F6                    bne     2b              ; not yet, continue at 2
+FF4B  5C                      incb                    ; we did, set next active sprite
+FF4C  8CFF79                  cmpx    #logo_data+32   ; did we reach end of data?
+FF4F  26E9                    bne     1b              ; no, continue at 1
+                      
+                      ; ---------------
+                      ; do jump vectors
+                      ; ---------------
+FF51  8EFF79                  ldx     #exc_irq
+FF54  BF0200                  stx     $0200
+                      
+FF57  20FE            3       bra     3b              ; endless loop
+                      
+FF59                  logo_data
+FF59  7040071C                fcb     112,64,%111,$1c ; icon top left
+FF5D  7840071D                fcb     120,64,%111,$1d ; icon top right
+FF61  7048071E                fcb     112,72,%111,$1e ; icon bottom left
+FF65  7848071F                fcb     120,72,%111,$1f ; icon bottom right
+                      
+FF69  6B50076C                fcb     107,80,%111,$6c ; l
+FF6D  70500769                fcb     112,80,%111,$69 ; i
+FF71  7650076D                fcb     118,80,%111,$6d ; m
+FF75  7E500765                fcb     126,80,%111,$65 ; e
+                      
+FF79                  exc_irq
+FF79  3B                      rti
+                      
+FF7A  6E9F0200        1       jmp     [$0200]
+                      
+FFF0                          org     $fff0
+FFF0                  vectors
+FFF0  0000                    fdb     $0000
+FFF2  0000                    fdb     $0000
+FFF4  0000                    fdb     $0000
+FFF6  0000                    fdb     $0000
+FFF8  FF7A                    fdb     1b              ; irq vector
+FFFA  0000                    fdb     $0000
+FFFC  0000                    fdb     $0000
+FFFE  FF17                    fdb     reset           ; reset vector

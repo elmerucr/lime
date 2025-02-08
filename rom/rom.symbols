@@ -1,0 +1,4 @@
+logo_data	equ	65369
+reset	equ	65303
+vectors	equ	65520
+exc_irq	equ	65401

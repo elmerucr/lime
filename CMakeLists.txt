@@ -11,6 +11,7 @@ include_directories(
     ${SDL2_INCLUDE_DIRS}
     src/
 	src/MC6809
+	rom/
 )
 
 add_subdirectory(src/)
