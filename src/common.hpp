@@ -56,10 +56,25 @@
 // ---------------------------------------------------------------------
 // color palette
 // ---------------------------------------------------------------------
-#define	LIME_COLOR_0	0xff081820	// gameboy color 0
-#define LIME_COLOR_1	0xff346856	// gameboy color 1
-#define LIME_COLOR_2	0xff88c070	// gameboy color 2
-#define LIME_COLOR_3	0xffe0f8d0	// gameboy color 3
+#define	LIME_COLOR_0	0xff'08'18'20	// gameboy color 0
+#define LIME_COLOR_1	0xff'34'68'56	// gameboy color 1
+#define LIME_COLOR_2	0xff'88'c0'70	// gameboy color 2
+#define LIME_COLOR_3	0xff'e0'f8'd0	// gameboy color 3
+
+#define LIME_COLOR_4	0xff'1f'24'4b
+#define LIME_COLOR_5	0xff'65'40'53
+#define LIME_COLOR_6	0xff'a8'60'5d
+#define LIME_COLOR_7	0xff'd1'a6'7e
+
+#define LIME_COLOR_8	0xff'44'38'7a
+#define LIME_COLOR_9	0xff'76'79'db
+#define LIME_COLOR_10	0xff'96'b3'fd
+#define LIME_COLOR_11	0xff'd4'd5'f6
+
+#define LIME_COLOR_12	0xff'05'05'05
+#define LIME_COLOR_13	0xff'55'55'55
+#define LIME_COLOR_14	0xff'a5'a5'a5
+#define LIME_COLOR_15	0xff'f5'f5'f5
 
 // ---------------------------------------------------------------------
 // C64 colors (VirtualC64)

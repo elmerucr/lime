@@ -381,10 +381,16 @@ void debugger_t::process_command(char *c)
 	// } else if (strcmp(token0, "n") == 0) {
 	// 	system->core->run(true);
 	// 	status();
-	} else if (strcmp(token0, "pal") == 0) {
-		terminal->printf("\n   00 01 10 11");
-		terminal->printf("\n00 ");
-
+	} else if (strcmp(token0, "col") == 0) {
+		terminal->printf("\n     00  01  10  11");
+		for (int i=0; i<16; i++) {
+			if ((i & 0b11) == 0) {
+				terminal->printf("  \n %c%c ", i & 0b1000 ? '1' : '0', i & 0b0100 ? '1' : '0');
+			}
+			terminal->bg_color = colors[i];
+			terminal->printf("    ");
+			terminal->bg_color = C64_BLUE;;
+		}
 	} else if (strcmp(token0, "reset") == 0) {
 		terminal->printf("\nreset lime (y/n)");
 		redraw();

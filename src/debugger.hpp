@@ -27,6 +27,11 @@ private:
 
 	bool have_prompt;
 	char text_buffer[1024];
+
+	uint8_t terminal_colors[4] {
+		0, 1, 2, 3
+	};
+
 public:
 	debugger_t(system_t *s);
 	~debugger_t();

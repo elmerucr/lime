@@ -38,11 +38,23 @@
 #include "font_cbm_8x8.hpp"
 
 // gameboy green palette: https://lospec.com/palette-list/nintendo-gameboy-bgb
-const uint32_t palette[4] = {
+const uint32_t colors[256] = {
 	LIME_COLOR_0,
 	LIME_COLOR_1,
 	LIME_COLOR_2,
-	LIME_COLOR_3
+	LIME_COLOR_3,
+	LIME_COLOR_4,
+	LIME_COLOR_5,
+	LIME_COLOR_6,
+	LIME_COLOR_7,
+	LIME_COLOR_8,
+	LIME_COLOR_9,
+	LIME_COLOR_10,
+	LIME_COLOR_11,
+	LIME_COLOR_12,
+	LIME_COLOR_13,
+	LIME_COLOR_14,
+	LIME_COLOR_15
 };
 
 struct layer_t {
@@ -61,7 +73,7 @@ struct layer_t {
 	// -----------------------------------------------------------------
 	uint8_t flags{0b00000000};
 
-	uint8_t shades[4] = { 0b00, 0b01, 0b10, 0b11 };
+	uint8_t palette[4] = { 0b00, 0b01, 0b10, 0b11 };
 
 	// not to be changed
 	uint16_t address;
@@ -90,7 +102,7 @@ struct sprite_t {
 
 	uint8_t index{0};
 
-	uint8_t shades[4] = { 0b00, 0b01, 0b10, 0b11 };
+	uint8_t palette[4] = { 0b00, 0b01, 0b10, 0b11 };
 };
 
 class vdc_t {
