@@ -382,15 +382,14 @@ void debugger_t::process_command(char *c)
 	// 	system->core->run(true);
 	// 	status();
 	} else if (strcmp(token0, "col") == 0) {
-		terminal->printf("\n     00  01  10  11");
-		for (int i=0; i<16; i++) {
-			if ((i & 0b11) == 0) {
-				terminal->printf("  \n %c%c ", i & 0b1000 ? '1' : '0', i & 0b0100 ? '1' : '0');
-			}
+		terminal->fg_color = C64_GREY;
+		for (int i=0; i<32; i++) {
+			if ((i & 0b111) == 0) terminal->printf("\n   ");
 			terminal->bg_color = colors[i];
-			terminal->printf("    ");
+			terminal->printf("  %02x  ", i);
 			terminal->bg_color = C64_BLUE;;
 		}
+		terminal->fg_color = C64_LIGHTBLUE;
 	} else if (strcmp(token0, "reset") == 0) {
 		terminal->printf("\nreset lime (y/n)");
 		redraw();
