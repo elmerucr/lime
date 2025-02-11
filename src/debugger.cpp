@@ -109,7 +109,7 @@ void debugger_t::redraw()
 		}
 	}
 
-	// redraw status
+	// update status text
 	status->clear();
 	system->core->cpu->status(text_buffer, 1024);
 	status->printf("__cpu_______________________________________________________\n%s", text_buffer);
@@ -133,7 +133,7 @@ void debugger_t::redraw()
 		}
 	}
 
-	// update buffer
+	// render characters into buffer
 	for (int y=0; y<DEBUGGER_HEIGHT; y++) {
 		uint8_t y_in_char = y % 8;
 		for (int x=0; x<DEBUGGER_WIDTH; x++) {
@@ -143,6 +143,13 @@ void debugger_t::redraw()
 				(debugger_font.data[(symbol << 3) + y_in_char] & (0b1 << (3 - x_in_char))) ?
 				fg_colors[((y>>3) * (DEBUGGER_WIDTH >> 2)) + (x >> 2)] :
 				bg_colors[((y>>3) * (DEBUGGER_WIDTH >> 2)) + (x >> 2)] ;
+		}
+	}
+
+	// copy vdc buffer contents into debugger buffer (no need for scanline stuff)
+	for (int y=0; y<VIDEO_YRES; y++) {
+		for (int x=0; x<VIDEO_XRES; x++) {
+			buffer[((y+8) * DEBUGGER_WIDTH) + (x+232)] = system->core->vdc->buffer[(y*VIDEO_XRES)+x];
 		}
 	}
 
@@ -382,14 +389,12 @@ void debugger_t::process_command(char *c)
 	// 	system->core->run(true);
 	// 	status();
 	} else if (strcmp(token0, "col") == 0) {
-		terminal->fg_color = C64_GREY;
 		for (int i=0; i<32; i++) {
-			if ((i & 0b111) == 0) terminal->printf("\n   ");
+			if ((i & 0b111) == 0) terminal->printf("\n %02x-%02x ", i, i+7);
 			terminal->bg_color = colors[i];
-			terminal->printf("  %02x  ", i);
+			terminal->printf("    ");
 			terminal->bg_color = C64_BLUE;;
 		}
-		terminal->fg_color = C64_LIGHTBLUE;
 	} else if (strcmp(token0, "reset") == 0) {
 		terminal->printf("\nreset lime (y/n)");
 		redraw();

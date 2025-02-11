@@ -95,35 +95,30 @@ enum scancodes {
 
 class host_t {
 private:
-    system_t *system;
-
-    const uint8_t *sdl_keyboard_state;
+    system_t		*system;
+    const uint8_t	*sdl_keyboard_state;
 
     // video related
-    int video_scaling{1};
-    SDL_Window *video_window;
-    SDL_Renderer *video_renderer;
-	bool vsync;
-    bool video_scanlines{true};
-    const uint8_t video_scanline_alpha = 176;
-    bool video_fullscreen{false};
+	SDL_DisplayMode	video_displaymode;
+    int				video_scaling{1};
+    SDL_Window		*video_window;
+	int				video_window_width;
+	int				video_window_height;
+    SDL_Renderer	*video_renderer;
+	bool			vsync;
+    bool			video_scanlines{true};
+    const uint8_t	video_scanline_alpha = 176;
+    bool			video_fullscreen{false};
 
-    SDL_Texture *core_texture;
-    uint32_t *core_framebuffer;
+    SDL_Texture		*core_texture;
+    uint32_t		*core_framebuffer;	// used for scanline effect
 
-	SDL_Texture *debugger_texture;
+	SDL_Texture		*debugger_texture;
 
-	SDL_Texture *osd_texture;
-	bool osd_visible{false};
-	osd_t *osd;
-	SDL_Rect osd_pos;
-
-	int video_window_width;
-	int video_window_height;
-
-	const SDL_Rect viewer = {
-		DEBUGGER_WIDTH-VIDEO_XRES-8, 8, VIDEO_XRES, VIDEO_YRES
-	};
+	SDL_Texture		*osd_texture;
+	bool			osd_visible{false};
+	osd_t			*osd;
+	SDL_Rect		osd_windowed;
 
     inline uint32_t video_blend(uint32_t c0, uint32_t c1) {
 		    return

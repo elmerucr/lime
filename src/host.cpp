@@ -16,8 +16,8 @@
 host_t::host_t(system_t *s)
 {
     // one extra line, needed for proper scanline effect
-    core_framebuffer = new uint32_t[VIDEO_XRES * ((2 * VIDEO_YRES) + 1)];
-	for (int i=0; i<VIDEO_XRES * ((2 * VIDEO_YRES) + 1); i++) core_framebuffer[i] = 0;
+    core_framebuffer = new uint32_t[DEBUGGER_WIDTH * (DEBUGGER_HEIGHT + 1)];
+	for (int i=0; i<DEBUGGER_WIDTH * (DEBUGGER_HEIGHT + 1); i++) core_framebuffer[i] = 0;
 
     system = s;
 
@@ -51,11 +51,6 @@ host_t::host_t(system_t *s)
 #else
 #   error "Unknown compiler"
 #endif
-
-	osd = new osd_t(system);
-	osd_pos = {
-		DEBUGGER_WIDTH/2 - (osd->width*4), DEBUGGER_HEIGHT - (osd->height*8), osd->width*8, osd->height*8
-	};
 
 	//audio_init();
 	video_init();
@@ -192,53 +187,52 @@ enum events_output_state host_t::events_process_events()
 
 void host_t::update_screen()
 {
-	for (int y=0; y < VIDEO_YRES; y++) {
-		for (int x=0; x < VIDEO_XRES; x ++) {
-			core_framebuffer[((y << 1) * VIDEO_XRES) + x] = system->core->vdc->buffer[(VIDEO_XRES * y) + x];
-		}
-	}
-
-	if (video_scanlines && (system->current_mode == RUN_MODE)) {
-		for (int y=0; y < VIDEO_YRES; y++) {
-			for (int x=0; x < VIDEO_XRES; x++) {
-				core_framebuffer[(((y << 1) + 1) * VIDEO_XRES) + x] = video_blend(
-					core_framebuffer[(((y << 1) + 0) * VIDEO_XRES) + x],
-					core_framebuffer[(((y << 1) + 2) * VIDEO_XRES) + x]
-				);
-			}
-		}
-	} else {
-		for (int y=0; y < VIDEO_YRES; y++) {
-			for (int x=0; x < VIDEO_XRES; x++) {
-				core_framebuffer[(((y << 1) + 1) * VIDEO_XRES) + x] =
-					core_framebuffer[(((y << 1) + 0) * VIDEO_XRES) + x];
-			}
-		}
-	}
-
-	SDL_UpdateTexture(core_texture, nullptr, (void *)core_framebuffer, VIDEO_XRES*sizeof(uint32_t));
-    SDL_RenderClear(video_renderer);
+	SDL_RenderClear(video_renderer);
 
 	switch (system->current_mode) {
 		case RUN_MODE:
+			// copy lines
+			for (int y=0; y<VIDEO_YRES; y++) {
+				for (int x=0; x<VIDEO_XRES; x ++) {
+					core_framebuffer[((y << 1) * DEBUGGER_WIDTH) + (x<<1)] = system->core->vdc->buffer[(VIDEO_XRES * y) + x];
+					core_framebuffer[((y << 1) * DEBUGGER_WIDTH) + (x<<1) + 1] = system->core->vdc->buffer[(VIDEO_XRES * y) + x];
+				}
+			}
+			if (video_scanlines) {
+				for (int y = 0; y < DEBUGGER_HEIGHT; y += 2) {
+					for (int x = 0; x < DEBUGGER_WIDTH; x += 2) {
+						core_framebuffer[((y + 1) * DEBUGGER_WIDTH) + x + 0] =
+							core_framebuffer[((y + 1) * DEBUGGER_WIDTH) + x + 1] = video_blend(
+								core_framebuffer[((y + 0) * DEBUGGER_WIDTH) + x],
+								core_framebuffer[((y + 2) * DEBUGGER_WIDTH) + x]
+							);
+					}
+				}
+			} else {
+				for (int y = 0; y < DEBUGGER_HEIGHT; y += 2) {
+					for (int x = 0; x < DEBUGGER_WIDTH; x += 2) {
+						core_framebuffer[((y + 1) * DEBUGGER_WIDTH) + x] =
+							core_framebuffer[((y + 1) * DEBUGGER_WIDTH) + x + 1] =
+								core_framebuffer[((y + 0) * DEBUGGER_WIDTH) + x];
+					}
+				}
+			}
+
+			SDL_UpdateTexture(core_texture, nullptr, (void *)core_framebuffer, DEBUGGER_WIDTH*sizeof(uint32_t));
 			SDL_RenderCopy(video_renderer, core_texture, nullptr, nullptr);
+
 			break;
 		case DEBUG_MODE:
 			system->debugger->redraw();
 			SDL_UpdateTexture(debugger_texture, nullptr, (void *)system->debugger->buffer, DEBUGGER_WIDTH*sizeof(uint32_t));
 			SDL_RenderCopy(video_renderer, debugger_texture, nullptr, nullptr);
-
-			// draw black rectangle
-			SDL_RenderFillRect(video_renderer, &viewer);
-			// render core texture
-			SDL_RenderCopy(video_renderer, core_texture, nullptr, &viewer);
 			break;
 	}
 
 	if (osd_visible) {
 		osd->redraw();
 		SDL_UpdateTexture(osd_texture, nullptr, (void *)osd->buffer, osd->width*8*sizeof(uint32_t));
-		SDL_RenderCopy(video_renderer, osd_texture, nullptr, &osd_pos);
+		SDL_RenderCopy(video_renderer, osd_texture, nullptr, &osd_windowed);
 	}
 
     SDL_RenderPresent(video_renderer);
@@ -260,8 +254,14 @@ void host_t::video_toggle_fullscreen()
 	video_fullscreen = !video_fullscreen;
 	if (video_fullscreen) {
 		SDL_SetWindowFullscreen(video_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+		SDL_GetWindowSize(video_window, &video_window_width, &video_window_height);
+		//SDL_RenderSetLogicalSize(video_renderer, video_window_width, video_window_height);
+		printf("[SDL] Fullscreen size: %i x %i\n", video_window_width, video_window_height);
 	} else {
 		SDL_SetWindowFullscreen(video_window, SDL_WINDOW_RESIZABLE);
+		SDL_GetWindowSize(video_window, &video_window_width, &video_window_height);
+		//SDL_RenderSetLogicalSize(video_renderer, video_window_width, video_window_height);
+		printf("[SDL] Window size: %i x %i\n", video_window_width, video_window_height);
 	}
 }
 
@@ -275,14 +275,28 @@ void host_t::video_init()
 	}
 	printf("\n[SDL] Display now using backend '%s'\n", SDL_GetCurrentVideoDriver());
 
-    SDL_DisplayMode dm;
-	SDL_GetCurrentDisplayMode(0, &dm);
-	printf("[SDL] Display current desktop dimension: %i x %i\n", dm.w, dm.h);
 
-    video_scaling = dm.h / VIDEO_YRES;
-	while ((10 * video_scaling * VIDEO_YRES) > (9 * dm.h)) video_scaling--;
-	if (video_scaling & 0b1) video_scaling--;
+	SDL_GetCurrentDisplayMode(0, &video_displaymode);
+	printf("[SDL] Display current desktop dimension: %i x %i\n", video_displaymode.w, video_displaymode.h);
+
+    video_scaling = video_displaymode.h / DEBUGGER_HEIGHT;
+
+	// if size >90% of screen height, reduce size
+	while ((10 * video_scaling * DEBUGGER_HEIGHT) > (9 * video_displaymode.h)) {
+		video_scaling--;
+	}
+
+	if (video_scaling < 1) video_scaling = 1;
+
     printf("[SDL] Video scaling will be %i times\n", video_scaling);
+
+	osd = new osd_t(system);
+	osd_windowed = {
+		video_scaling*(DEBUGGER_WIDTH/2 - (osd->width*4)),
+		video_scaling*(DEBUGGER_HEIGHT - (osd->height*8)),
+		video_scaling*osd->width*8,
+		video_scaling*osd->height*8
+	};
 
 	char title[64];
 	snprintf(title, 64, "lime  v%i.%i  %i", LIME_MAJOR_VERSION, LIME_MINOR_VERSION, LIME_BUILD);
@@ -291,8 +305,8 @@ void host_t::video_init()
         title,
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        video_scaling * VIDEO_XRES,
-        video_scaling * VIDEO_YRES,
+        video_scaling * DEBUGGER_WIDTH,
+        video_scaling * DEBUGGER_HEIGHT,
         SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
     );
 
@@ -300,8 +314,8 @@ void host_t::video_init()
 	printf("[SDL] Display window dimension: %u x %u pixels\n", video_window_width, video_window_height);
 
 	// create renderer and link it to window
-	printf("[SDL] Display refresh rate of current display is %iHz\n", dm.refresh_rate);
-	if (dm.refresh_rate == FPS) {
+	printf("[SDL] Display refresh rate of current display is %iHz\n", video_displaymode.refresh_rate);
+	if (video_displaymode.refresh_rate == FPS) {
 		printf("[SDL] This is equal to the FPS of lime, trying for vsync\n");
 		SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
 		video_renderer = SDL_CreateRenderer(video_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -325,7 +339,7 @@ void host_t::video_init()
 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
-    core_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VIDEO_XRES, 2 * VIDEO_YRES);
+    core_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, DEBUGGER_WIDTH, DEBUGGER_HEIGHT);
     SDL_SetTextureBlendMode(core_texture, SDL_BLENDMODE_BLEND);
 
 	//SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
@@ -336,7 +350,7 @@ void host_t::video_init()
 	osd_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, osd->width*8, osd->height*8);
     SDL_SetTextureBlendMode(osd_texture, SDL_BLENDMODE_BLEND);
 
-	SDL_RenderSetLogicalSize(video_renderer, DEBUGGER_WIDTH, DEBUGGER_HEIGHT);
+	SDL_RenderSetLogicalSize(video_renderer, video_window_width, video_window_height);
     SDL_ShowCursor(SDL_DISABLE);	// make sure cursor isn't visible
 }
 
