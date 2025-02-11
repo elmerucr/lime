@@ -50,7 +50,6 @@ public:
 	bool hex_string_to_int(const char *temp_string, uint32_t *return_value);
 	bool binary_string_to_int(const char *temp_string, uint32_t *return_value);
 
-	uint32_t *buffer;
 	void redraw();
 
 	void run();

@@ -11,8 +11,8 @@
 
 vdc_t::vdc_t()
 {
-    ram = new uint8_t[RAM_SIZE];
-    buffer = new uint32_t[VIDEO_XRES * VIDEO_YRES];
+    ram = new uint8_t[VDC_RAM];
+    buffer = new uint32_t[VDC_XRES * VDC_YRES];
 
 	layer[0].address = VDC_LAYERS_ADDRESS + 0x0000;
 	layer[1].address = VDC_LAYERS_ADDRESS + 0x0400;
@@ -29,8 +29,8 @@ vdc_t::~vdc_t()
 void vdc_t::reset()
 {
 	// initial video buffer status, buffer invisible to system
-	for (int i=0; i<(VIDEO_YRES*VIDEO_XRES); i++) {
-		if ((i%VIDEO_YRES) & 0b100) {
+	for (int i = 0; i < (VDC_YRES * VDC_XRES); i++) {
+		if ((i % VDC_YRES) & 0b100) {
 			buffer[i] = colors[0b01];
 		} else {
 			buffer[i] = colors[0b00];
@@ -38,7 +38,7 @@ void vdc_t::reset()
 	}
 
     // fill memory with alternating pattern
-    for (int i = 0; i < RAM_SIZE; i++) {
+    for (int i = 0; i < VDC_RAM; i++) {
         ram[i] = (i & 0x40) ? 0xff : 0x00;
     }
 
@@ -56,11 +56,11 @@ void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 		// Determine tileset
 		uint16_t tileset = (l->flags & 0b10) ? VDC_TILESET_1_ADDRESS : VDC_TILESET_0_ADDRESS;
 
-		if (sl < VIDEO_YRES) {
+		if (sl < VDC_YRES) {
 			uint8_t y = (l->y + sl) & 0xff;
 			uint8_t y_in_tile = y % 8;
 
-			for (uint16_t scr_x = 0; scr_x < VIDEO_XRES; scr_x++) {
+			for (uint16_t scr_x = 0; scr_x < VDC_XRES; scr_x++) {
 				uint8_t x = (l->x + scr_x) & 0xff;
 				uint8_t px = x % 4;
 				uint8_t tile_index = ram[l->address + ((y >> 3) << 5) + (x >> 3)];
@@ -70,7 +70,7 @@ void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 					(0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
 				// if NOT (transparent AND 0b00) then pixel must be written
 				if (!((l->flags & 0b100) && !res)) {
-					buffer[(VIDEO_XRES * sl) + scr_x] = colors[l->palette[res]];
+					buffer[(VDC_XRES * sl) + scr_x] = colors[l->palette[res]];
 				}
 			}
 		}
@@ -93,9 +93,9 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 
 			uint8_t start_x{0}, end_x{0};
 
-			if (s->x < VIDEO_XRES) {
+			if (s->x < VDC_XRES) {
 				start_x = adj_x;
-				end_x = ((adj_x + 8) > VIDEO_XRES) ? VIDEO_XRES : (adj_x + 8);
+				end_x = ((adj_x + 8) > VDC_XRES) ? VDC_XRES : (adj_x + 8);
 			} else if (adj_x >= 248) {
 				end_x = adj_x + 8;
 			}
@@ -116,7 +116,7 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 					(0b11 << (2 * (3 - (x%4))))) >> (2 * (3 - (x%4)));
 				// if NOT (transparent AND 0b00) then pixel must be written
 				if (!((s->flags & 0b100) && !res)) {
-					buffer[(VIDEO_XRES * sl) + scr_x] = colors[s->palette[res]];
+					buffer[(VDC_XRES * sl) + scr_x] = colors[s->palette[res]];
 				}
 
 				// restore y, if xy flip was done before
@@ -128,9 +128,9 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 
 void vdc_t::draw_scanline(uint16_t scanline)
 {
-	if (scanline < VIDEO_YRES) {
-		for (int x=0; x<VIDEO_XRES; x++) {
-			buffer[(VIDEO_XRES * scanline) + x] = colors[bg_color];
+	if (scanline < VDC_YRES) {
+		for (int x=0; x<VDC_XRES; x++) {
+			buffer[(VDC_XRES * scanline) + x] = colors[bg_color];
 		}
 
 		for (int l=3; l>=0; l--) {
@@ -282,7 +282,7 @@ bool vdc_t::run(uint32_t number_of_cycles)
 		next_scanline++;
 		new_scanline = true;
 
-		if (next_scanline == VIDEO_SCANLINES) {
+		if (next_scanline == VDC_SCANLINES) {
 			next_scanline = 0;
 			frame_done = true;
 		}

@@ -110,10 +110,7 @@ private:
     const uint8_t	video_scanline_alpha = 176;
     bool			video_fullscreen{false};
 
-    SDL_Texture		*core_texture;
-    uint32_t		*core_framebuffer;	// used for scanline effect
-
-	SDL_Texture		*debugger_texture;
+    SDL_Texture		*video_texture;
 
 	SDL_Texture		*osd_texture;
 	bool			osd_visible{false};
@@ -138,6 +135,8 @@ public:
 	void video_stop();
     void video_toggle_fullscreen();
     void update_screen();
+
+    uint32_t *video_framebuffer;	// used for scanline effect
 
 	inline bool vsync_enabled() { return vsync; }
 	inline bool vsync_disabled() { return !vsync; }

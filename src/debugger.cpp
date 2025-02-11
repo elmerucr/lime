@@ -68,13 +68,11 @@ debugger_t::debugger_t(system_t *s)
 {
 	system = s;
 
-	buffer = new uint32_t[DEBUGGER_WIDTH * DEBUGGER_HEIGHT];
+	tiles = new uint8_t[(SCREEN_WIDTH >> 2) * (SCREEN_HEIGHT >> 3)];
+	fg_colors = new uint32_t[(SCREEN_WIDTH >> 2) * (SCREEN_HEIGHT >> 3)];
+	bg_colors = new uint32_t[(SCREEN_WIDTH >> 2) * (SCREEN_HEIGHT >> 3)];
 
-	tiles = new uint8_t[(DEBUGGER_WIDTH >> 2) * (DEBUGGER_HEIGHT >> 3)];
-	fg_colors = new uint32_t[(DEBUGGER_WIDTH >> 2) * (DEBUGGER_HEIGHT >> 3)];
-	bg_colors = new uint32_t[(DEBUGGER_WIDTH >> 2) * (DEBUGGER_HEIGHT >> 3)];
-
-	for (int i=0; i<(DEBUGGER_WIDTH >> 2) * (DEBUGGER_HEIGHT >> 3); i++) {
+	for (int i=0; i<(SCREEN_WIDTH >> 2) * (SCREEN_HEIGHT >> 3); i++) {
 		tiles[i] = ' ';
 		fg_colors[i] = C64_BLUE;
 		bg_colors[i] = C64_LIGHTBLUE;
@@ -95,7 +93,6 @@ debugger_t::~debugger_t()
 	delete [] bg_colors;
 	delete [] fg_colors;
 	delete [] tiles;
-	delete [] buffer;
 }
 
 void debugger_t::redraw()
@@ -103,9 +100,9 @@ void debugger_t::redraw()
 	// copy terminal tiles into tiles buffer
 	for (int y = 0; y<terminal->height; y++) {
 		for (int x = 0; x<terminal->width; x++) {
-			tiles[(y+1)*(DEBUGGER_WIDTH>>2) + x + 2] = terminal->tiles[(y*terminal->width)+x];
-			fg_colors[(y+1)*(DEBUGGER_WIDTH>>2) + x + 2] = terminal->fg_colors[(y*terminal->width)+x];
-			bg_colors[(y+1)*(DEBUGGER_WIDTH>>2) + x + 2] = terminal->bg_colors[(y*terminal->width)+x];
+			tiles[(y+1)*(SCREEN_WIDTH>>2) + x + 2] = terminal->tiles[(y*terminal->width)+x];
+			fg_colors[(y+1)*(SCREEN_WIDTH>>2) + x + 2] = terminal->fg_colors[(y*terminal->width)+x];
+			bg_colors[(y+1)*(SCREEN_WIDTH>>2) + x + 2] = terminal->bg_colors[(y*terminal->width)+x];
 		}
 	}
 
@@ -127,29 +124,29 @@ void debugger_t::redraw()
 	// copy status tiles into tiles buffer
 	for (int y = 0; y<status->height; y++) {
 		for (int x = 0; x<status->width; x++) {
-			tiles[(y+22)*(DEBUGGER_WIDTH>>2) + x + 2] = status->tiles[(y*status->width)+x];
-			fg_colors[(y+22)*(DEBUGGER_WIDTH>>2) + x + 2] = status->fg_colors[(y*status->width)+x];
-			bg_colors[(y+22)*(DEBUGGER_WIDTH>>2) + x + 2] = status->bg_colors[(y*status->width)+x];
+			tiles[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = status->tiles[(y*status->width)+x];
+			fg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = status->fg_colors[(y*status->width)+x];
+			bg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = status->bg_colors[(y*status->width)+x];
 		}
 	}
 
 	// render characters into buffer
-	for (int y=0; y<DEBUGGER_HEIGHT; y++) {
+	for (int y=0; y<SCREEN_HEIGHT; y++) {
 		uint8_t y_in_char = y % 8;
-		for (int x=0; x<DEBUGGER_WIDTH; x++) {
-			uint8_t symbol = tiles[((y>>3) * (DEBUGGER_WIDTH >> 2)) + (x >> 2)];
+		for (int x=0; x<SCREEN_WIDTH; x++) {
+			uint8_t symbol = tiles[((y>>3) * (SCREEN_WIDTH >> 2)) + (x >> 2)];
 			uint8_t x_in_char = x % 4;
-			buffer[(y * DEBUGGER_WIDTH) + x] =
+			system->host->video_framebuffer[(y * SCREEN_WIDTH) + x] =
 				(debugger_font.data[(symbol << 3) + y_in_char] & (0b1 << (3 - x_in_char))) ?
-				fg_colors[((y>>3) * (DEBUGGER_WIDTH >> 2)) + (x >> 2)] :
-				bg_colors[((y>>3) * (DEBUGGER_WIDTH >> 2)) + (x >> 2)] ;
+				fg_colors[((y>>3) * (SCREEN_WIDTH >> 2)) + (x >> 2)] :
+				bg_colors[((y>>3) * (SCREEN_WIDTH >> 2)) + (x >> 2)] ;
 		}
 	}
 
-	// copy vdc buffer contents into debugger buffer (no need for scanline stuff)
-	for (int y=0; y<VIDEO_YRES; y++) {
-		for (int x=0; x<VIDEO_XRES; x++) {
-			buffer[((y+8) * DEBUGGER_WIDTH) + (x+232)] = system->core->vdc->buffer[(y*VIDEO_XRES)+x];
+	// copy vdc buffer contents into video framebuffer (no need for scanline stuff)
+	for (int y = 0; y < VDC_YRES; y++) {
+		for (int x = 0; x < VDC_XRES; x++) {
+			system->host->video_framebuffer[((y + 8) * SCREEN_WIDTH) + (x+232)] = system->core->vdc->buffer[(y*VDC_XRES)+x];
 		}
 	}
 
@@ -163,21 +160,21 @@ void debugger_t::redraw()
 		{0, 3}
 	};
 
-	if (system->core->vdc->get_current_scanline() < VIDEO_YRES) {
+	if (system->core->vdc->get_current_scanline() < VDC_YRES) {
 		for (int i=0; i<16; i++) {
-			buffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*DEBUGGER_WIDTH) + 227 + arrows[i][0]] = LIME_COLOR_2;
-			buffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*DEBUGGER_WIDTH) + -4 + (DEBUGGER_WIDTH-arrows[i][0])] = LIME_COLOR_2;
+			system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + 227 + arrows[i][0]] = LIME_COLOR_2;
+			system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + -4 + (SCREEN_WIDTH-arrows[i][0])] = LIME_COLOR_2;
 		}
 	}
 
 	// progress bar for cycles done for scanline
-	for (int x=232; x<(232+VIDEO_XRES); x++) {
-		if (x < ((system->core->vdc->get_cycles_run()*VIDEO_XRES)/CPU_CYCLES_PER_SCANLINE)+232) {
-			buffer[(3*DEBUGGER_WIDTH) + x] = LIME_COLOR_2;
-			buffer[(4*DEBUGGER_WIDTH) + x] = LIME_COLOR_2;
+	for (int x=232; x<(232+VDC_XRES); x++) {
+		if (x < ((system->core->vdc->get_cycles_run()*VDC_XRES)/CPU_CYCLES_PER_SCANLINE)+232) {
+			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_2;
+			system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_2;
 		} else {
-			buffer[(3*DEBUGGER_WIDTH) + x] = LIME_COLOR_0;
-			buffer[(4*DEBUGGER_WIDTH) + x] = LIME_COLOR_0;
+			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_0;
+			system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_0;
 		}
 	}
 }

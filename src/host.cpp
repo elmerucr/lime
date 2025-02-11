@@ -16,8 +16,8 @@
 host_t::host_t(system_t *s)
 {
     // one extra line, needed for proper scanline effect
-    core_framebuffer = new uint32_t[DEBUGGER_WIDTH * (DEBUGGER_HEIGHT + 1)];
-	for (int i=0; i<DEBUGGER_WIDTH * (DEBUGGER_HEIGHT + 1); i++) core_framebuffer[i] = 0;
+    video_framebuffer = new uint32_t[SCREEN_WIDTH * (SCREEN_HEIGHT + 1)];
+	for (int i=0; i<SCREEN_WIDTH * (SCREEN_HEIGHT + 1); i++) video_framebuffer[i] = 0;
 
     system = s;
 
@@ -59,7 +59,7 @@ host_t::host_t(system_t *s)
 host_t::~host_t()
 {
 	delete osd;
-    delete [] core_framebuffer;
+    delete [] video_framebuffer;
 
 	video_stop();
 	//audio_stop();
@@ -192,42 +192,39 @@ void host_t::update_screen()
 	switch (system->current_mode) {
 		case RUN_MODE:
 			// copy lines
-			for (int y=0; y<VIDEO_YRES; y++) {
-				for (int x=0; x<VIDEO_XRES; x ++) {
-					core_framebuffer[((y << 1) * DEBUGGER_WIDTH) + (x<<1)] = system->core->vdc->buffer[(VIDEO_XRES * y) + x];
-					core_framebuffer[((y << 1) * DEBUGGER_WIDTH) + (x<<1) + 1] = system->core->vdc->buffer[(VIDEO_XRES * y) + x];
+			for (int y=0; y<VDC_YRES; y++) {
+				for (int x=0; x<VDC_XRES; x ++) {
+					video_framebuffer[((y << 1) * SCREEN_WIDTH) + (x<<1)] = system->core->vdc->buffer[(VDC_XRES * y) + x];
+					video_framebuffer[((y << 1) * SCREEN_WIDTH) + (x<<1) + 1] = system->core->vdc->buffer[(VDC_XRES * y) + x];
 				}
 			}
 			if (video_scanlines) {
-				for (int y = 0; y < DEBUGGER_HEIGHT; y += 2) {
-					for (int x = 0; x < DEBUGGER_WIDTH; x += 2) {
-						core_framebuffer[((y + 1) * DEBUGGER_WIDTH) + x + 0] =
-							core_framebuffer[((y + 1) * DEBUGGER_WIDTH) + x + 1] = video_blend(
-								core_framebuffer[((y + 0) * DEBUGGER_WIDTH) + x],
-								core_framebuffer[((y + 2) * DEBUGGER_WIDTH) + x]
+				for (int y = 0; y < SCREEN_HEIGHT; y += 2) {
+					for (int x = 0; x < SCREEN_WIDTH; x += 2) {
+						video_framebuffer[((y + 1) * SCREEN_WIDTH) + x + 0] =
+							video_framebuffer[((y + 1) * SCREEN_WIDTH) + x + 1] = video_blend(
+								video_framebuffer[((y + 0) * SCREEN_WIDTH) + x],
+								video_framebuffer[((y + 2) * SCREEN_WIDTH) + x]
 							);
 					}
 				}
 			} else {
-				for (int y = 0; y < DEBUGGER_HEIGHT; y += 2) {
-					for (int x = 0; x < DEBUGGER_WIDTH; x += 2) {
-						core_framebuffer[((y + 1) * DEBUGGER_WIDTH) + x] =
-							core_framebuffer[((y + 1) * DEBUGGER_WIDTH) + x + 1] =
-								core_framebuffer[((y + 0) * DEBUGGER_WIDTH) + x];
+				for (int y = 0; y < SCREEN_HEIGHT; y += 2) {
+					for (int x = 0; x < SCREEN_WIDTH; x += 2) {
+						video_framebuffer[((y + 1) * SCREEN_WIDTH) + x] =
+							video_framebuffer[((y + 1) * SCREEN_WIDTH) + x + 1] =
+								video_framebuffer[((y + 0) * SCREEN_WIDTH) + x];
 					}
 				}
 			}
-
-			SDL_UpdateTexture(core_texture, nullptr, (void *)core_framebuffer, DEBUGGER_WIDTH*sizeof(uint32_t));
-			SDL_RenderCopy(video_renderer, core_texture, nullptr, nullptr);
-
 			break;
 		case DEBUG_MODE:
 			system->debugger->redraw();
-			SDL_UpdateTexture(debugger_texture, nullptr, (void *)system->debugger->buffer, DEBUGGER_WIDTH*sizeof(uint32_t));
-			SDL_RenderCopy(video_renderer, debugger_texture, nullptr, nullptr);
 			break;
 	}
+
+	SDL_UpdateTexture(video_texture, nullptr, (void *)video_framebuffer, SCREEN_WIDTH*sizeof(uint32_t));
+	SDL_RenderCopy(video_renderer, video_texture, nullptr, nullptr);
 
 	if (osd_visible) {
 		osd->redraw();
@@ -279,10 +276,10 @@ void host_t::video_init()
 	SDL_GetCurrentDisplayMode(0, &video_displaymode);
 	printf("[SDL] Display current desktop dimension: %i x %i\n", video_displaymode.w, video_displaymode.h);
 
-    video_scaling = video_displaymode.h / DEBUGGER_HEIGHT;
+    video_scaling = video_displaymode.h / SCREEN_HEIGHT;
 
 	// if size >90% of screen height, reduce size
-	while ((10 * video_scaling * DEBUGGER_HEIGHT) > (9 * video_displaymode.h)) {
+	while ((10 * video_scaling * SCREEN_HEIGHT) > (9 * video_displaymode.h)) {
 		video_scaling--;
 	}
 
@@ -292,8 +289,8 @@ void host_t::video_init()
 
 	osd = new osd_t(system);
 	osd_windowed = {
-		video_scaling*(DEBUGGER_WIDTH/2 - (osd->width*4)),
-		video_scaling*(DEBUGGER_HEIGHT - (osd->height*8)),
+		video_scaling*(SCREEN_WIDTH/2 - (osd->width*4)),
+		video_scaling*(SCREEN_HEIGHT - (osd->height*8)),
 		video_scaling*osd->width*8,
 		video_scaling*osd->height*8
 	};
@@ -305,8 +302,8 @@ void host_t::video_init()
         title,
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        video_scaling * DEBUGGER_WIDTH,
-        video_scaling * DEBUGGER_HEIGHT,
+        video_scaling * SCREEN_WIDTH,
+        video_scaling * SCREEN_HEIGHT,
         SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
     );
 
@@ -337,15 +334,10 @@ void host_t::video_init()
 	printf("[SDL] Renderer vsync is %s\n", vsync ? "enabled" : "disabled");
 	printf("[SDL] Renderer does%s support rendering to target texture\n", current_renderer.flags & SDL_RENDERER_TARGETTEXTURE ? "" : "n't");
 
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");	// nearest pixel
 
-    core_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, DEBUGGER_WIDTH, DEBUGGER_HEIGHT);
-    SDL_SetTextureBlendMode(core_texture, SDL_BLENDMODE_BLEND);
-
-	//SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-
-    debugger_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, DEBUGGER_WIDTH, DEBUGGER_HEIGHT);
-    SDL_SetTextureBlendMode(debugger_texture, SDL_BLENDMODE_BLEND);
+    video_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
+	SDL_SetTextureBlendMode(video_texture, SDL_BLENDMODE_BLEND);
 
 	osd_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, osd->width*8, osd->height*8);
     SDL_SetTextureBlendMode(osd_texture, SDL_BLENDMODE_BLEND);
@@ -357,8 +349,7 @@ void host_t::video_init()
 void host_t::video_stop()
 {
 	SDL_DestroyTexture(osd_texture);
-	SDL_DestroyTexture(debugger_texture);
-    SDL_DestroyTexture(core_texture);
+    SDL_DestroyTexture(video_texture);
     SDL_DestroyRenderer(video_renderer);
     SDL_DestroyWindow(video_window);
 }

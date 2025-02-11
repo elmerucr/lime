@@ -11,26 +11,35 @@
 // ---------------------------------------------------------------------
 // Version information
 // ---------------------------------------------------------------------
-#define LIME_MAJOR_VERSION	0
-#define LIME_MINOR_VERSION	3
-#define LIME_BUILD			20250211
-#define LIME_YEAR			2025
-
-// ---------------------------------------------------------------------
-// video
-// ---------------------------------------------------------------------
-#define RAM_SIZE		0x10000
-#define VIDEO_XRES		240
-#define VIDEO_YRES		160
-#define VIDEO_SCANLINES	480
-#define	FPS				60
+#define LIME_MAJOR_VERSION		0
+#define LIME_MINOR_VERSION		4
+#define LIME_BUILD				20250211
+#define LIME_YEAR				2025
 
 // ---------------------------------------------------------------------
 // vdc (video display controller)
 // ---------------------------------------------------------------------
+#define VDC_RAM					0x10000
+#define VDC_XRES				240
+#define VDC_YRES				160
+#define VDC_SCANLINES			480
 #define VDC_TILESET_0_ADDRESS	0x0800
 #define VDC_TILESET_1_ADDRESS	0x1000
 #define VDC_LAYERS_ADDRESS		0x2000
+
+// ---------------------------------------------------------------------
+// system / host
+// ---------------------------------------------------------------------
+#define	FPS						60
+#define SCREEN_WIDTH			(2*VDC_XRES)
+#define SCREEN_HEIGHT			(2*VDC_YRES)
+
+// ---------------------------------------------------------------------
+// cpu
+// ---------------------------------------------------------------------
+#define CPU_CYCLES_PER_SCANLINE	(1*VDC_XRES)
+#define CPU_CYCLES_PER_FRAME	(CPU_CYCLES_PER_SCANLINE*VDC_SCANLINES)
+#define CPU_CLOCK_SPEED			(CPU_CYCLES_PER_FRAME*FPS)
 
 // ---------------------------------------------------------------------
 // audio
@@ -39,19 +48,6 @@
 #define AUDIO_BUFFER_SIZE		8000.0
 #define SID_CLOCK_SPEED			985248
 #define SID_CYCLES_PER_FRAME	(SID_CLOCK_SPEED/FPS)
-
-// ---------------------------------------------------------------------
-// cpu
-// ---------------------------------------------------------------------
-#define CPU_CYCLES_PER_SCANLINE	(1*VIDEO_XRES)
-#define CPU_CYCLES_PER_FRAME	(CPU_CYCLES_PER_SCANLINE*VIDEO_SCANLINES)
-#define CPU_CLOCK_SPEED			(CPU_CYCLES_PER_FRAME*FPS)
-
-// ---------------------------------------------------------------------
-// debugger
-// ---------------------------------------------------------------------
-#define DEBUGGER_WIDTH	480
-#define DEBUGGER_HEIGHT	320
 
 // ---------------------------------------------------------------------
 // color palette
