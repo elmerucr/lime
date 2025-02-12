@@ -109,6 +109,7 @@ private:
     bool			video_scanlines{true};
     const uint8_t	video_scanline_alpha = 176;
     bool			video_fullscreen{false};
+	bool			video_fullscreen_stretched{false};
 
     SDL_Texture		*video_texture;
 	SDL_Rect		video_placement;
@@ -135,6 +136,7 @@ public:
 	void video_init();
 	void video_stop();
     void video_toggle_fullscreen();
+    void video_toggle_fullscreen_stretched();
     void update_screen();
 
     uint32_t *video_framebuffer;	// used for scanline effect

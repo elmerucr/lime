@@ -83,6 +83,8 @@ enum events_output_state host_t::events_process_events()
 			    if ((event.key.keysym.sym == SDLK_f) && alt_pressed) {
 					events_wait_until_key_released(SDLK_f);
 					video_toggle_fullscreen();
+				} else if ((event.key.keysym.sym == SDLK_d) && alt_pressed) {
+					video_toggle_fullscreen_stretched();
 				} else if ((event.key.keysym.sym == SDLK_r) && alt_pressed) {
 					events_wait_until_key_released(SDLK_r);
 					system->core->reset();
@@ -253,12 +255,21 @@ void host_t::video_toggle_fullscreen()
 		SDL_SetWindowFullscreen(video_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
 		SDL_GetWindowSize(video_window, &video_window_width, &video_window_height);
 		SDL_RenderSetLogicalSize(video_renderer, video_window_width, video_window_height);
-		video_placement = {
-			.x = (video_window_width - (video_scaling * SCREEN_WIDTH)) / 2,
-			.y = (video_window_height - (video_scaling * SCREEN_HEIGHT)) / 2,
-			.w = video_scaling * SCREEN_WIDTH,
-			.h = video_scaling * SCREEN_HEIGHT
-		};
+		if (video_fullscreen_stretched) {
+			video_placement = {
+				.x = (video_window_width - (3 * video_window_height) / 2) / 2,
+				.y = 0,
+				.w = (3 * video_window_height) / 2,
+				.h = video_window_height
+			};
+		} else {
+			video_placement = {
+				.x = (video_window_width - (video_scaling * SCREEN_WIDTH)) / 2,
+				.y = (video_window_height - (video_scaling * SCREEN_HEIGHT)) / 2,
+				.w = video_scaling * SCREEN_WIDTH,
+				.h = video_scaling * SCREEN_HEIGHT
+			};
+		}
 		printf("[SDL] Fullscreen size: %i x %i\n", video_window_width, video_window_height);
 	} else {
 		SDL_SetWindowFullscreen(video_window, SDL_WINDOW_RESIZABLE);
@@ -398,4 +409,27 @@ bool host_t::events_yes_no()
 		std::this_thread::sleep_for(std::chrono::milliseconds(5));
 	}
 	return return_value;
+}
+
+void host_t::video_toggle_fullscreen_stretched()
+{
+	if (video_fullscreen) {
+		video_fullscreen_stretched = !video_fullscreen_stretched;
+
+		if (video_fullscreen_stretched) {
+			video_placement = {
+				.x = (video_window_width - (3 * video_window_height) / 2) / 2,
+				.y = 0,
+				.w = (3 * video_window_height) / 2,
+				.h = video_window_height
+			};
+		} else {
+			video_placement = {
+				.x = (video_window_width - (video_scaling * SCREEN_WIDTH)) / 2,
+				.y = (video_window_height - (video_scaling * SCREEN_HEIGHT)) / 2,
+				.w = video_scaling * SCREEN_WIDTH,
+				.h = video_scaling * SCREEN_HEIGHT
+			};
+		}
+	}
 }
