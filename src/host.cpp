@@ -224,12 +224,12 @@ void host_t::update_screen()
 	}
 
 	SDL_UpdateTexture(video_texture, nullptr, (void *)video_framebuffer, SCREEN_WIDTH*sizeof(uint32_t));
-	SDL_RenderCopy(video_renderer, video_texture, nullptr, nullptr);
+	SDL_RenderCopy(video_renderer, video_texture, nullptr, &video_placement);
 
 	if (osd_visible) {
 		osd->redraw();
 		SDL_UpdateTexture(osd_texture, nullptr, (void *)osd->buffer, osd->width*8*sizeof(uint32_t));
-		SDL_RenderCopy(video_renderer, osd_texture, nullptr, &osd_windowed);
+		SDL_RenderCopy(video_renderer, osd_texture, nullptr, &osd_placement);
 	}
 
     SDL_RenderPresent(video_renderer);
@@ -252,14 +252,33 @@ void host_t::video_toggle_fullscreen()
 	if (video_fullscreen) {
 		SDL_SetWindowFullscreen(video_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
 		SDL_GetWindowSize(video_window, &video_window_width, &video_window_height);
-		//SDL_RenderSetLogicalSize(video_renderer, video_window_width, video_window_height);
+		SDL_RenderSetLogicalSize(video_renderer, video_window_width, video_window_height);
+		video_placement = {
+			.x = (video_window_width - (video_scaling * SCREEN_WIDTH)) / 2,
+			.y = (video_window_height - (video_scaling * SCREEN_HEIGHT)) / 2,
+			.w = video_scaling * SCREEN_WIDTH,
+			.h = video_scaling * SCREEN_HEIGHT
+		};
 		printf("[SDL] Fullscreen size: %i x %i\n", video_window_width, video_window_height);
 	} else {
 		SDL_SetWindowFullscreen(video_window, SDL_WINDOW_RESIZABLE);
 		SDL_GetWindowSize(video_window, &video_window_width, &video_window_height);
-		//SDL_RenderSetLogicalSize(video_renderer, video_window_width, video_window_height);
+		SDL_RenderSetLogicalSize(video_renderer, video_window_width, video_window_height);
+		video_placement = {
+			.x = 0,
+			.y = 0,
+			.w = video_window_width,
+			.h = video_window_height
+		};
 		printf("[SDL] Window size: %i x %i\n", video_window_width, video_window_height);
 	}
+
+	osd_placement = {
+		.x = (video_window_width - (video_scaling * osd->width * 8)) / 2,
+		.y = (video_window_height - (video_scaling * osd->height * 8)),
+		.w = video_scaling * osd->width * 8,
+		.h = video_scaling * osd->height * 8
+	};
 }
 
 void host_t::video_init()
@@ -287,14 +306,6 @@ void host_t::video_init()
 
     printf("[SDL] Video scaling will be %i times\n", video_scaling);
 
-	osd = new osd_t(system);
-	osd_windowed = {
-		video_scaling*(SCREEN_WIDTH/2 - (osd->width*4)),
-		video_scaling*(SCREEN_HEIGHT - (osd->height*8)),
-		video_scaling*osd->width*8,
-		video_scaling*osd->height*8
-	};
-
 	char title[64];
 	snprintf(title, 64, "lime  v%i.%i  %i", LIME_MAJOR_VERSION, LIME_MINOR_VERSION, LIME_BUILD);
 
@@ -309,6 +320,14 @@ void host_t::video_init()
 
 	SDL_GetWindowSize(video_window, &video_window_width, &video_window_height);
 	printf("[SDL] Display window dimension: %u x %u pixels\n", video_window_width, video_window_height);
+
+	osd = new osd_t(system);
+	osd_placement = {
+		.x = (video_window_width - (video_scaling * osd->width * 8)) / 2,
+		.y = (video_window_height - (video_scaling * osd->height * 8)),
+		.w = video_scaling * osd->width * 8,
+		.h = video_scaling * osd->height * 8
+	};
 
 	// create renderer and link it to window
 	printf("[SDL] Display refresh rate of current display is %iHz\n", video_displaymode.refresh_rate);
@@ -343,6 +362,13 @@ void host_t::video_init()
     SDL_SetTextureBlendMode(osd_texture, SDL_BLENDMODE_BLEND);
 
 	SDL_RenderSetLogicalSize(video_renderer, video_window_width, video_window_height);
+	video_placement = {
+		.x = 0,
+		.y = 0,
+		.w = video_window_width,
+		.h = video_window_height
+	};
+
     SDL_ShowCursor(SDL_DISABLE);	// make sure cursor isn't visible
 }
 

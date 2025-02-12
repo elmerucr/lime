@@ -146,7 +146,8 @@ void debugger_t::redraw()
 	// copy vdc buffer contents into video framebuffer (no need for scanline stuff)
 	for (int y = 0; y < VDC_YRES; y++) {
 		for (int x = 0; x < VDC_XRES; x++) {
-			system->host->video_framebuffer[((y + 8) * SCREEN_WIDTH) + (x+232)] = system->core->vdc->buffer[(y*VDC_XRES)+x];
+			system->host->video_framebuffer[((y + 8) * SCREEN_WIDTH) + x + 232] =
+				system->core->vdc->buffer[(y * VDC_XRES) + x];
 		}
 	}
 

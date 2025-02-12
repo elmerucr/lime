@@ -16,7 +16,7 @@ osd_t::osd_t(system_t *s)
 	terminal->clear();
 
 	buffer = new uint32_t[width*8*height*8];
-	for (int i=0; i<width*8*height*8; i++) {
+	for (int i = 0; i < width * 8 * height * 8; i++) {
 		buffer[i] = i & 0b100 ? fg : bg;
 	}
 }

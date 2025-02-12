@@ -111,11 +111,12 @@ private:
     bool			video_fullscreen{false};
 
     SDL_Texture		*video_texture;
+	SDL_Rect		video_placement;
 
 	SDL_Texture		*osd_texture;
 	bool			osd_visible{false};
 	osd_t			*osd;
-	SDL_Rect		osd_windowed;
+	SDL_Rect		osd_placement;
 
     inline uint32_t video_blend(uint32_t c0, uint32_t c1) {
 		    return
