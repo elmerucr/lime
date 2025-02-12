@@ -52,9 +52,9 @@
 // ---------------------------------------------------------------------
 // color palette
 // ---------------------------------------------------------------------
-#define	LIME_COLOR_0	0xff'08'18'20	// green gameboy
+#define	LIME_COLOR_0	0xff'08'18'20	// gameboy green palette:
 #define LIME_COLOR_1	0xff'34'68'56	// https://www.color-hex.com/color-palette/1041681
-#define LIME_COLOR_2	0xff'88'c0'70
+#define LIME_COLOR_2	0xff'88'c0'70	// https://lospec.com/palette-list/nintendo-gameboy-bgb
 #define LIME_COLOR_3	0xff'e0'f8'd0
 #define LIME_COLOR_4	0xff'03'0e'25	// blue inspired on HSL + gameboy
 #define LIME_COLOR_5	0xff'0c'37'90
@@ -64,7 +64,7 @@
 #define LIME_COLOR_9	0xff'90'0c'0c
 #define LIME_COLOR_10	0xff'ef'41'41
 #define LIME_COLOR_11	0xff'fb'cd'cd
-#define LIME_COLOR_12	0xff'05'05'05	// grey scale
+#define LIME_COLOR_12	0xff'05'05'05	// grey scale manually
 #define LIME_COLOR_13	0xff'55'55'55
 #define LIME_COLOR_14	0xff'a5'a5'a5
 #define LIME_COLOR_15	0xff'f5'f5'f5
@@ -77,7 +77,7 @@
 #define LIME_COLOR_22	0xff'60'ae'7b
 #define LIME_COLOR_23	0xff'3c'6b'64
 #define LIME_COLOR_24	0xff'93'3a'63	// FLUFFY8 PALETTE by vee
-#define LIME_COLOR_25	0xff'ff'95'b1		// https://lospec.com/palette-list/fluffy8
+#define LIME_COLOR_25	0xff'ff'95'b1	// https://lospec.com/palette-list/fluffy8
 #define LIME_COLOR_26	0xff'ff'c4'cf
 #define LIME_COLOR_27	0xff'ff'ec'f0
 #define LIME_COLOR_28	0xff'd4'd5'f6

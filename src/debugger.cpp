@@ -383,16 +383,28 @@ void debugger_t::process_command(char *c)
 				}
 			}
 		}
-	// } else if (strcmp(token0, "n") == 0) {
-	// 	system->core->run(true);
-	// 	status();
-	} else if (strcmp(token0, "col") == 0) {
+	} else if (strcmp(token0, "dgc") == 0) {
+		have_prompt = false;
+		enter_dgc_line(c);
+	} else if (strcmp(token0, "pal") == 0) {
 		for (int i=0; i<32; i++) {
-			if ((i & 0b111) == 0) terminal->printf("\n %02x-%02x ", i, i+7);
-			terminal->bg_color = colors[i];
+			if ((i & 0b111) == 0) terminal->printf("\n %02x ", i);
+			terminal->bg_color = palette[i];
 			terminal->printf("    ");
-			terminal->bg_color = C64_BLUE;;
+			terminal->bg_color = C64_BLUE;
 		}
+		terminal->printf(
+			"\n\ndgc  %02x  %02x  %02x  %02x ",
+			terminal_graphics_colors[0],
+			terminal_graphics_colors[1],
+			terminal_graphics_colors[2],
+			terminal_graphics_colors[3]
+		);
+		for (int i=0; i<4; i++) {
+			terminal->bg_color = palette[terminal_graphics_colors[i]];
+			terminal->printf("    ");
+		}
+		terminal->bg_color = C64_BLUE;
 	} else if (strcmp(token0, "reset") == 0) {
 		terminal->printf("\nreset lime (y/n)");
 		redraw();
@@ -569,12 +581,7 @@ void debugger_t::memory_binary_dump(uint16_t address)
 		terminal->printf("%c%c ", res[i] & 0b10 ? '1' : '.', res[i] & 0b1 ? '1' : '.');
 	}
 	for (int i=0; i<8; i++) {
-		switch (res[i]) {
-			case 0b00: terminal->bg_color = LIME_COLOR_0; break;
-			case 0b01: terminal->bg_color = LIME_COLOR_1; break;
-			case 0b10: terminal->bg_color = LIME_COLOR_2; break;
-			case 0b11: terminal->bg_color = LIME_COLOR_3; break;
-		}
+		terminal->bg_color = palette[terminal_graphics_colors[res[i]]];
 		terminal->printf("  ");
 	}
 	terminal->bg_color = C64_BLUE;
@@ -685,4 +692,52 @@ uint32_t debugger_t::disassemble_instruction(uint16_t address)
 	status->putchar('\r');
 	for (int i=0; i<7; i++) status->cursor_right();
 	return cycles;
+}
+
+void debugger_t::enter_dgc_line(char *buffer)
+{
+	have_prompt = true;
+
+	uint32_t arg0, arg1, arg2, arg3;
+
+	buffer[7] 	= '\0';
+	buffer[11]	= '\0';
+	buffer[15]	= '\0';
+	buffer[19]	= '\0';
+
+	if (!hex_string_to_int(&buffer[5], &arg0)) {
+		terminal->putchar('\r');
+		for (int i=0; i<5; i++) terminal->cursor_right();
+		terminal->puts("??");
+	} else if (!hex_string_to_int(&buffer[9], &arg1)) {
+		terminal->putchar('\r');
+		for (int i=0; i<9; i++) terminal->cursor_right();
+		terminal->puts("??");
+	} else if (!hex_string_to_int(&buffer[13], &arg2)) {
+		terminal->putchar('\r');
+		for (int i=0; i<13; i++) terminal->cursor_right();
+		terminal->puts("??");
+	} else if (!hex_string_to_int(&buffer[17], &arg3)) {
+		terminal->putchar('\r');
+		for (int i=0; i<17; i++) terminal->cursor_right();
+		terminal->puts("??");
+	} else {
+		arg0 &= 0xff;
+		arg1 &= 0xff;
+		arg2 &= 0xff;
+		arg3 &= 0xff;
+
+		terminal_graphics_colors[0] = arg0;
+		terminal_graphics_colors[1] = arg1;
+		terminal_graphics_colors[2] = arg2;
+		terminal_graphics_colors[3] = arg3;
+
+		terminal->putchar('\r');
+		for (int i=0; i<20; i++) terminal->cursor_right();
+		for (int i=0; i<4; i++) {
+			terminal->bg_color = palette[terminal_graphics_colors[i]];
+			terminal->printf("    ");
+		}
+		terminal->bg_color = C64_BLUE;
+	}
 }

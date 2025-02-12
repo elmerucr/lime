@@ -28,8 +28,8 @@ private:
 	bool have_prompt;
 	char text_buffer[1024];
 
-	uint8_t terminal_colors[4] {
-		0, 1, 2, 3
+	uint8_t terminal_graphics_colors[4] {
+		0b00, 0b01, 0b10, 0b11
 	};
 
 public:
@@ -45,6 +45,7 @@ public:
 	void enter_memory_line(char *buffer);
 	void memory_binary_dump(uint16_t address);
 	void enter_memory_binary_line(char *buffer);
+	void enter_dgc_line(char *buffer);
 	uint32_t disassemble_instruction(uint16_t address);
 
 	bool hex_string_to_int(const char *temp_string, uint32_t *return_value);
