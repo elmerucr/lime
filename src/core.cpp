@@ -23,12 +23,15 @@ core_t::core_t(system_t *s)
 	cpu->assign_nmi_line(&exceptions->nmi_output_pin);
 	cpu->assign_irq_line(&exceptions->irq_output_pin);
 
+	timer = new timer_ic(exceptions);
+
 	font = new font_cbm_8x8_t();
 }
 
 core_t::~core_t()
 {
 	delete font;
+	delete timer;
 	delete exceptions;
 	delete cpu;
 	delete vdc;
@@ -44,6 +47,7 @@ enum output_states core_t::run(bool debug)
 
 		uint16_t cpu_cycles = cpu->execute();
 		frame_done = vdc->run(cpu_cycles);
+		timer->run(cpu_cycles);
 		//timer->run(cpu_cycles);
 		//uint16_t sound_cycles = cpu2sid->clock(cpu_cycles);
 		//sound->run(sound_cycles);
@@ -81,8 +85,15 @@ uint8_t core_t::read8(uint16_t address)
 				} else {
 					return vdc->ram[address];
 				}
-			case VDC_PAGE:
-				return vdc->io_read8(address);
+			case COMBINED_PAGE:
+				switch (address & 0x00c0) {
+					case VDC_SUB_PAGE:
+						return vdc->io_read8(address);
+					case TIMER_SUB_PAGE:
+						return timer->io_read_byte(address);
+					default:
+						return 0x00;
+				}
 			case SYSTEM_ROM_PAGE:
 				if (system_rom_visible) {
 					return rom->data[address & 0xff];
@@ -104,9 +115,18 @@ void core_t::write8(uint16_t address, uint8_t value)
 {
 	if (address) {
 		switch (address >> 8) {
-			case VDC_PAGE:
-				vdc->io_write8(address, value);
-				break;
+			case COMBINED_PAGE:
+				switch (address & 0x00c0) {
+					case VDC_SUB_PAGE:
+						vdc->io_write8(address, value);
+						break;
+					case TIMER_SUB_PAGE:
+						timer->io_write_byte(address, value);
+						break;
+					default:
+						//
+						break;
+				}
 			default:
 				vdc->ram[address] = value;
 				break;
@@ -125,6 +145,7 @@ void core_t::reset()
 	system_rom_visible = true;
 	character_rom_visible = false;
 
+	timer->reset();
 	vdc->reset();	// vdc before cpu, as vdc also inits ram
 	cpu->reset();
 }

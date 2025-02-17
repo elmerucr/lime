@@ -23,9 +23,12 @@
 #include "rca.hpp"
 #include "rom.hpp"
 #include "font_cbm_8x8.hpp"
+#include "timer.hpp"
 
-#define CBM_FONT_PAGE	0x10
-#define VDC_PAGE		0x04
+#define CBM_FONT_PAGE		0x10
+#define COMBINED_PAGE		0x04
+#define		VDC_SUB_PAGE	0x00
+#define		TIMER_SUB_PAGE	0x40
 #define SYSTEM_ROM_PAGE	0xff
 
 enum output_states {
@@ -52,6 +55,7 @@ public:
 	exceptions_ic *exceptions;
 	cpu_t *cpu;
 	font_cbm_8x8_t *font;
+	timer_ic *timer;
 
 	void reset();
 

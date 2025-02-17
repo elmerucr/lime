@@ -9,6 +9,7 @@ add_library(system STATIC
 	stats.cpp
 	system.cpp
 	terminal.cpp
+	timer.cpp
 	vdc.cpp
 )
 

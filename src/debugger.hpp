@@ -22,7 +22,8 @@ private:
 	uint32_t *fg_colors;
 	uint32_t *bg_colors;
 	rca_t rca;
-	terminal_t *status;
+	terminal_t *status1;
+	terminal_t *status2;
 	system_t *system;
 
 	bool have_prompt;

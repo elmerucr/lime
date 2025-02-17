@@ -145,7 +145,7 @@ void vdc_t::draw_scanline(uint16_t scanline)
 
 uint8_t vdc_t::io_read8(uint16_t address)
 {
-	switch (address & 0xff) {
+	switch (address & 0x1f) {
 		// general
 		case 0x02:
 			return next_scanline >> 8;
@@ -201,7 +201,7 @@ uint8_t vdc_t::io_read8(uint16_t address)
 
 void vdc_t::io_write8(uint16_t address, uint8_t value)
 {
-	switch (address & 0xff) {
+	switch (address & 0x1f) {
 		// general
 		case 0x04:
 			bg_color = value;

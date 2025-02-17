@@ -83,12 +83,14 @@ debugger_t::debugger_t(system_t *s)
 	print_version();
 	terminal->activate_cursor();
 
-	status = new terminal_t(system, 116, 17, LIME_COLOR_2, LIME_COLOR_0);
+	status1 = new terminal_t(system, 61, 17, LIME_COLOR_2, LIME_COLOR_0);
+	status2 = new terminal_t(system, 55, 17, LIME_COLOR_2, LIME_COLOR_0);
 }
 
 debugger_t::~debugger_t()
 {
-	delete status;
+	delete status2;
+	delete status1;
 	delete terminal;
 	delete [] bg_colors;
 	delete [] fg_colors;
@@ -107,26 +109,61 @@ void debugger_t::redraw()
 	}
 
 	// update status text
-	status->clear();
+	status1->clear();
 	system->core->cpu->status(text_buffer, 1024);
-	status->printf("__cpu_______________________________________________________\n%s", text_buffer);
-	status->printf("\n\n__disassembly_______________________________________________");
+	status1->printf("__cpu_______________________________________________________\n%s", text_buffer);
+	status1->printf("\n\n__disassembly_______________________________________________");
 	uint16_t pc = system->core->cpu->get_pc();
 	for (int i=0; i<5; i++) {
-		status->putchar('\n');
+		status1->putchar('\n');
 		pc += disassemble_instruction(pc);
 	}
-	status->printf("\n\n__vdc_______________________________________________________");
-	status->printf("\ndrawing scanline: %3i", system->core->vdc->get_current_scanline());
-	status->printf("\n   next scanline: %3i in ", system->core->vdc->get_next_scanline());
-	status->printf("%3i cpu cycles", CPU_CYCLES_PER_SCANLINE - system->core->vdc->get_cycles_run());
 
-	// copy status tiles into tiles buffer
-	for (int y = 0; y<status->height; y++) {
-		for (int x = 0; x<status->width; x++) {
-			tiles[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = status->tiles[(y*status->width)+x];
-			fg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = status->fg_colors[(y*status->width)+x];
-			bg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = status->bg_colors[(y*status->width)+x];
+	status1->printf("\n\n__vdc_______________________________________________________");
+	status1->printf("\ndrawing scanline: %3i", system->core->vdc->get_current_scanline());
+	status1->printf("\n   next scanline: %3i in ", system->core->vdc->get_next_scanline());
+	status1->printf("%3i cpu cycles", CPU_CYCLES_PER_SCANLINE - system->core->vdc->get_cycles_run());
+
+	// copy status1 tiles into tiles buffer
+	for (int y = 0; y<status1->height; y++) {
+		for (int x = 0; x<status1->width; x++) {
+			tiles[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = status1->tiles[(y*status1->width)+x];
+			fg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = status1->fg_colors[(y*status1->width)+x];
+			bg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = status1->bg_colors[(y*status1->width)+x];
+		}
+	}
+
+	status2->clear();
+	status2->printf("__usp__  __ssp__  t_____s___bpm______cycles");
+
+	for (int i=0; i<8; i++) {
+		uint16_t usp = (system->core->cpu->get_us() + i) & 0xffff;
+		uint8_t usp_b = system->core->read8(usp);
+		uint16_t ssp = (system->core->cpu->get_sp() + i) & 0xffff;
+		uint8_t ssp_b = system->core->read8(ssp);
+
+		status2->printf("\n%04x %02x  %04x %02x  %u %s %s %5u  %10u",
+		//status2->printf("\n%04x %02x  %04x %02x",
+			usp,
+			usp_b,
+			ssp,
+			ssp_b,
+			i,
+			system->core->timer->io_read_byte(0x01) & (1 << i) ? " on" : "off",
+			system->core->timer->io_read_byte(0x00) & (1 << i) ? "*" : "-",
+			system->core->timer->get_timer_bpm(i),
+			system->core->timer->get_timer_clock_interval(i) - system->core->timer->get_timer_counter(i)
+		);
+	}
+	system->core->exceptions->status(text_buffer, 2048);
+	status2->printf("\n\n%s", text_buffer);
+
+	// copy status2 tiles into tiles buffer
+	for (int y = 0; y<status2->height; y++) {
+		for (int x = 0; x<status2->width; x++) {
+			tiles[(y+22)*(SCREEN_WIDTH>>2) + x + 63] = status2->tiles[(y*status2->width)+x];
+			fg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 63] = status2->fg_colors[(y*status2->width)+x];
+			bg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 63] = status2->bg_colors[(y*status2->width)+x];
 		}
 	}
 
@@ -419,11 +456,11 @@ void debugger_t::process_command(char *c)
 		have_prompt = false;
 		system->switch_to_run_mode();
 		system->host->events_wait_until_key_released(SDLK_RETURN);
-	// } else if (strcmp(token0, "timer") == 0) {
-	// 	for (int i=0; i<8; i++) {
-	// 		system->core->timer->status(text_buffer, i);
-	// 		terminal->printf("%s", text_buffer);
-	// 	}
+	} else if (strcmp(token0, "timer") == 0) {
+		for (int i=0; i<8; i++) {
+			system->core->timer->status(text_buffer, i);
+			terminal->printf("%s", text_buffer);
+		}
 	} else if (strcmp(token0, "ver") == 0) {
 		print_version();
 	} else {
@@ -681,16 +718,16 @@ uint32_t debugger_t::disassemble_instruction(uint16_t address)
 {
 	uint32_t cycles;
 	if (system->core->cpu->breakpoint_array[address]) {
-		status->fg_color = 0xffe04040;	// orange
+		status1->fg_color = 0xffe04040;	// orange
 		//terminal->bg_color = bg_acc;
 	}
 	cycles = system->core->cpu->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
-	status->printf("%s", text_buffer);
-	status->fg_color = LIME_COLOR_2;
+	status1->printf("%s", text_buffer);
+	status1->fg_color = LIME_COLOR_2;
 	//terminal->bg_color = bg;
 
-	status->putchar('\r');
-	for (int i=0; i<7; i++) status->cursor_right();
+	status1->putchar('\r');
+	for (int i=0; i<7; i++) status1->cursor_right();
 	return cycles;
 }
 

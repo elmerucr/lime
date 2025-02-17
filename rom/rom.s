@@ -50,7 +50,15 @@ reset
 	ldx	#exc_irq
 	stx	$0200
 
-3	bra	3b		; endless loop
+3	jsr	test
+	bra	3b		; endless loop
+
+test
+	lda	#$34
+	tfr	a,b
+	addb	#$01
+	tfr	b,a
+	rts
 
 logo_data
 	fcb	112,64,%111,$1c	; icon top left
