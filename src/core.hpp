@@ -20,15 +20,17 @@
 #include "vdc.hpp"
 #include "cpu.hpp"
 #include "exceptions.hpp"
-#include "rca.hpp"
 #include "rom.hpp"
 #include "font_cbm_8x8.hpp"
 #include "timer.hpp"
+#include "sound.hpp"
+#include "clocks.hpp"
 
 #define CBM_FONT_PAGE		0x10
 #define COMBINED_PAGE		0x04
 #define		VDC_SUB_PAGE	0x00
 #define		TIMER_SUB_PAGE	0x40
+#define	SOUND_PAGE			0x06	// and 0x07
 #define SYSTEM_ROM_PAGE	0xff
 
 enum output_states {
@@ -38,11 +40,12 @@ enum output_states {
 
 class core_t {
 private:
+	uint32_t sound_cycle_saldo{0};
+
 	bool irq_line_frame_done{true};
 
 	system_t *system;
 	rom_t *rom;
-	rca_t rca;
 
 	// memory configuration address $00
 	bool system_rom_visible;	// bit 0
@@ -54,8 +57,16 @@ public:
 	vdc_t *vdc;
 	exceptions_ic *exceptions;
 	cpu_t *cpu;
+	clocks *cpu2sid;
 	font_cbm_8x8_t *font;
 	timer_ic *timer;
+	sound_ic *sound;
+
+	uint32_t get_sound_cycle_saldo() {
+		uint32_t result = sound_cycle_saldo;
+		sound_cycle_saldo = 0;
+		return result;
+	}
 
 	void reset();
 

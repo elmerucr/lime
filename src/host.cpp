@@ -52,7 +52,7 @@ host_t::host_t(system_t *s)
 #   error "Unknown compiler"
 #endif
 
-	//audio_init();
+	audio_init();
 	video_init();
 }
 
@@ -62,7 +62,7 @@ host_t::~host_t()
     delete [] video_framebuffer;
 
 	video_stop();
-	//audio_stop();
+	audio_stop();
     SDL_Quit();
 }
 
@@ -431,5 +431,91 @@ void host_t::video_toggle_fullscreen_stretched()
 				.h = video_scaling * SCREEN_HEIGHT
 			};
 		}
+	}
+}
+
+void host_t::audio_init()
+{
+	/*
+	 * Print the list of audio backends
+	 */
+	int numAudioDrivers = SDL_GetNumAudioDrivers();
+	printf("[SDL] audio backend(s): %d compiled into SDL: ", numAudioDrivers);
+	for (int i=0; i<numAudioDrivers; i++) {
+		printf(" \'%s\' ", SDL_GetAudioDriver(i));
+	}
+	printf("\n");
+
+	// What's this all about???
+	SDL_zero(audio_spec_want);
+
+	/*
+	 * Define audio specification
+	 */
+	audio_spec_want.freq = SAMPLE_RATE;
+	audio_spec_want.format = AUDIO_F32SYS;
+	audio_spec_want.channels = 2;
+	audio_spec_want.samples = 512;
+	audio_spec_want.callback = nullptr;
+
+	/*
+	 * Open audio device, allowing any changes to the specification
+	 */
+	audio_device = SDL_OpenAudioDevice(NULL, 0, &audio_spec_want, &audio_spec_have,
+						 SDL_AUDIO_ALLOW_ANY_CHANGE);
+	if(!audio_device) {
+		printf("[SDL] failed to open audio device: %s\n", SDL_GetError());
+		// this is not enough and even wrong...
+		// consider a system without audio support?
+		SDL_Quit();
+	}
+
+	printf("[SDL] audio now using backend '%s'\n", SDL_GetCurrentAudioDriver());
+	printf("[SDL] audio information:        want\thave\n");
+	printf("[SDL]         frequency         %d\t%d\n", audio_spec_want.freq, audio_spec_have.freq);
+	printf("[SDL]         format\n"
+	       "[SDL]          float            %s\t%s\n",
+	       SDL_AUDIO_ISFLOAT(audio_spec_want.format) ? "yes" : "no",
+	       SDL_AUDIO_ISFLOAT(audio_spec_have.format) ? "yes" : "no");
+	printf("[SDL]          signed           %s\t%s\n",
+	       SDL_AUDIO_ISSIGNED(audio_spec_want.format) ? "yes" : "no",
+	       SDL_AUDIO_ISSIGNED(audio_spec_have.format) ? "yes" : "no");
+	printf("[SDL]          big endian       %s\t%s\n",
+	       SDL_AUDIO_ISBIGENDIAN(audio_spec_want.format) ? "yes" : "no",
+	       SDL_AUDIO_ISBIGENDIAN(audio_spec_have.format) ? "yes" : "no");
+	printf("[SDL]          bitsize          %d\t%d\n",
+	       SDL_AUDIO_BITSIZE(audio_spec_want.format),
+	       SDL_AUDIO_BITSIZE(audio_spec_have.format));
+	printf("[SDL]          channels         %d\t%d\n", audio_spec_want.channels, audio_spec_have.channels);
+	printf("[SDL]          samples          %d\t%d\n", audio_spec_want.samples, audio_spec_have.samples);
+
+	audio_bytes_per_sample = SDL_AUDIO_BITSIZE(audio_spec_have.format) / 8;
+	printf("[SDL] audio is using %d bytes per sample per channel\n", audio_bytes_per_sample);
+
+	audio_bytes_per_ms = (double)SAMPLE_RATE * audio_spec_have.channels * audio_bytes_per_sample / 1000;
+	printf("[SDL] audio is using %f bytes per ms\n", audio_bytes_per_ms);
+
+	audio_running = false;
+
+	audio_start();
+}
+
+void host_t::audio_start()
+{
+	if (!audio_running) {
+		printf("[SDL] start audio\n");
+		// Unpause audiodevice, and process audiostream
+		SDL_PauseAudioDevice(audio_device, 0);
+		audio_running = true;
+	}
+}
+
+void host_t::audio_stop()
+{
+	if (audio_running) {
+		printf("[SDL] stop audio\n");
+		// Pause audiodevice
+		SDL_PauseAudioDevice(audio_device, 1);
+		audio_running = false;
 	}
 }

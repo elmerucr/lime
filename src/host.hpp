@@ -98,6 +98,19 @@ private:
     system_t		*system;
     const uint8_t	*sdl_keyboard_state;
 
+	/*
+	 * Audio related
+	 */
+	SDL_AudioDeviceID audio_device;
+	SDL_AudioSpec audio_spec_want;
+	SDL_AudioSpec audio_spec_have;
+	double audio_bytes_per_ms;
+	uint8_t audio_bytes_per_sample;
+	bool audio_running{false};
+	void audio_init();
+	void audio_start();
+	void audio_stop();
+
     // video related
 	SDL_DisplayMode	video_displaymode;
     int				video_scaling{1};
@@ -133,6 +146,13 @@ public:
 
 	char *sdl_preference_path;
 
+	// Audio related
+	inline void queue_audio(void *buffer, unsigned size) { SDL_QueueAudio(audio_device, buffer, size); }
+	inline unsigned int get_queued_audio_size_bytes() { return SDL_GetQueuedAudioSize(audio_device); }
+	inline uint8_t get_bytes_per_sample() { return audio_bytes_per_sample; }
+	inline double get_bytes_per_ms() { return audio_bytes_per_ms; }
+
+	// video related
 	void video_init();
 	void video_stop();
     void video_toggle_fullscreen();

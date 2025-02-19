@@ -50,6 +50,8 @@ reset
 	ldx	#exc_irq
 	stx	$0200
 
+	jsr	sound_reset
+
 3	jsr	test
 	bra	3b		; endless loop
 
@@ -58,6 +60,28 @@ test
 	tfr	a,b
 	addb	#$01
 	tfr	b,a
+	rts
+
+sound_reset
+	pshu	y,x,a
+	ldx	#$0080
+	ldy	#$0600	; start of sound
+1	clr	,y+
+	leax	-1,x
+	bne	1b
+
+	lda	#$7f	; mixer at half volume
+	ldx	#$0010
+	ldy	#$0790	; start of io mixer
+2	sta	,y+
+	leax	-1,x
+	bne	2b
+
+	lda	#$0f	; set sid volumes to max
+	sta	$061b	; sid 0 volume
+	sta	$063b	; sid 1 volume
+
+	pulu	y,x,a
 	rts
 
 logo_data

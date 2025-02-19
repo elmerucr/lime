@@ -25,12 +25,18 @@ core_t::core_t(system_t *s)
 
 	timer = new timer_ic(exceptions);
 
+	sound = new sound_ic(system);
+
+	cpu2sid = new clocks(CPU_CLOCK_SPEED/FPS, SID_CLOCK_SPEED/FPS);
+
 	font = new font_cbm_8x8_t();
 }
 
 core_t::~core_t()
 {
 	delete font;
+	delete cpu2sid;
+	delete sound;
 	delete timer;
 	delete exceptions;
 	delete cpu;
@@ -48,10 +54,9 @@ enum output_states core_t::run(bool debug)
 		uint16_t cpu_cycles = cpu->execute();
 		frame_done = vdc->run(cpu_cycles);
 		timer->run(cpu_cycles);
-		//timer->run(cpu_cycles);
-		//uint16_t sound_cycles = cpu2sid->clock(cpu_cycles);
-		//sound->run(sound_cycles);
-		//sound_cycle_saldo += sound_cycles;
+		uint16_t sound_cycles = cpu2sid->clock(cpu_cycles);
+		sound->run(sound_cycles);
+		sound_cycle_saldo += sound_cycles;
 
 	} while ((!cpu->breakpoint()) && (!frame_done) && (!debug));
 
@@ -94,6 +99,9 @@ uint8_t core_t::read8(uint16_t address)
 					default:
 						return 0x00;
 				}
+			case SOUND_PAGE:
+			case SOUND_PAGE+1:
+				return sound->io_read_byte(address & 0x1ff);
 			case SYSTEM_ROM_PAGE:
 				if (system_rom_visible) {
 					return rom->data[address & 0xff];
@@ -127,6 +135,10 @@ void core_t::write8(uint16_t address, uint8_t value)
 						//
 						break;
 				}
+			case SOUND_PAGE:
+			case SOUND_PAGE+1:
+				sound->io_write_byte(address & 0x1ff, value);
+				break;
 			default:
 				vdc->ram[address] = value;
 				break;
@@ -145,6 +157,7 @@ void core_t::reset()
 	system_rom_visible = true;
 	character_rom_visible = false;
 
+	sound->reset();
 	timer->reset();
 	vdc->reset();	// vdc before cpu, as vdc also inits ram
 	cpu->reset();

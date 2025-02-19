@@ -62,6 +62,22 @@ void system_t::run()
 
     while (running) {
 
+		/*
+		 * Audio: Measure audio_buffer and determine audio_cycles to run
+		 */
+		uint32_t audio_buffer_bytes = host->get_queued_audio_size_bytes();
+		stats->set_queued_audio_ms(audio_buffer_bytes / host->get_bytes_per_ms());
+
+		int32_t audio_cycles = SID_CYCLES_PER_FRAME;
+
+		if (audio_buffer_bytes > (AUDIO_BUFFER_SIZE * 1.2)) {
+			audio_cycles -= SID_CYCLES_PER_FRAME / 5;
+		} else if (audio_buffer_bytes < (AUDIO_BUFFER_SIZE * 0.8)) {
+			audio_cycles += SID_CYCLES_PER_FRAME / 5;
+		}
+
+		core->cpu2sid->adjust_target_clock(audio_cycles);
+
         if (host->events_process_events() == QUIT_EVENT) running = false;
 
 		keyboard->process();
@@ -76,6 +92,11 @@ void system_t::run()
 				debugger->run();
 				break;
 		};
+
+		uint32_t sound_cycle_saldo = core->get_sound_cycle_saldo();
+		if (sound_cycle_saldo < audio_cycles ) {
+			core->sound->run(audio_cycles - sound_cycle_saldo);
+		}
 
 		// Time measurement
 		stats->start_idle_time();
