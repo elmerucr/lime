@@ -48,6 +48,8 @@ void vdc_t::reset()
 	cycles_run = 0;
 	next_scanline = 160;
 	new_scanline = true;
+
+	bg_color = 0x00;
 }
 
 void vdc_t::draw_layer(layer_t *l, uint8_t sl)

@@ -124,7 +124,7 @@ class vdc_t {
 private:
     font_cbm_8x8_t font;
 
-	uint8_t bg_color{0b00};
+	uint8_t bg_color;
 
 	uint16_t next_scanline;
 	int32_t cycles_run;

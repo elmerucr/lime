@@ -10,7 +10,7 @@
 
 	org	$ff00
 
-	fcn	"lime rom v0.2 20250205"
+	fcn	"lime rom v0.3 20250219"
 reset
 	lds	#$0200		; sets system stackpointer + enables nmi
 	ldu	#$ff00		; sets user stackpointer
@@ -50,17 +50,9 @@ reset
 	ldx	#exc_irq
 	stx	$0200
 
-	jsr	sound_reset
+	bsr	sound_reset
 
-3	jsr	test
-	bra	3b		; endless loop
-
-test
-	lda	#$34
-	tfr	a,b
-	addb	#$01
-	tfr	b,a
-	rts
+3	bra	3b		; endless loop
 
 sound_reset
 	pshu	y,x,a
