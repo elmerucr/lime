@@ -1,5 +1,5 @@
 ; ----------------------------------------------------------------------
-; rom.s (compiles with asm6809)
+; rom.s (assembles with asm6809)
 ; lime
 ;
 ; Copyright (C)2025 elmerucr

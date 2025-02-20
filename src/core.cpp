@@ -15,11 +15,12 @@ core_t::core_t(system_t *s)
 
 	rom = new rom_t();
 
-	vdc = new vdc_t();
+	exceptions = new exceptions_ic();
+
+	vdc = new vdc_t(exceptions);
 
 	cpu = new cpu_t(system);
 
-	exceptions = new exceptions_ic();
 	cpu->assign_nmi_line(&exceptions->nmi_output_pin);
 	cpu->assign_irq_line(&exceptions->irq_output_pin);
 

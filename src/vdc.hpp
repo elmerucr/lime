@@ -35,6 +35,7 @@
 
 #include <cstdint>
 #include "common.hpp"
+#include "exceptions.hpp"
 #include "font_cbm_8x8.hpp"
 
 const uint32_t palette[256] = {
@@ -126,7 +127,7 @@ private:
 
 	uint8_t bg_color;
 
-	uint16_t next_scanline;
+	uint16_t current_scanline;
 	int32_t cycles_run;
 
 	bool new_scanline;
@@ -137,9 +138,17 @@ private:
     void draw_scanline(uint16_t scanline);
 	void draw_layer(layer_t *l, uint8_t sl);
 	void draw_sprite(sprite_t *s, uint8_t sl, layer_t *t);
+
+	exceptions_ic *exceptions;
+
+	bool irq_line;
+	bool generate_interrupts;
+	uint16_t irq_scanline;
 public:
-    vdc_t();
+    vdc_t(exceptions_ic *e);
     ~vdc_t();
+
+	uint8_t irq_number;
 
     uint8_t *ram;
 
@@ -152,8 +161,7 @@ public:
 	void io_write8(uint16_t address, uint8_t value);
 
 	inline int32_t get_cycles_run() { return cycles_run ; }
-	inline uint16_t get_current_scanline() { return next_scanline ? next_scanline - 1 : VDC_SCANLINES -1; }
-	inline uint16_t get_next_scanline() { return next_scanline; }
+	inline uint16_t get_current_scanline() { return current_scanline; }
 
 	void reset();
 

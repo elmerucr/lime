@@ -9,8 +9,12 @@
 #include "common.hpp"
 #include <cstdio>
 
-vdc_t::vdc_t()
+vdc_t::vdc_t(exceptions_ic *e)
 {
+	exceptions = e;
+	irq_number = exceptions->connect_device("vdc");
+	printf("[vdc] Connecting to exceptions getting irq %i\n", irq_number);
+
     ram = new uint8_t[VDC_RAM];
     buffer = new uint32_t[VDC_XRES * VDC_YRES];
 
@@ -46,10 +50,14 @@ void vdc_t::reset()
 	current_sprite = 0;
 
 	cycles_run = 0;
-	next_scanline = 160;
+	current_scanline = 0;
+	irq_scanline = 0;
 	new_scanline = true;
 
 	bg_color = 0x00;
+
+	irq_line = true;
+	generate_interrupts = false;
 }
 
 void vdc_t::draw_layer(layer_t *l, uint8_t sl)
@@ -148,11 +156,16 @@ void vdc_t::draw_scanline(uint16_t scanline)
 uint8_t vdc_t::io_read8(uint16_t address)
 {
 	switch (address & 0x1f) {
-		// general
+		case 0x00:
+			// status register
+			return irq_line ? 0b0 : 0b1;
+		case 0x01:
+			// control register
+			return generate_interrupts ? 0b1 : 0b0;
 		case 0x02:
-			return next_scanline >> 8;
+			return current_scanline & 0xff;
 		case 0x03:
-			return next_scanline & 0xff;
+			return irq_scanline & 0xff;
 		case 0x04:
 			return bg_color;
 		case 0x06:
@@ -204,7 +217,18 @@ uint8_t vdc_t::io_read8(uint16_t address)
 void vdc_t::io_write8(uint16_t address, uint8_t value)
 {
 	switch (address & 0x1f) {
-		// general
+		case 0x00:
+			if ((value & 0b1) && !irq_line) {
+				exceptions->release(irq_number);
+				irq_line = true;
+			}
+			break;
+		case 0x01:
+			generate_interrupts = (value & 0b1) ? true : false;
+			break;
+		case 0x03:
+			irq_scanline = value;
+			break;
 		case 0x04:
 			bg_color = value;
 			break;
@@ -273,20 +297,25 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 
 bool vdc_t::run(uint32_t number_of_cycles)
 {
-	new_scanline = false;
-	bool frame_done = false;
+	if (new_scanline) {
+		draw_scanline(current_scanline);
+		new_scanline = false;
+	}
 
+	bool frame_done = false;
 	cycles_run += number_of_cycles;
 
 	if (cycles_run >= CPU_CYCLES_PER_SCANLINE) {
-		draw_scanline(next_scanline);
-		cycles_run -= CPU_CYCLES_PER_SCANLINE;
-		next_scanline++;
 		new_scanline = true;
-
-		if (next_scanline == VDC_SCANLINES) {
-			next_scanline = 0;
+		cycles_run -= CPU_CYCLES_PER_SCANLINE;
+		current_scanline++;
+		if (current_scanline == VDC_SCANLINES) {
 			frame_done = true;
+			current_scanline = 0;
+		}
+		if ((current_scanline == irq_scanline) && generate_interrupts) {
+			exceptions->pull(irq_number);
+			irq_line = false;
 		}
 	}
 

@@ -120,9 +120,8 @@ void debugger_t::redraw()
 	}
 
 	status1->printf("\n\n__vdc_______________________________________________________");
-	status1->printf("\ndrawing scanline: %3i", system->core->vdc->get_current_scanline());
-	status1->printf("\n   next scanline: %3i in ", system->core->vdc->get_next_scanline());
-	status1->printf("%3i cpu cycles", CPU_CYCLES_PER_SCANLINE - system->core->vdc->get_cycles_run());
+	status1->printf("\n      cycle %3i of %3i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
+	status1->printf("\nin scanline %3i of %3i", system->core->vdc->get_current_scanline(), VDC_SCANLINES - 1);
 
 	// copy status1 tiles into tiles buffer
 	for (int y = 0; y<status1->height; y++) {
@@ -203,16 +202,20 @@ void debugger_t::redraw()
 			system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + 227 + arrows[i][0]] = LIME_COLOR_2;
 			system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + -4 + (SCREEN_WIDTH-arrows[i][0])] = LIME_COLOR_2;
 		}
+		system->host->video_framebuffer[
+			((system->core->vdc->get_cycles_run()*VDC_XRES/CPU_CYCLES_PER_SCANLINE)+232) +
+			((8+system->core->vdc->get_current_scanline()) * SCREEN_WIDTH)
+		] = LIME_COLOR_2;
 	}
 
 	// progress bar for cycles done for scanline
 	for (int x=232; x<(232+VDC_XRES); x++) {
 		if (x < ((system->core->vdc->get_cycles_run()*VDC_XRES)/CPU_CYCLES_PER_SCANLINE)+232) {
-			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_2;
-			system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_2;
+			//system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_2;
+			system->host->video_framebuffer[(5*SCREEN_WIDTH) + x] = LIME_COLOR_2;
 		} else {
-			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_0;
-			system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_0;
+			//system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_0;
+			system->host->video_framebuffer[(5*SCREEN_WIDTH) + x] = LIME_COLOR_0;
 		}
 	}
 }
