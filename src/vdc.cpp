@@ -47,16 +47,14 @@ void vdc_t::reset()
     }
 
 	for (int i=0; i<256; i++) {
-		sprite[i] = {
-			.x = 0,
-			.y = 0,
-			.colors[0] = 0b00,
-			.colors[1] = 0b01,
-			.colors[2] = 0b10,
-			.colors[3] = 0b11,
-			.flags = 0,
-			.index = 0
-		};
+		sprite[i].x = 0;
+		sprite[i].y = 0;
+		sprite[i].colors[0] = 0b00;
+		sprite[i].colors[1] = 0b01;
+		sprite[i].colors[2] = 0b10;
+		sprite[i].colors[3] = 0b11;
+		sprite[i].flags = 0;
+		sprite[i].index = 0;
 	}
 
 	current_layer = 0;
