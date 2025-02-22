@@ -46,6 +46,19 @@ void vdc_t::reset()
         ram[i] = (i & 0x40) ? 0xff : 0x00;
     }
 
+	for (int i=0; i<256; i++) {
+		sprite[i] = {
+			.x = 0,
+			.y = 0,
+			.colors[0] = 0b00,
+			.colors[1] = 0b01,
+			.colors[2] = 0b10,
+			.colors[3] = 0b11,
+			.flags = 0,
+			.index = 0
+		};
+	}
+
 	current_layer = 0;
 	current_sprite = 0;
 

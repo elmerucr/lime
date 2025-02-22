@@ -1,5 +1,5 @@
                       ; ----------------------------------------------------------------------
-                      ; rom.s (compiles with asm6809)
+                      ; rom.s (assembles with asm6809)
                       ; lime
                       ;
                       ; Copyright (C)2025 elmerucr
@@ -33,7 +33,7 @@ FF34  9700                    sta     $00
                       ; place logo
                       ; ----------------------------------------------------------------------
 FF36  5F                      clrb                    ; holds current sprite
-FF37  8EFF84                  ldx     #logo_data      ; x points to start of data
+FF37  8EFF8C                  ldx     #logo_data      ; x points to start of data
 FF3A  F70407          1       stb     $0407           ; set active sprite
 FF3D  108E0418                ldy     #$0418          ; y points to sprite registers
 FF41  A680            2       lda     ,x+             ; copy data
@@ -41,56 +41,57 @@ FF43  A7A0                    sta     ,y+
 FF45  108C041C                cmpy    #$041c          ; did we copy 4 values?
 FF49  26F6                    bne     2b              ; not yet, continue at 2
 FF4B  5C                      incb                    ; we did, set next active sprite
-FF4C  8CFFA4                  cmpx    #logo_data+32   ; did we reach end of data?
+FF4C  8CFFAC                  cmpx    #logo_data+32   ; did we reach end of data?
 FF4F  26E9                    bne     1b              ; no, continue at 1
                       
-                      ; ---------------
-                      ; do jump vectors
-                      ; ---------------
-FF51  8EFFA4                  ldx     #exc_irq
+FF51  8EFFAC                  ldx     #exc_irq        ; set jump vector
 FF54  BF0200                  stx     $0200
                       
-FF57  8D02                    bsr     sound_reset
+FF57  1CEF                    andcc   #%11101111      ; enable irq's
                       
-FF59  20FE            3       bra     3b              ; endless loop
+FF59  8D08                    bsr     sound_reset
                       
-FF5B                  sound_reset
-FF5B  3632                    pshu    y,x,a
-FF5D  8E0080                  ldx     #$0080
-FF60  108E0600                ldy     #$0600  ; start of sound
-FF64  6FA0            1       clr     ,y+
-FF66  301F                    leax    -1,x
-FF68  26FA                    bne     1b
+FF5B  B60480          3       lda     $0480
+FF5E  B70404                  sta     $0404
+FF61  20F8                    bra     3b              ; endless loop
                       
-FF6A  867F                    lda     #$7f    ; mixer at half volume
-FF6C  8E0010                  ldx     #$0010
-FF6F  108E0790                ldy     #$0790  ; start of io mixer
-FF73  A7A0            2       sta     ,y+
-FF75  301F                    leax    -1,x
-FF77  26FA                    bne     2b
+FF63                  sound_reset
+FF63  3632                    pshu    y,x,a
+FF65  8E0080                  ldx     #$0080
+FF68  108E0600                ldy     #$0600  ; start of sound
+FF6C  6FA0            1       clr     ,y+
+FF6E  301F                    leax    -1,x
+FF70  26FA                    bne     1b
                       
-FF79  860F                    lda     #$0f    ; set sid volumes to max
-FF7B  B7061B                  sta     $061b   ; sid 0 volume
-FF7E  B7063B                  sta     $063b   ; sid 1 volume
+FF72  867F                    lda     #$7f    ; mixer at half volume
+FF74  8E0010                  ldx     #$0010
+FF77  108E0790                ldy     #$0790  ; start of io mixer
+FF7B  A7A0            2       sta     ,y+
+FF7D  301F                    leax    -1,x
+FF7F  26FA                    bne     2b
                       
-FF81  3732                    pulu    y,x,a
-FF83  39                      rts
+FF81  860F                    lda     #$0f    ; set sid volumes to max
+FF83  B7061B                  sta     $061b   ; sid 0 volume
+FF86  B7063B                  sta     $063b   ; sid 1 volume
                       
-FF84                  logo_data
-FF84  7040071C                fcb     112,64,%111,$1c ; icon top left
-FF88  7840071D                fcb     120,64,%111,$1d ; icon top right
-FF8C  7048071E                fcb     112,72,%111,$1e ; icon bottom left
-FF90  7848071F                fcb     120,72,%111,$1f ; icon bottom right
+FF89  3732                    pulu    y,x,a
+FF8B  39                      rts
                       
-FF94  6B50076C                fcb     107,80,%111,$6c ; l
-FF98  70500769                fcb     112,80,%111,$69 ; i
-FF9C  7650076D                fcb     118,80,%111,$6d ; m
-FFA0  7E500765                fcb     126,80,%111,$65 ; e
+FF8C                  logo_data
+FF8C  7040071C                fcb     112,64,%111,$1c ; icon top left
+FF90  7840071D                fcb     120,64,%111,$1d ; icon top right
+FF94  7048071E                fcb     112,72,%111,$1e ; icon bottom left
+FF98  7848071F                fcb     120,72,%111,$1f ; icon bottom right
                       
-FFA4                  exc_irq
-FFA4  3B                      rti
+FF9C  6B50076C                fcb     107,80,%111,$6c ; l
+FFA0  70500769                fcb     112,80,%111,$69 ; i
+FFA4  7650076D                fcb     118,80,%111,$6d ; m
+FFA8  7E500765                fcb     126,80,%111,$65 ; e
                       
-FFA5  6E9F0200        1       jmp     [$0200]
+FFAC                  exc_irq
+FFAC  3B                      rti
+                      
+FFAD  6E9F0200        1       jmp     [$0200]
                       
 FFF0                          org     $fff0
 FFF0                  vectors
@@ -98,7 +99,7 @@ FFF0  0000                    fdb     $0000
 FFF2  0000                    fdb     $0000
 FFF4  0000                    fdb     $0000
 FFF6  0000                    fdb     $0000
-FFF8  FFA5                    fdb     1b              ; irq vector
+FFF8  FFAD                    fdb     1b              ; irq vector
 FFFA  0000                    fdb     $0000
 FFFC  0000                    fdb     $0000
 FFFE  FF17                    fdb     reset           ; reset vector

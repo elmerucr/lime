@@ -44,15 +44,16 @@ reset
 	cmpx	#logo_data+32	; did we reach end of data?
 	bne	1b		; no, continue at 1
 
-; ---------------
-; do jump vectors
-; ---------------
-	ldx	#exc_irq
+	ldx	#exc_irq	; set jump vector
 	stx	$0200
+
+	andcc	#%11101111	; enable irq's
 
 	bsr	sound_reset
 
-3	bra	3b		; endless loop
+3	lda	$0480
+	sta	$0404
+	bra	3b		; endless loop
 
 sound_reset
 	pshu	y,x,a

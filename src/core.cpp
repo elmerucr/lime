@@ -8,6 +8,7 @@
 #include <cmath>
 #include "core.hpp"
 #include "common.hpp"
+#include "host.hpp"
 
 core_t::core_t(system_t *s)
 {
@@ -68,6 +69,7 @@ enum output_states core_t::run(bool debug)
 
 uint8_t core_t::read8(uint16_t address)
 {
+	uint8_t r;
 	if (address) {
 		switch (address >> 8) {
 			case CBM_FONT_PAGE + 0x0:
@@ -97,6 +99,18 @@ uint8_t core_t::read8(uint16_t address)
 						return vdc->io_read8(address);
 					case TIMER_SUB_PAGE:
 						return timer->io_read_byte(address);
+					case CORE_SUB_PAGE:
+						switch (address & 0x3f) {
+							case 0x00:
+								// TODO: hack?
+								return
+									((system->host->keyboard_state[SCANCODE_UP]    & 0b1) ? 0b00000001 : 0) |
+									((system->host->keyboard_state[SCANCODE_DOWN]  & 0b1) ? 0b00000010 : 0) |
+									((system->host->keyboard_state[SCANCODE_LEFT]  & 0b1) ? 0b00000100 : 0) |
+									((system->host->keyboard_state[SCANCODE_RIGHT] & 0b1) ? 0b00001000 : 0) ;
+							default:
+								return 0x00;
+						}
 					default:
 						return 0x00;
 				}

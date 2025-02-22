@@ -1,5 +1,5 @@
-logo_data	equ	65412
+logo_data	equ	65420
 reset	equ	65303
 vectors	equ	65520
-exc_irq	equ	65444
-sound_reset	equ	65371
+exc_irq	equ	65452
+sound_reset	equ	65379

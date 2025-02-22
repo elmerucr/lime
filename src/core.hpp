@@ -30,6 +30,7 @@
 #define COMBINED_PAGE		0x04
 #define		VDC_SUB_PAGE	0x00
 #define		TIMER_SUB_PAGE	0x40
+#define		CORE_SUB_PAGE	0x80
 #define	SOUND_PAGE			0x06	// and 0x07
 #define SYSTEM_ROM_PAGE	0xff
 

@@ -49,7 +49,8 @@ host_t::host_t(system_t *s)
 	home = getenv("HOME");
 	printf("[host] User homedir is: %s\n", home);
 #else
-#   error "Unknown compiler"
+	home = getenv("HOME");
+//#   error "Unknown compiler"
 #endif
 
 	audio_init();

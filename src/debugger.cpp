@@ -211,11 +211,11 @@ void debugger_t::redraw()
 	// progress bar for cycles done for scanline
 	for (int x=232; x<(232+VDC_XRES); x++) {
 		if (x < ((system->core->vdc->get_cycles_run()*VDC_XRES)/CPU_CYCLES_PER_SCANLINE)+232) {
-			//system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_2;
-			system->host->video_framebuffer[(5*SCREEN_WIDTH) + x] = LIME_COLOR_2;
+			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_2;
+			system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_2;
 		} else {
-			//system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_0;
-			system->host->video_framebuffer[(5*SCREEN_WIDTH) + x] = LIME_COLOR_0;
+			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_0;
+			system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_0;
 		}
 	}
 }
