@@ -115,8 +115,7 @@ uint8_t core_t::read8(uint16_t address)
 						return 0x00;
 				}
 			case SOUND_PAGE:
-			case SOUND_PAGE+1:
-				return sound->io_read_byte(address & 0x1ff);
+				return sound->io_read_byte(address);
 			case SYSTEM_ROM_PAGE:
 				if (system_rom_visible) {
 					return rom->data[address & 0xff];
@@ -151,8 +150,7 @@ void core_t::write8(uint16_t address, uint8_t value)
 						break;
 				}
 			case SOUND_PAGE:
-			case SOUND_PAGE+1:
-				sound->io_write_byte(address & 0x1ff, value);
+				sound->io_write_byte(address, value);
 				break;
 			default:
 				vdc->ram[address] = value;

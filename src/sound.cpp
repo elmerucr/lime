@@ -1,9 +1,9 @@
-/*
- * sound.cpp
- * punch
- *
- * Copyright © 2019-2024 elmerucr. All rights reserved.
- */
+// ---------------------------------------------------------------------
+// sound.cpp
+// lime
+//
+// Copyright © 2019-2025 elmerucr. All rights reserved.
+// ---------------------------------------------------------------------
 
 #include "sound.hpp"
 #include "common.hpp"
@@ -31,7 +31,7 @@
 //	0,0,0,0,0,0,0,0
 //};
 
-sound_ic::sound_ic(system_t *s) : analog0(0), analog1(1), analog2(2), analog3(3)
+sound_ic::sound_ic(system_t *s) : analog0(0), analog1(1)
 {
 	system = s;
 	/*
@@ -90,7 +90,7 @@ sound_ic::sound_ic(system_t *s) : analog0(0), analog1(1), analog2(2), analog3(3)
 	register_index[0x1e] = 0x1b;    // osc3_random
 	register_index[0x1f] = 0x1c;    // env3
 
-	for (int i = 0; i<4; i++) {
+	for (int i = 0; i<2; i++) {
 		/*
 		 * set chip model
 		 */
@@ -117,8 +117,6 @@ sound_ic::sound_ic(system_t *s) : analog0(0), analog1(1), analog2(2), analog3(3)
 	 */
 	delta_t_sid0 = 0;
 	delta_t_sid1 = 0;
-	delta_t_sid2 = 0;
-	delta_t_sid3 = 0;
 
 	/*
 	 * silence all balance registers
@@ -135,77 +133,33 @@ sound_ic::~sound_ic()
 
 uint8_t sound_ic::io_read_byte(uint16_t address)
 {
-	switch (address & 0x100) {
-		case 0x000:
-			// sids
-			switch (address & 0x1c) {
-				case 0x1c:
-					switch (address & 0x60) {
-						case 0x00:
-							return sid[0].read(register_index[address & 0x1f]);
-						case 0x20:
-							return sid[1].read(register_index[address & 0x1f]);
-						case 0x40:
-							return sid[2].read(register_index[address & 0x1f]);
-						case 0x60:
-							return sid[3].read(register_index[address & 0x1f]);
-						default:
-							return 0x00;
-					}
-				default:
-					switch (address & 0xe0) {
-						case 0x00:
-							return sid[0].read(register_index[address & 0x1f]);
-						case 0x20:
-							return sid[1].read(register_index[address & 0x1f]);
-						case 0x40:
-							return sid[2].read(register_index[address & 0x1f]);
-						case 0x60:
-							return sid[3].read(register_index[address & 0x1f]);
-						case 0x80:
-						case 0xa0:
-						case 0xc0:
-						case 0xe0:
-							return sid_shadow[address & 0x7f];
-						default:
-							return 0x00;
-					}
+	switch (address & 0xf0) {
+		case 0x00:
+		case 0x10:
+			// sid0
+			if ((address & 0x1c) == 0x1c) {
+				return sid[0].read(register_index[address & 0x1f]);
+			} else {
+				return sid_shadow[address & 0x3f];
 			}
-		case 0x100:
-			// analogs + balance/mixing
-			switch (address & 0xf0) {
-				case 0x00:
-				case 0x10:
-					return analog0.read_byte(address & 0x1f);
-				case 0x20:
-				case 0x30:
-					return analog1.read_byte(address & 0x1f);
-				case 0x40:
-				case 0x50:
-					return analog2.read_byte(address & 0x1f);
-				case 0x60:
-				case 0x70:
-					return analog3.read_byte(address & 0x1f);
-				case 0x80:
-					switch (address & 0x0f) {
-						case 0x08:
-							return
-								(delay[0].active ? 0b00000001 : 0b0) |
-								(delay[1].active ? 0b00000010 : 0b0) |
-								(delay[2].active ? 0b00000100 : 0b0) |
-								(delay[3].active ? 0b00001000 : 0b0) |
-								(delay[4].active ? 0b00010000 : 0b0) |
-								(delay[5].active ? 0b00100000 : 0b0) |
-								(delay[6].active ? 0b01000000 : 0b0) |
-								(delay[7].active ? 0b10000000 : 0b0) ;
-						default:
-							return 0x00;
-					}
-				case 0x90:
-					return balance_registers[address & 0x0f];
-				default:
-					return 0x00;
+		case 0x20:
+		case 0x30:
+			// sid1
+			if ((address & 0x1c) == 0x1c) {
+				return sid[1].read(register_index[address & 0x1f]);
+			} else {
+				return sid_shadow[address & 0x3f];
 			}
+		case 0x40:
+		case 0x50:
+			// analog0
+			return analog0.read_byte(address & 0x1f);
+		case 0x60:
+		case 0x70:
+			// analog1
+			return analog1.read_byte(address & 0x1f);
+		case 0x80:
+			return balance_registers[address & 0x0f];
 		default:
 			return 0x00;
 	}
@@ -213,70 +167,34 @@ uint8_t sound_ic::io_read_byte(uint16_t address)
 
 void sound_ic::io_write_byte(uint16_t address, uint8_t byte)
 {
-	switch (address & 0x100) {
-		case 0x000:
-			// sids
-			switch (address & 0x60) {
-				case 0x00:
-					sid[0].write(register_index[address & 0x1f], byte);
-					break;
-				case 0x20:
-					sid[1].write(register_index[address & 0x1f], byte);
-					break;
-				case 0x40:
-					sid[2].write(register_index[address & 0x1f], byte);
-					break;
-				case 0x60:
-					sid[3].write(register_index[address & 0x1f], byte);
-					break;
-				default:
-					break;
-			}
-			sid_shadow[address & 0x7f] = byte;
+	switch (address & 0xf0) {
+		case 0x00:
+		case 0x10:
+			// sid0
+			sid[0].write(register_index[address & 0x1f], byte);
+			sid_shadow[address & 0x3f] = byte;
 			break;
-		case 0x100:
-			// analogs + balance/mixing
-			switch (address & 0xf0) {
-				case 0x00:
-				case 0x10:
-					analog0.write_byte(address & 0x1f, byte);
-					break;
-				case 0x20:
-				case 0x30:
-					analog1.write_byte(address & 0x1f, byte);
-					break;
-				case 0x40:
-				case 0x50:
-					analog2.write_byte(address & 0x1f, byte);
-					break;
-				case 0x60:
-				case 0x70:
-					analog3.write_byte(address & 0x1f, byte);
-					break;
-				case 0x80:
-					switch (address & 0x0f) {
-						case 0x08:
-							delay[0].active = (byte & 0b00000001) ? true : false;
-							delay[1].active = (byte & 0b00000010) ? true : false;
-							delay[2].active = (byte & 0b00000100) ? true : false;
-							delay[3].active = (byte & 0b00001000) ? true : false;
-							delay[4].active = (byte & 0b00010000) ? true : false;
-							delay[5].active = (byte & 0b00100000) ? true : false;
-							delay[6].active = (byte & 0b01000000) ? true : false;
-							delay[7].active = (byte & 0b10000000) ? true : false;
-							break;
-						default:
-							break;
-					}
-					break;
-				case 0x90:
-					balance_registers[address & 0x0f] = byte;
-					break;
-				default:
-					break;
-			}
+		case 0x20:
+		case 0x30:
+			// sid1
+			sid[1].write(register_index[address & 0x1f], byte);
+			sid_shadow[address & 0x3f] = byte;
+			break;
+		case 0x40:
+		case 0x50:
+			// analog0
+			analog0.write_byte(address & 0x1f, byte);
+			break;
+		case 0x60:
+		case 0x70:
+			// analog1
+			analog1.write_byte(address & 0x1f, byte);
+			break;
+		case 0x80:
+			balance_registers[address & 0x0f] = byte;
 			break;
 		default:
+			// do nothing
 			break;
 	}
 }
@@ -285,8 +203,6 @@ void sound_ic::run(uint32_t number_of_cycles)
 {
 	delta_t_sid0 += number_of_cycles;
 	delta_t_sid1 = delta_t_sid0;
-	delta_t_sid2 = delta_t_sid0;
-	delta_t_sid3 = delta_t_sid0;
 	/*
 	 * clock(delta_t, buf, maxNoOfSamples) function:
 	 *
@@ -297,8 +213,6 @@ void sound_ic::run(uint32_t number_of_cycles)
 	 */
 	int n = sid[0].clock(delta_t_sid0, sample_buffer_mono_sid0, 65536);
 	sid[1].clock(delta_t_sid1, sample_buffer_mono_sid1, 65536);
-	sid[2].clock(delta_t_sid2, sample_buffer_mono_sid2, 65536);
-	sid[3].clock(delta_t_sid3, sample_buffer_mono_sid3, 65536);
 
 	/*
 	 * Analog is not connected to the cycles made by the machine,
@@ -306,41 +220,33 @@ void sound_ic::run(uint32_t number_of_cycles)
 	 */
 	analog0.run(n, sample_buffer_mono_analog0);
 	analog1.run(n, sample_buffer_mono_analog1);
-	analog2.run(n, sample_buffer_mono_analog2);
-	analog3.run(n, sample_buffer_mono_analog3);
 
 	for (int i=0; i<n; i++) {
-		f_sample_buffer_mono_sid0[i] = delay[0].sample(sample_buffer_mono_sid0[i]);
-		f_sample_buffer_mono_sid1[i] = delay[1].sample(sample_buffer_mono_sid1[i]);
-		f_sample_buffer_mono_sid2[i] = delay[2].sample(sample_buffer_mono_sid2[i]);
-		f_sample_buffer_mono_sid3[i] = delay[3].sample(sample_buffer_mono_sid3[i]);
+		f_sample_buffer_mono_sid0[i] = sample_buffer_mono_sid0[i];
+		f_sample_buffer_mono_sid1[i] = sample_buffer_mono_sid1[i];
 
-		f_sample_buffer_mono_analog0[i] = delay[4].sample(sample_buffer_mono_analog0[i]);
-		f_sample_buffer_mono_analog1[i] = delay[5].sample(sample_buffer_mono_analog1[i]);
-		f_sample_buffer_mono_analog2[i] = delay[6].sample(sample_buffer_mono_analog2[i]);
-		f_sample_buffer_mono_analog3[i] = delay[7].sample(sample_buffer_mono_analog3[i]);
+		f_sample_buffer_mono_analog0[i] = sample_buffer_mono_analog0[i];
+		f_sample_buffer_mono_analog1[i] = sample_buffer_mono_analog1[i];
+
+		// f_sample_buffer_mono_sid0[i] = delay[0].sample(sample_buffer_mono_sid0[i]);
+		// f_sample_buffer_mono_sid1[i] = delay[1].sample(sample_buffer_mono_sid1[i]);
+
+		// f_sample_buffer_mono_analog0[i] = delay[2].sample(sample_buffer_mono_analog0[i]);
+		// f_sample_buffer_mono_analog1[i] = delay[3].sample(sample_buffer_mono_analog1[i]);
 
 		// left channel
 		sample_buffer_stereo[(2 * i) + 0] =
 			(f_sample_buffer_mono_sid0[i]    * balance_registers[0x0]) +
 			(f_sample_buffer_mono_sid1[i]    * balance_registers[0x2]) +
-			(f_sample_buffer_mono_sid2[i]    * balance_registers[0x4]) +
-			(f_sample_buffer_mono_sid3[i]    * balance_registers[0x6]) +
-			(f_sample_buffer_mono_analog0[i] * balance_registers[0x8]) +
-			(f_sample_buffer_mono_analog1[i] * balance_registers[0xa]) +
-			(f_sample_buffer_mono_analog2[i] * balance_registers[0xc]) +
-			(f_sample_buffer_mono_analog3[i] * balance_registers[0xe]);
+			(f_sample_buffer_mono_analog0[i] * balance_registers[0x4]) +
+			(f_sample_buffer_mono_analog1[i] * balance_registers[0x6]) ;
 
 		// right channel
 		sample_buffer_stereo[(2 * i) + 1] =
 			(f_sample_buffer_mono_sid0[i]    * balance_registers[0x1]) +
 			(f_sample_buffer_mono_sid1[i]    * balance_registers[0x3]) +
-			(f_sample_buffer_mono_sid2[i]    * balance_registers[0x5]) +
-			(f_sample_buffer_mono_sid3[i]    * balance_registers[0x7]) +
-			(f_sample_buffer_mono_analog0[i] * balance_registers[0x9]) +
-			(f_sample_buffer_mono_analog1[i] * balance_registers[0xb]) +
-			(f_sample_buffer_mono_analog2[i] * balance_registers[0xd]) +
-			(f_sample_buffer_mono_analog3[i] * balance_registers[0xf]);
+			(f_sample_buffer_mono_analog0[i] * balance_registers[0x5]) +
+			(f_sample_buffer_mono_analog1[i] * balance_registers[0x7]) ;
 
 		/*
 		 * Normalize both channels
@@ -370,8 +276,10 @@ void sound_ic::reset()
 {
 	sid[0].reset();
 	sid[1].reset();
-	sid[2].reset();
-	sid[3].reset();
+
+	for (int i=0; i<32; i++) {
+		sid_shadow[i] = 0;
+	}
 
 	sound_starting = 4000;
 }

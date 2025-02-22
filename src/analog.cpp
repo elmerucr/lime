@@ -7,7 +7,7 @@
 
 #include "common.hpp"
 #include "analog.hpp"
-#define _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES	// needed to make it work in msys2 (M_PI issue)
 #include <cmath>
 #include <cstdio>
 

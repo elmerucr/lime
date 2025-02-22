@@ -1,0 +1,37 @@
+; ----------------------------------------------------------------------
+; definitions.i
+; lime
+;
+; (c)2025 elmerucr
+; ----------------------------------------------------------------------
+
+VECTOR_ILLOP_INDIRECT	equ	$0200
+VECTOR_SWI3_INDIRECT	equ	$0202
+VECTOR_SWI2_INDIRECT	equ	$0204
+VECTOR_FIRQ_INDIRECT	equ	$0206
+VECTOR_IRQ_INDIRECT	equ	$0208
+VECTOR_SWI_INDIRECT	equ	$020a
+VECTOR_NMI_INDIRECT	equ	$020c
+; $020e unused and reserved
+VECTOR_TIMER0_INDIRECT	equ	$0210
+VECTOR_TIMER1_INDIRECT	equ	$0212
+VECTOR_TIMER2_INDIRECT	equ	$0214
+VECTOR_TIMER3_INDIRECT	equ	$0216
+VECTOR_TIMER4_INDIRECT	equ	$0218
+VECTOR_TIMER5_INDIRECT	equ	$021a
+VECTOR_TIMER6_INDIRECT	equ	$021c
+VECTOR_TIMER7_INDIRECT	equ	$021e
+
+VDC_BG_COLOR		equ	$0404
+VDC_LAYER_CURRENT	equ	$0406
+VDC_SPRITE_CURRENT	equ	$0407
+VDC_SPRITE_X		equ	$0418
+VDC_SPRITE_Y		equ	$0419
+
+CORE_INPUT_0		equ	$0480
+
+SID0_F			equ	$0500
+SID0_PW			equ	$0502
+SID0_V			equ	$051b
+
+SID1_V			equ	$053b
