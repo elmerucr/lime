@@ -2,14 +2,14 @@
                       ; rom.s (assembles with asm6809)
                       ; lime
                       ;
-                      ; Copyright (C)2025 elmerucr
+                      ; Copyright © 2025 elmerucr. All rights reserved.
                       ; ----------------------------------------------------------------------
 0000                                  include "definitions.i"
                       ; ----------------------------------------------------------------------
                       ; definitions.i
                       ; lime
                       ;
-                      ; (c)2025 elmerucr
+                      ; Copyright © 2025 elmerucr. All rights reserved.
                       ; ----------------------------------------------------------------------
                       
 0200                  VECTOR_ILLOP_INDIRECT   equ     $0200
@@ -29,26 +29,36 @@
 021C                  VECTOR_TIMER6_INDIRECT  equ     $021c
 021E                  VECTOR_TIMER7_INDIRECT  equ     $021e
                       
+                      ; vdc (video display controller)
 0404                  VDC_BG_COLOR            equ     $0404
 0406                  VDC_LAYER_CURRENT       equ     $0406
 0407                  VDC_SPRITE_CURRENT      equ     $0407
 0418                  VDC_SPRITE_X            equ     $0418
 0419                  VDC_SPRITE_Y            equ     $0419
                       
+                      ; core
 0480                  CORE_INPUT_0            equ     $0480
                       
+                      ; sound devices
 0500                  SID0_F                  equ     $0500
 0502                  SID0_PW                 equ     $0502
 051B                  SID0_V                  equ     $051b
-                      
 053B                  SID1_V                  equ     $053b
+0580                  MIX_SID0_LEFT           equ     $0580
+0581                  MIX_SID0_RIGHT          equ     $0581
+0582                  MIX_SID1_LEFT           equ     $0582
+0583                  MIX_SID1_RIGHT          equ     $0583
+0584                  MIX_ANA0_LEFT           equ     $0584
+0585                  MIX_ANA0_RIGHT          equ     $0585
+0586                  MIX_ANA1_LEFT           equ     $0586
+0587                  MIX_ANA1_RIGHT          equ     $0587
                       
 0000                                  setdp   $00     ; assembler now assumes dp = $00 and
                                                       ; uses dp addressing when appropriate
                       
 FF00                                  org     $ff00
                       
-FF00  6C696D6520726F6D2076302E3420323032353032323200                 fcn     "lime rom v0.4 20250222"
+FF00  6C696D6520726F6D2076302E3420323032353032323300                 fcn     "lime rom v0.4 20250223"
 FF17  10CE0200        reset           lds     #$0200          ; sets system stackpointer + enables nmi
 FF1B  CEFF00                          ldu     #$ff00          ; sets user stackpointer
                       
@@ -96,13 +106,13 @@ FF67  20F8                            bra     3b              ; endless loop
                       
 FF69  3632            sound_reset     pshu    y,x,a
 FF6B  8E0040                          ldx     #$0040
-FF6E  108E0500                        ldy     #SID0_F ; start of sound (sid 0)
+FF6E  108E0500                        ldy     #SID0_F         ; start of sound (sid 0)
 FF72  6FA0            1               clr     ,y+
 FF74  301F                            leax    -1,x
 FF76  26FA                            bne     1b
 FF78  867F                            lda     #$7f            ; mixer at half volume
-FF7A  8E0008                          ldx     #$0008
-FF7D  108E0580                        ldy     #$0580          ; start of io mixer
+FF7A  8E0008                          ldx     #$0008          ; 8 mixing registers in total
+FF7D  108E0580                        ldy     #MIX_SID0_LEFT  ; start of io mixer
 FF81  A7A0            2               sta     ,y+
 FF83  301F                            leax    -1,x
 FF85  26FA                            bne     2b

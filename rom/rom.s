@@ -2,7 +2,7 @@
 ; rom.s (assembles with asm6809)
 ; lime
 ;
-; Copyright (C)2025 elmerucr
+; Copyright © 2025 elmerucr. All rights reserved.
 ; ----------------------------------------------------------------------
 		include	"definitions.i"
 
@@ -11,7 +11,7 @@
 
 		org	$ff00
 
-		fcn	"lime rom v0.4 20250222"
+		fcn	"lime rom v0.4 20250223"
 reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldu	#$ff00		; sets user stackpointer
 
@@ -59,13 +59,13 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 
 sound_reset	pshu	y,x,a
 		ldx	#$0040
-		ldy	#SID0_F	; start of sound (sid 0)
+		ldy	#SID0_F		; start of sound (sid 0)
 1		clr	,y+
 		leax	-1,x
 		bne	1b
 		lda	#$7f		; mixer at half volume
-		ldx	#$0008
-		ldy	#$0580		; start of io mixer
+		ldx	#$0008		; 8 mixing registers in total
+		ldy	#MIX_SID0_LEFT	; start of io mixer
 2		sta	,y+
 		leax	-1,x
 		bne	2b
