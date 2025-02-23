@@ -83,8 +83,8 @@ debugger_t::debugger_t(system_t *s)
 	print_version();
 	terminal->activate_cursor();
 
-	status1 = new terminal_t(system, 61, 17, LIME_COLOR_2, LIME_COLOR_0);
-	status2 = new terminal_t(system, 55, 17, LIME_COLOR_2, LIME_COLOR_0);
+	status1 = new terminal_t(system, 61, 17, LIME_COLOR_02, LIME_COLOR_00);
+	status2 = new terminal_t(system, 55, 17, LIME_COLOR_02, LIME_COLOR_00);
 }
 
 debugger_t::~debugger_t()
@@ -199,23 +199,23 @@ void debugger_t::redraw()
 
 	if (system->core->vdc->get_current_scanline() < VDC_YRES) {
 		for (int i=0; i<16; i++) {
-			system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + 227 + arrows[i][0]] = LIME_COLOR_2;
-			system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + -4 + (SCREEN_WIDTH-arrows[i][0])] = LIME_COLOR_2;
+			system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + 227 + arrows[i][0]] = LIME_COLOR_02;
+			system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + -4 + (SCREEN_WIDTH-arrows[i][0])] = LIME_COLOR_02;
 		}
 		system->host->video_framebuffer[
 			((system->core->vdc->get_cycles_run()*VDC_XRES/CPU_CYCLES_PER_SCANLINE)+232) +
 			((8+system->core->vdc->get_current_scanline()) * SCREEN_WIDTH)
-		] = LIME_COLOR_2;
+		] = LIME_COLOR_02;
 	}
 
 	// progress bar for cycles done for scanline
 	for (int x=232; x<(232+VDC_XRES); x++) {
 		if (x < ((system->core->vdc->get_cycles_run()*VDC_XRES)/CPU_CYCLES_PER_SCANLINE)+232) {
-			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_2;
-			system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_2;
+			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_02;
+			system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_02;
 		} else {
-			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_0;
-			system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_0;
+			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_00;
+			system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_00;
 		}
 	}
 }
@@ -427,7 +427,7 @@ void debugger_t::process_command(char *c)
 		have_prompt = false;
 		enter_dgc_line(c);
 	} else if (strcmp(token0, "pal") == 0) {
-		for (int i=0; i<32; i++) {
+		for (int i=0x00; i<0x30; i++) {
 			if ((i & 0b111) == 0) terminal->printf("\n %02x ", i);
 			terminal->bg_color = palette[i];
 			terminal->printf("    ");
@@ -496,8 +496,8 @@ void debugger_t::memory_dump(uint16_t address)
 	}
 	temp_address = address;
 
-	terminal->bg_color = LIME_COLOR_0;
-	terminal->fg_color = LIME_COLOR_2;
+	terminal->bg_color = LIME_COLOR_00;
+	terminal->fg_color = LIME_COLOR_02;
 
 	for (int i=0; i<8; i++) {
 		uint8_t temp_byte = system->core->read8(temp_address);
@@ -726,7 +726,7 @@ uint32_t debugger_t::disassemble_instruction(uint16_t address)
 	}
 	cycles = system->core->cpu->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
 	status1->printf("%s", text_buffer);
-	status1->fg_color = LIME_COLOR_2;
+	status1->fg_color = LIME_COLOR_02;
 	//terminal->bg_color = bg;
 
 	status1->putchar('\r');

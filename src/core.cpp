@@ -104,10 +104,12 @@ uint8_t core_t::read8(uint16_t address)
 							case 0x00:
 								// TODO: hack?
 								return
-									((system->host->keyboard_state[SCANCODE_UP]    & 0b1) ? 0b00000001 : 0) |
-									((system->host->keyboard_state[SCANCODE_DOWN]  & 0b1) ? 0b00000010 : 0) |
-									((system->host->keyboard_state[SCANCODE_LEFT]  & 0b1) ? 0b00000100 : 0) |
-									((system->host->keyboard_state[SCANCODE_RIGHT] & 0b1) ? 0b00001000 : 0) ;
+									((system->host->keyboard_state[SCANCODE_UP]    & 0b1) ? 0b00000001 : 0) |	// up
+									((system->host->keyboard_state[SCANCODE_DOWN]  & 0b1) ? 0b00000010 : 0) |	// down
+									((system->host->keyboard_state[SCANCODE_LEFT]  & 0b1) ? 0b00000100 : 0) |	// left
+									((system->host->keyboard_state[SCANCODE_RIGHT] & 0b1) ? 0b00001000 : 0) |	// right
+									((system->host->keyboard_state[SCANCODE_Z]     & 0b1) ? 0b00010000 : 0) |	// A
+									((system->host->keyboard_state[SCANCODE_X]     & 0b1) ? 0b00100000 : 0) ;	// B
 							default:
 								return 0x00;
 						}
@@ -149,6 +151,7 @@ void core_t::write8(uint16_t address, uint8_t value)
 						//
 						break;
 				}
+				break;
 			case SOUND_PAGE:
 				sound->io_write_byte(address, value);
 				break;

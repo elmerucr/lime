@@ -53,38 +53,57 @@
 // ---------------------------------------------------------------------
 // color palette
 // ---------------------------------------------------------------------
-#define	LIME_COLOR_0	0xff'08'18'20	// gameboy green palette:
-#define LIME_COLOR_1	0xff'34'68'56	// https://www.color-hex.com/color-palette/1041681
-#define LIME_COLOR_2	0xff'88'c0'70	// https://lospec.com/palette-list/nintendo-gameboy-bgb
-#define LIME_COLOR_3	0xff'e0'f8'd0
-#define LIME_COLOR_4	0xff'03'0e'25	// blue inspired on HSL + gameboy
-#define LIME_COLOR_5	0xff'0c'37'90
-#define LIME_COLOR_6	0xff'41'79'ef
-#define LIME_COLOR_7	0xff'cd'dc'fb
-#define LIME_COLOR_8	0xff'25'03'03	// reds inspired on HSL + gameboy
-#define LIME_COLOR_9	0xff'90'0c'0c
-#define LIME_COLOR_10	0xff'ef'41'41
-#define LIME_COLOR_11	0xff'fb'cd'cd
-#define LIME_COLOR_12	0xff'05'05'05	// grey scale manually
-#define LIME_COLOR_13	0xff'55'55'55
-#define LIME_COLOR_14	0xff'a5'a5'a5
-#define LIME_COLOR_15	0xff'f5'f5'f5
-#define LIME_COLOR_16	0xff'1f'24'4b	// PAPER 8 by Frosty Rabbid 🐰
-#define LIME_COLOR_17	0xff'65'40'53	// https://lospec.com/palette-list/paper-8
-#define LIME_COLOR_18	0xff'a8'60'5d
-#define LIME_COLOR_19	0xff'd1'a6'7e
-#define LIME_COLOR_20	0xff'f6'e7'9c
-#define LIME_COLOR_21	0xff'b6'cf'8e
-#define LIME_COLOR_22	0xff'60'ae'7b
-#define LIME_COLOR_23	0xff'3c'6b'64
-#define LIME_COLOR_24	0xff'93'3a'63	// FLUFFY8 PALETTE by vee
-#define LIME_COLOR_25	0xff'ff'95'b1	// https://lospec.com/palette-list/fluffy8
-#define LIME_COLOR_26	0xff'ff'c4'cf
-#define LIME_COLOR_27	0xff'ff'ec'f0
-#define LIME_COLOR_28	0xff'd4'd5'f6
-#define LIME_COLOR_29	0xff'96'b3'fd
-#define LIME_COLOR_30	0xff'76'79'db
-#define LIME_COLOR_31	0xff'44'38'7a
+#define	LIME_COLOR_00	0xff'08'18'20	// gameboy green palette:
+#define LIME_COLOR_01	0xff'34'68'56	// https://www.color-hex.com/color-palette/1041681
+#define LIME_COLOR_02	0xff'88'c0'70	// https://lospec.com/palette-list/nintendo-gameboy-bgb
+#define LIME_COLOR_03	0xff'e0'f8'd0
+#define LIME_COLOR_04	0xff'0a'1f'1f	// cyan
+#define LIME_COLOR_05	0xff'29'7a'7a
+#define LIME_COLOR_06	0xff'66'cc'cc
+#define LIME_COLOR_07	0xff'd5'f1'f1
+#define LIME_COLOR_08	0xff'03'0e'25	// blue inspired on HSL + gameboy
+#define LIME_COLOR_09	0xff'0c'37'90
+#define LIME_COLOR_0A	0xff'41'79'ef
+#define LIME_COLOR_0B	0xff'cd'dc'fb
+#define LIME_COLOR_0C	0xff'10'0a'1f	// magenta
+#define LIME_COLOR_0D	0xff'79'29'7a
+#define LIME_COLOR_0E	0xff'ca'66'cc
+#define LIME_COLOR_0F	0xff'f1'd5'f1
+#define LIME_COLOR_10	0xff'25'03'03	// reds inspired on HSL + gameboy
+#define LIME_COLOR_11	0xff'90'0c'0c
+#define LIME_COLOR_12	0xff'ef'41'41
+#define LIME_COLOR_13	0xff'fb'cd'cd
+#define LIME_COLOR_14	0xff'1f'1f'0a	// yellow
+#define LIME_COLOR_15	0xff'7a'7a'29
+#define LIME_COLOR_16	0xff'cc'cc'66
+#define LIME_COLOR_17	0xff'f1'f1'd5
+
+#define LIME_COLOR_18	0xff'05'05'05	// grey scale manually
+#define LIME_COLOR_19	0xff'35'35'35
+#define LIME_COLOR_1A	0xff'55'55'55
+#define LIME_COLOR_1B	0xff'75'75'75
+#define LIME_COLOR_1C	0xff'95'95'95
+#define LIME_COLOR_1D	0xff'b5'b5'b5
+#define LIME_COLOR_1E	0xff'd5'd5'd5
+#define LIME_COLOR_1F	0xff'f5'f5'f5
+
+#define LIME_COLOR_20	0xff'1f'24'4b	// PAPER 8 by Frosty Rabbid 🐰
+#define LIME_COLOR_21	0xff'65'40'53	// https://lospec.com/palette-list/paper-8
+#define LIME_COLOR_22	0xff'a8'60'5d
+#define LIME_COLOR_23	0xff'd1'a6'7e
+#define LIME_COLOR_24	0xff'f6'e7'9c
+#define LIME_COLOR_25	0xff'b6'cf'8e
+#define LIME_COLOR_26	0xff'60'ae'7b
+#define LIME_COLOR_27	0xff'3c'6b'64
+
+#define LIME_COLOR_28	0xff'93'3a'63	// FLUFFY8 PALETTE by vee
+#define LIME_COLOR_29	0xff'ff'95'b1	// https://lospec.com/palette-list/fluffy8
+#define LIME_COLOR_2A	0xff'ff'c4'cf
+#define LIME_COLOR_2B	0xff'ff'ec'f0
+#define LIME_COLOR_2C	0xff'd4'd5'f6
+#define LIME_COLOR_2D	0xff'96'b3'fd
+#define LIME_COLOR_2E	0xff'76'79'db
+#define LIME_COLOR_2F	0xff'44'38'7a
 
 // ---------------------------------------------------------------------
 // C64 colors (VirtualC64)
