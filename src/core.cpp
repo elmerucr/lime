@@ -119,8 +119,9 @@ uint8_t core_t::read8(uint16_t address)
 			case SOUND_PAGE:
 				return sound->io_read_byte(address);
 			case SYSTEM_ROM_PAGE:
+			case SYSTEM_ROM_PAGE+1:
 				if (system_rom_visible) {
-					return rom->data[address & 0xff];
+					return rom->data[address & 0x1ff];
 				} else {
 					return vdc->ram[address];
 				}

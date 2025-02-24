@@ -6,14 +6,14 @@
 ; ----------------------------------------------------------------------
 		include	"definitions.i"
 
-		setdp	$00	; assembler now assumes dp = $00 and
-				; uses dp addressing when appropriate
+		setdp	$00		; assembler now assumes dp = $00 and
+					; uses dp addressing when appropriate
 
-		org	$ff00
+		org	$fe00
 
-		fcn	"lime rom v0.4 20250223"
+		fcn	"lime rom v0.4 20250224"
 reset		lds	#$0200		; sets system stackpointer + enables nmi
-		ldu	#$ff00		; sets user stackpointer
+		ldu	#$fe00		; sets user stackpointer
 
 		lda	$00		; make font visible to cpu
 		ora	#%00000010
@@ -25,15 +25,13 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		cmpx	#$2000
 		bne	1b
 
-		lda	$00		; only rom remains visible to cpu
+		lda	$00			; only rom remains visible to cpu
 		anda	#%11111101
 		sta	$00
 
-; ----------------------------------------------------------------------
 ; place logo
-; ----------------------------------------------------------------------
-		clrb				; holds current sprite
-		ldx	#logo_data		; x points to start of data
+		ldx	#logo_data		; x points to start of logo data
+		clrb				; b holds current sprite
 1		stb	VDC_SPRITE_CURRENT	; set active sprite
 		ldy	#VDC_SPRITE_X		; y points to start of sprite registers
 2		lda	,x+			; copy data
@@ -44,64 +42,75 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		cmpx	#logo_data+32		; did we reach end of data?
 		bne	1b			; no, continue at 1
 
-		ldx	#exc_irq		; set jump vector
+; set jump vectors
+		ldx	#exc_irq
 		stx	VECTOR_IRQ_INDIRECT
-		ldx	#timer0
-		stx	VECTOR_TIMER0_INDIRECT
+		ldx	#timer_dummy
+		ldy	#VECTOR_TIMER0_INDIRECT
+1		stx	,y++
+		cmpy	#VECTOR_TIMER0_INDIRECT+16
+		bne	1b
+		ldx	#vdc_dummy
+		stx	VECTOR_VDC_INDIRECT
 
 		andcc	#%11101111		; enable irq's
 
 		bsr	sound_reset
 
-3		lda	CORE_INPUT_0
+1		lda	CORE_INPUT_0
 		sta	VDC_BG_COLOR
-		bra	3b		; endless loop
+		bra	1b			; endless loop
 
 sound_reset	pshu	y,x,a
 		ldx	#$0040
-		ldy	#SID0_F		; start of sound (sid 0)
+		ldy	#SID0_F			; start of sound (sid 0)
 1		clr	,y+
 		leax	-1,x
 		bne	1b
-		lda	#$7f		; mixer at half volume
-		ldx	#$0008		; 8 mixing registers in total
-		ldy	#MIX_SID0_LEFT	; start of io mixer
+		lda	#$7f			; mixer at half volume
+		ldx	#$0008			; 8 mixing registers in total
+		ldy	#MIX_SID0_LEFT		; start of io mixer
 2		sta	,y+
 		leax	-1,x
 		bne	2b
-		lda	#$0f		; set sid volumes to max
-		sta	SID0_V		; sid 0 volume
-		sta	SID1_V		; sid 1 volume
+		lda	#$0f			; set sid volumes to max
+		sta	SID0_V			; sid 0 volume
+		sta	SID1_V			; sid 1 volume
 		pulu	y,x,a
 		rts
 
-logo_data	fcb	112,64,%111,$1c	; icon top left
-		fcb	120,64,%111,$1d	; icon top right
-		fcb	112,72,%111,$1e	; icon bottom left
-		fcb	120,72,%111,$1f	; icon bottom right
-		fcb	107,80,%111,$6c	; l
-		fcb	112,80,%111,$69	; i
-		fcb	118,80,%111,$6d	; m
-		fcb	126,80,%111,$65	; e
+logo_data	fcb	112,64,%111,$1c		; icon top left
+		fcb	120,64,%111,$1d		; icon top right
+		fcb	112,72,%111,$1e		; icon bottom left
+		fcb	120,72,%111,$1f		; icon bottom right
+		fcb	107,80,%111,$6c		; l
+		fcb	112,80,%111,$69		; i
+		fcb	118,80,%111,$6d		; m
+		fcb	126,80,%111,$65		; e
 
-exc_irq		lda	$0440		; load timer controller register
+exc_irq		lda	$0440			; load timer controller register
 		beq	exc_vdc
-		ldx	#$0202		; it is one of the timers, load x with 1st vector indirect
+		ldx	#VECTOR_TIMER0_INDIRECT	; it is one of the timers, load x with 1st vector indirect
 		lda	#%00000001
 exc_test_tim	bita	$0440
 		beq	exc_next_tim
-		sta	$0440		; acknowledge interrupt
+		sta	$0440			; acknowledge interrupt
 		jmp	[,x]
 exc_next_tim	asla
 		beq	exc_irq_end
-		leax	2,x		; load x with address of next vector
+		leax	2,x			; load x with address of next vector
 		bra	exc_test_tim
-exc_vdc
+exc_vdc		lda	VDC_SR
+		beq	exc_irq_end
+		sta	VDC_SR
+		ldx	#VECTOR_VDC_INDIRECT
+		jmp	[,x]
 exc_irq_end	rti
 
-timer0		nop
+vdc_dummy
+timer_dummy	rti
 
-1		jmp	[$0200]
+1		jmp	[VECTOR_IRQ_INDIRECT]
 
 		org	$fff0
 vectors		fdb	$0000
