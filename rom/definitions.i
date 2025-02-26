@@ -5,6 +5,9 @@
 ; Copyright © 2025 elmerucr. All rights reserved.
 ; ----------------------------------------------------------------------
 
+CORE_BANKS		equ	$00
+logo_animation		equ	$01
+
 VECTOR_ILLOP_INDIRECT	equ	$0200
 VECTOR_SWI3_INDIRECT	equ	$0202
 VECTOR_SWI2_INDIRECT	equ	$0204
@@ -25,9 +28,12 @@ VECTOR_VDC_INDIRECT	equ	$0220
 
 ; vdc (video display controller)
 VDC_SR			equ	$0400
+VDC_CR			equ	$0401
+VDC_CURRENT_SCANLINE	equ	$0402
+VDC_IRQ_SCANLINE	equ	$0403
 VDC_BG_COLOR		equ	$0404
-VDC_LAYER_CURRENT	equ	$0406
-VDC_SPRITE_CURRENT	equ	$0407
+VDC_CURRENT_LAYER	equ	$0406
+VDC_CURRENT_SPRITE	equ	$0407
 VDC_SPRITE_X		equ	$0418
 VDC_SPRITE_Y		equ	$0419
 

@@ -11,13 +11,13 @@
 
 		org	$fe00
 
-		fcn	"lime rom v0.4 20250224"
+		fcn	"lime rom v0.5 20250226"
 reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldu	#$fe00		; sets user stackpointer
 
 		lda	$00		; make font visible to cpu
 		ora	#%00000010
-		sta	$00
+		sta	CORE_BANKS
 
 		ldx	#$1000		; copy font from rom to ram
 1		lda	,x
@@ -25,14 +25,14 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		cmpx	#$2000
 		bne	1b
 
-		lda	$00			; only rom remains visible to cpu
+		lda	CORE_BANKS		; only rom remains visible to cpu
 		anda	#%11111101
-		sta	$00
+		sta	CORE_BANKS
 
-; place logo
+; init logo
 		ldx	#logo_data		; x points to start of logo data
 		clrb				; b holds current sprite
-1		stb	VDC_SPRITE_CURRENT	; set active sprite
+1		stb	VDC_CURRENT_SPRITE	; set active sprite
 		ldy	#VDC_SPRITE_X		; y points to start of sprite registers
 2		lda	,x+			; copy data
 		sta	,y+
@@ -42,24 +42,31 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		cmpx	#logo_data+32		; did we reach end of data?
 		bne	1b			; no, continue at 1
 
+		clr	logo_animation
+
 ; set jump vectors
 		ldx	#exc_irq
 		stx	VECTOR_IRQ_INDIRECT
-		ldx	#timer_dummy
+		ldx	#timer_interrupt
 		ldy	#VECTOR_TIMER0_INDIRECT
 1		stx	,y++
 		cmpy	#VECTOR_TIMER0_INDIRECT+16
 		bne	1b
-		ldx	#vdc_dummy
+		ldx	#vdc_interrupt
 		stx	VECTOR_VDC_INDIRECT
+
+; set raster irq on scanline 159
+		lda	#$9f
+		sta	VDC_IRQ_SCANLINE
+		lda	#%00000001
+		sta	VDC_CR
 
 		andcc	#%11101111		; enable irq's
 
 		bsr	sound_reset
 
-1		lda	CORE_INPUT_0
-		sta	VDC_BG_COLOR
-		bra	1b			; endless loop
+1		sync
+		bra	1b			; "main" loop
 
 sound_reset	pshu	y,x,a
 		ldx	#$0040
@@ -107,8 +114,28 @@ exc_vdc		lda	VDC_SR
 		jmp	[,x]
 exc_irq_end	rti
 
-vdc_dummy
-timer_dummy	rti
+vdc_interrupt	inc	logo_animation
+
+		ldb	#$04			; set current sprite to 4
+1		stb	VDC_CURRENT_SPRITE
+
+		lda	#80			; set default y value
+		sta	VDC_SPRITE_Y
+
+		lda	VDC_SPRITE_X		; load its x register
+		suba	logo_animation		; subtract the ani var
+		suba	#$08
+		bhi	2f			; if difference larger than 8 keep its y value
+		dec	VDC_SPRITE_Y
+2		incb
+		cmpb	#$08
+		bne	1b
+
+		lda	CORE_INPUT_0		; use keyboard input to change screen background color
+		sta	VDC_BG_COLOR
+		rti
+
+timer_interrupt	rti
 
 1		jmp	[VECTOR_IRQ_INDIRECT]
 
