@@ -19,10 +19,10 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ora	#%00000010
 		sta	CORE_BANKS
 
-		ldx	#$1000		; copy font from rom to ram
+		ldx	#VDC_TILESET_1	; copy font from rom to ram
 1		lda	,x
 		sta	,x+
-		cmpx	#$2000
+		cmpx	#VDC_TILESET_1+$1000
 		bne	1b
 
 		lda	CORE_BANKS		; only rom remains visible to cpu

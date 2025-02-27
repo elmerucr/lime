@@ -120,8 +120,15 @@ void debugger_t::redraw()
 	}
 
 	status1->printf("\n\n__vdc_______________________________________________________");
-	status1->printf("\n      cycle %3i of %3i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
-	status1->printf("\nin scanline %3i of %3i", system->core->vdc->get_current_scanline(), VDC_SCANLINES - 1);
+	status1->printf("\n       cycle %3i of %3i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
+	status1->printf("\n in scanline %3i of %3i", system->core->vdc->get_current_scanline(), VDC_SCANLINES - 1);
+	status1->printf(
+		"\nirq scanline %3i will %scause %sinterrupt%s",
+		system->core->vdc->get_irq_scanline(),
+		system->core->vdc->get_generate_interrupts() ? "" : "not ",
+		system->core->vdc->get_generate_interrupts() ? "an " : "",
+		system->core->vdc->get_generate_interrupts() ? "" : "s"
+	);
 
 	// copy status1 tiles into tiles buffer
 	for (int y = 0; y<status1->height; y++) {

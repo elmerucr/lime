@@ -178,6 +178,8 @@ public:
 
 	inline int32_t get_cycles_run() { return cycles_run ; }
 	inline uint16_t get_current_scanline() { return current_scanline; }
+	inline uint16_t get_irq_scanline() { return irq_scanline; }
+	inline bool get_generate_interrupts() { return generate_interrupts; }
 
 	void reset();
 

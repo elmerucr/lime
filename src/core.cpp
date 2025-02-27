@@ -102,14 +102,17 @@ uint8_t core_t::read8(uint16_t address)
 					case CORE_SUB_PAGE:
 						switch (address & 0x3f) {
 							case 0x00:
-								// TODO: hack?
+								// The controller NES style
+								// TODO: Is this the right way?
 								return
-									((system->host->keyboard_state[SCANCODE_UP]    & 0b1) ? 0b00000001 : 0) |	// up
-									((system->host->keyboard_state[SCANCODE_DOWN]  & 0b1) ? 0b00000010 : 0) |	// down
-									((system->host->keyboard_state[SCANCODE_LEFT]  & 0b1) ? 0b00000100 : 0) |	// left
-									((system->host->keyboard_state[SCANCODE_RIGHT] & 0b1) ? 0b00001000 : 0) |	// right
-									((system->host->keyboard_state[SCANCODE_Z]     & 0b1) ? 0b00010000 : 0) |	// A
-									((system->host->keyboard_state[SCANCODE_X]     & 0b1) ? 0b00100000 : 0) ;	// B
+									((system->host->keyboard_state[SCANCODE_UP]     & 0b1) ? 0b00000001 : 0) |	// up
+									((system->host->keyboard_state[SCANCODE_DOWN]   & 0b1) ? 0b00000010 : 0) |	// down
+									((system->host->keyboard_state[SCANCODE_LEFT]   & 0b1) ? 0b00000100 : 0) |	// left
+									((system->host->keyboard_state[SCANCODE_RIGHT]  & 0b1) ? 0b00001000 : 0) |	// right
+									((system->host->keyboard_state[SCANCODE_Z]      & 0b1) ? 0b00010000 : 0) |	// A
+									((system->host->keyboard_state[SCANCODE_X]      & 0b1) ? 0b00100000 : 0) |	// B
+									((system->host->keyboard_state[SCANCODE_RSHIFT] & 0b1) ? 0b01000000 : 0) |	// Select
+									((system->host->keyboard_state[SCANCODE_RETURN] & 0b1) ? 0b10000000 : 0) ;	// Start
 							default:
 								return 0x00;
 						}

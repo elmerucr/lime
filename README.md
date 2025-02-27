@@ -4,8 +4,8 @@
 
 Lime is a virtual computer system that draws inspiration from computing platforms such as the Commodore 64 and the Nintendo Gameboy. Notable features include:
 
-* Utilization of the MC6809 CPU using the [MC6809](https://github.com/elmerucr/MC6809) library
-* A total of 64k RAM
+* MC6809 CPU using the [MC6809](https://github.com/elmerucr/MC6809) library
+* 64k RAM
 * Screen resolution of 240x160 pixels, refresh rate of 60Hz
 * VDC for graphics processing
 * Programmable using MC6809 assembly
@@ -26,40 +26,72 @@ Lime is a virtual computer system that draws inspiration from computing platform
 
 *work in progress*
 
-## Building with CMake
+## Building
 
-Create a build directory in the source tree ```mkdir build```, run ```cmake ..``` from that directory and run ```make```. Alternatively do ```mkdir Debug```, run ```cmake -DCMAKE_BUILD_TYPE=Debug ..``` from that directory and run ```make```.
+### Preparing Environment
 
-Below some more OS specific intructions on how to prepare the build environment.
-
-### MacOS specific
+#### MacOS
 
 * Install Xcode from App Store
 * When it asks to install command line tools, do that
 * Install Homebrew
 * From the Homebrew command line, install cmake and SDL2 libraries
-* Commands:
-	* ```git clone https://github.com/elmerucr/lime```
 
-### Ubuntu / Debian specific
+#### Ubuntu / Debian
 
 * build-essential, cmake and sdl2-dev
 
-### Windows specific
+#### Windows specific
 
 * Install msys2
+* Install packages:
+
+```
+pacman -S mingw-w64-ucrt-x86_64-gcc
+pacman -S mingw-w64-ucrt-x86_64-SDL2
+...?
+...?
+```
+
+### Building with CMake
+
+Clone the repository with:
+```
+git clone https://github.com/elmerucr/lime
+cd lime
+```
+
+Create a build directory in the source tree
+```
+mkdir build
+cd build
+cmake ..
+make
+```
+Alternatively to build with debug symbols:
+```
+mkdir Debug
+cd Debug
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+make
+```
+Run with:
+```
+./lime
+```
 
 ## Websites and projects of interest
 
 * [asm6809](https://www.6809.org.uk/asm6809/) - A portable cross assembler targeting the Motorola 6809 and Hitachi 6309 by Ciaran Anscomb.
-* [CCS64](http://www.ccs64.com) - A Commodore 64 Emulator by Per Håkan Sundell.
+* [CMOC](https://freshcode.club/projects/cmoc) - CMOC is a 6809-generating cross-compiler for a large subset of the C language.
 * [Commander X16](https://www.commanderx16.com) - The Commander X16 is a modern 8-bit computer currently in active development. It is the brainchild of David "the 8 Bit Guy" Murray.
 * [Commander X16 emulator](https://github.com/x16community/x16-emulator) - Software version of Commander X16.
+* [Command X16 rom](https://github.com/X16Community/x16-rom) - The Commander X16 ROM containing BASIC, KERNAL, and DOS. BASIC and KERNAL are derived from the Commodore 64 versions.
 * [freeverb](https://github.com/sinshu/freeverb/) - Free, studio-quality reverb SOURCE CODE in the public domain
 * [Hatari](https://hatari.tuxfamily.org) - Hatari is an Atari ST/STE/TT/Falcon emulator.
 * [lib65ce02](https://github.com/elmerucr/lib65ce02) - CSG65CE02 emulator written in C.
+* [LWTOOLS](http://www.lwtools.ca) - LWTOOLS is a set of cross-development tools for the Motorola 6809 and Hitachi 6309 microprocessors.
 * [MC6809](https://github.com/elmerucr/mC6809) - MC6809 cpu emulator written in C++.
-* [Mega65](http://mega65.org) - The 21st century realization of the C65 heritage.
 * [Moira](https://github.com/dirkwhoffmann/Moira) - Motorola 68000 cpu emulator written in C++ by Dirk W. Hoffmann.
 * [reSID](http://www.zimmers.net/anonftp/pub/cbm/crossplatform/emulators/resid/index.html) - ReSID is a Commodore 6581 and 8580 Sound Interface Device emulator by Dag Lem.
 * [SDL Simple DirectMedia Layer](https://www.libsdl.org) - A cross-platform development library by Sam Lantinga designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware.
@@ -70,6 +102,18 @@ Below some more OS specific intructions on how to prepare the build environment.
 * [VICE](http://vice-emu.sourceforge.net) - The Versatile Commodore Emulator.
 * [VirtualC64](https://dirkwhoffmann.github.io/virtualc64/) - A Commodore 64 on your Apple Macintosh by Dirk W. Hoffmann.
 * [visual6502](http://www.visual6502.org) - Visual Transistor-level Simulation of the 6502 CPU and other chips.
+
+## References
+
+Leventhal, Lance A. 1981. 6809 ASSEMBLY LANGUAGE PROGRAMMING. OSBORNE/McGraw-Hill.
+
+Motorola. 1981. MC6809-MC6809E 8-BIT Microprocessor Programming Manual. Motorola Inc.
+
+Motorola Semiconductors. 1983. MC6809 Datasheet.
+
+Osborne, Adam. 1976. An introduction to microcomputers - Volume I Basic Concepts. SYBEX.
+
+Zaks, Rodnay and William Labiak. 1982. Programming the 6809. SYBEX.
 
 ## MIT License
 
