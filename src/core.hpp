@@ -43,7 +43,7 @@ class core_t {
 private:
 	uint32_t sound_cycle_saldo{0};
 
-	bool irq_line_frame_done{true};
+	//bool irq_line_frame_done{true};
 
 	system_t *system;
 	rom_t *rom;
@@ -51,6 +51,12 @@ private:
 	// memory configuration address $00
 	bool system_rom_visible;	// bit 0
 	bool character_rom_visible;	// bit 1
+
+	// irq related
+	bool irq_line;
+	bool generate_interrupts;
+	uint8_t irq_number;
+
 public:
 	core_t(system_t *s);
 	~core_t();
@@ -75,6 +81,8 @@ public:
 	void write8(uint16_t address, uint8_t value);
 
 	enum output_states run(bool debug);
+
+	void attach_bin(char *path);
 };
 
 #endif

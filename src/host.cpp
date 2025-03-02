@@ -103,6 +103,12 @@ enum events_output_state host_t::events_process_events()
 					osd_visible = !osd_visible;
 				}
                 break;
+			case SDL_DROPFILE:
+				{
+				char *path = event.drop.file;
+				system->core->attach_bin(path);
+				}
+				break;
             case SDL_QUIT:
 				return_value = QUIT_EVENT;
                 break;

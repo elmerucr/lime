@@ -1,23 +1,26 @@
-; ----------------------------------------------------------------------
+;-----------------------------------------------------------------------
 ; rom.s (assembles with asm6809)
 ; lime
 ;
 ; Copyright © 2025 elmerucr. All rights reserved.
-; ----------------------------------------------------------------------
+;-----------------------------------------------------------------------
+
 		include	"definitions.i"
+
+logo_animation	equ	$00
 
 		setdp	$00		; assembler now assumes dp = $00 and
 					; uses dp addressing when appropriate
 
 		org	$fe00
 
-		fcn	"lime rom v0.5 20250226"
+		fcn	"lime rom v0.6 20250301"
 reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldu	#$fe00		; sets user stackpointer
 
-		lda	$00		; make font visible to cpu
+		lda	CORE_ROMS	; make font visible to cpu
 		ora	#%00000010
-		sta	CORE_BANKS
+		sta	CORE_ROMS
 
 		ldx	#VDC_TILESET_1	; copy font from rom to ram
 1		lda	,x
@@ -25,9 +28,9 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		cmpx	#VDC_TILESET_1+$1000
 		bne	1b
 
-		lda	CORE_BANKS		; only rom remains visible to cpu
+		lda	CORE_ROMS		; only rom remains visible to cpu
 		anda	#%11111101
-		sta	CORE_BANKS
+		sta	CORE_ROMS
 
 ; init logo
 		ldx	#logo_data		; x points to start of logo data
@@ -61,12 +64,14 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		lda	#%00000001
 		sta	VDC_CR
 
-		andcc	#%11101111		; enable irq's
-
 		bsr	sound_reset
 
-1		sync
-		bra	1b			; "main" loop
+; enable irq's
+		andcc	#%11101111
+
+; "main" loop
+loop		sync
+		bra	loop
 
 sound_reset	pshu	y,x,a
 		ldx	#$0040

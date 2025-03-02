@@ -5,9 +5,6 @@
 ; Copyright © 2025 elmerucr. All rights reserved.
 ; ----------------------------------------------------------------------
 
-CORE_BANKS		equ	$00
-logo_animation		equ	$01
-
 VECTOR_ILLOP_INDIRECT	equ	$0200
 VECTOR_SWI3_INDIRECT	equ	$0202
 VECTOR_SWI2_INDIRECT	equ	$0204
@@ -45,7 +42,10 @@ VDC_LAYER_2		equ	$2800
 VDC_LAYER_3		equ	$2c00
 
 ; core
-CORE_INPUT_0		equ	$0480
+CORE_SR			equ	$0480
+CORE_CR			equ	$0481
+CORE_ROMS		equ	$0482
+CORE_INPUT_0		equ	$0488
 
 ; sound devices
 SID0_F			equ	$0500
