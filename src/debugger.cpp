@@ -111,15 +111,15 @@ void debugger_t::redraw()
 	// update status text
 	status1->clear();
 	system->core->cpu->status(text_buffer, 1024);
-	status1->printf("__cpu_______________________________________________________\n%s", text_buffer);
-	status1->printf("\n\n__disassembly_______________________________________________");
+	status1->printf("__cpu__________________________________________________\n%s", text_buffer);
+	status1->printf("\n\n__disassembly__________________________________________");
 	uint16_t pc = system->core->cpu->get_pc();
 	for (int i=0; i<5; i++) {
 		status1->putchar('\n');
 		pc += disassemble_instruction(pc);
 	}
 
-	status1->printf("\n\n__vdc_______________________________________________________");
+	status1->printf("\n\n__vdc__________________________________________________");
 	status1->printf("\n       cycle %3i of %3i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
 	status1->printf("\n in scanline %3i of %3i", system->core->vdc->get_current_scanline(), VDC_SCANLINES - 1);
 	status1->printf(
@@ -494,30 +494,25 @@ void debugger_t::memory_dump(uint16_t address)
 {
 	address = address & 0xffff;
 
-	uint32_t temp_address = address;
-	terminal->printf("\r.:%04x ", temp_address);
+	uint8_t data[8];
+
+	terminal->printf("\r.:%04x ", address);
 	for (int i=0; i<8; i++) {
-		terminal->printf("%02x ", system->core->read8(temp_address));
-		temp_address++;
-		temp_address &= 0xffff;
+		data[i] = system->core->read8(address);
+		terminal->printf("%02x ", data[i]);
+		address++;
+		address &= 0xffff;
 	}
-	temp_address = address;
 
 	terminal->bg_color = LIME_COLOR_00;
 	terminal->fg_color = LIME_COLOR_02;
 
 	for (int i=0; i<8; i++) {
-		uint8_t temp_byte = system->core->read8(temp_address);
-		terminal->putsymbol(temp_byte);
-		temp_address++;
-		temp_address &= 0xffff;
+		terminal->putsymbol(data[i]);
 	}
 
 	terminal->bg_color = C64_BLUE;
 	terminal->fg_color = C64_LIGHTBLUE;
-
-	//address += 8;
-	//address &= 0xffff;
 
 	for (int i=0; i<32; i++) {
 		terminal->cursor_left();

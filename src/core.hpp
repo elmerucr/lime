@@ -26,6 +26,8 @@
 #include "sound.hpp"
 #include "clocks.hpp"
 
+#include <cstdio>
+
 #define CBM_FONT_PAGE		0x10
 #define COMBINED_PAGE		0x04
 #define		VDC_SUB_PAGE	0x00
@@ -57,6 +59,9 @@ private:
 	bool generate_interrupts;
 	uint8_t irq_number;
 
+	FILE *f{NULL};
+	uint8_t file_data[65536];
+	uint16_t file_pointer;
 public:
 	core_t(system_t *s);
 	~core_t();

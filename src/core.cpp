@@ -9,6 +9,7 @@
 #include "core.hpp"
 #include "common.hpp"
 #include "host.hpp"
+#include <unistd.h>
 
 core_t::core_t(system_t *s)
 {
@@ -108,9 +109,10 @@ uint8_t core_t::read8(uint16_t address)
 							return
 								(system_rom_visible    ? 0b00000001 : 0b00000000) |
 								(character_rom_visible ? 0b00000010 : 0b00000000) ;
+						case 0x04:
+							return file_data[file_pointer++];
 						case 0x08:
-							// The controller NES style
-							// TODO: Is this the right way?
+							// Controller is NES style
 							return
 								((system->host->keyboard_state[SCANCODE_UP]     & 0b1) ? 0b00000001 : 0) |	// up
 								((system->host->keyboard_state[SCANCODE_DOWN]   & 0b1) ? 0b00000010 : 0) |	// down
@@ -192,8 +194,30 @@ void core_t::reset()
 
 void core_t::attach_bin(char *path)
 {
-	if (generate_interrupts) {
-		//
+	if (chdir(path)) {
+		f = fopen(path, "r");
+		fseek(f, 0L, SEEK_END);
+		long pos = ftell(f);
+		printf("[core] Filesize: %lu\n", pos);
+		if (pos > 65535) {
+			printf("[core] Can't load: too large\n");
+			fclose(f);
+		} else {
+			// go back to beginning of file, read data
+			rewind(f);
+			fread(file_data, pos, 1, f);
+			fclose(f);
+			for (int i=pos; i<65536; i++) {
+				file_data[i] = 0x00;
+			}
+			file_pointer = 0;
+			printf("[core] Attaching file\n");
+		}
+	} else {
+		printf("[core] Can't load: %s is a directory\n", path);
 	}
-	printf("attach bin: %s\n", path);
+
+	if (generate_interrupts) {
+		printf("attach bin: %s\n", path);
+	}
 }
