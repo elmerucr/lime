@@ -484,7 +484,7 @@ void debugger_t::process_command(char *c)
 
 void debugger_t::print_version()
 {
-	terminal->printf("\nlime v%i.%i.%i (C)%i elmerucr",
+	terminal->printf("\nlime %i.%i %i (C)%i elmerucr",
 	       LIME_MAJOR_VERSION,
 	       LIME_MINOR_VERSION,
 	       LIME_BUILD, LIME_YEAR);

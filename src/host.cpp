@@ -325,7 +325,7 @@ void host_t::video_init()
     printf("[SDL] Video scaling will be %i times\n", video_scaling);
 
 	char title[64];
-	snprintf(title, 64, "lime  v%i.%i  %i", LIME_MAJOR_VERSION, LIME_MINOR_VERSION, LIME_BUILD);
+	snprintf(title, 64, "lime  %i.%i  %i", LIME_MAJOR_VERSION, LIME_MINOR_VERSION, LIME_BUILD);
 
     video_window = SDL_CreateWindow(
         title,

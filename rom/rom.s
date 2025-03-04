@@ -14,7 +14,7 @@ logo_animation	equ	$00
 
 		org	$fe00
 
-		fcn	"lime rom v0.6 20250301"
+		fcn	"rom 0.6 20250304"
 reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldu	#$fe00		; sets user stackpointer
 
@@ -62,7 +62,8 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		lda	#$9f
 		sta	VDC_IRQ_SCANLINE
 		lda	#%00000001
-		sta	VDC_CR
+		sta	VDC_CR		; enable irq's for vdc
+		sta	CORE_CR		; enable irq's for binary insert
 
 		bsr	sound_reset
 
@@ -113,10 +114,14 @@ exc_next_tim	asla
 		leax	2,x			; load x with address of next vector
 		bra	exc_test_tim
 exc_vdc		lda	VDC_SR
-		beq	exc_irq_end
+		beq	exc_core
 		sta	VDC_SR
 		ldx	#VECTOR_VDC_INDIRECT
 		jmp	[,x]
+exc_core	lda	CORE_SR
+		beq	exc_irq_end
+		sta	CORE_SR
+		jmp	core_interrupt
 exc_irq_end	rti
 
 vdc_interrupt	inc	logo_animation
@@ -141,6 +146,23 @@ vdc_interrupt	inc	logo_animation
 		rti
 
 timer_interrupt	rti
+
+core_interrupt	; handle loading of bin
+		; jump to code
+		; how?
+		lda	CORE_FILE_DATA
+		bne	core_int_end
+		lda	CORE_FILE_DATA
+		ldb	CORE_FILE_DATA
+		tfr	d,y			; y holds size
+		lda	CORE_FILE_DATA
+		ldb	CORE_FILE_DATA
+		tfr	d,x			; x holds memory location
+1		lda	CORE_FILE_DATA
+		sta	,x+
+		leay	-1,y
+		bne	1b
+core_int_end	rti
 
 1		jmp	[VECTOR_IRQ_INDIRECT]
 

@@ -45,6 +45,7 @@ VDC_LAYER_3		equ	$2c00
 CORE_SR			equ	$0480
 CORE_CR			equ	$0481
 CORE_ROMS		equ	$0482
+CORE_FILE_DATA		equ	$0484
 CORE_INPUT_0		equ	$0488
 
 ; sound devices

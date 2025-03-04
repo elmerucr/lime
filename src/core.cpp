@@ -104,6 +104,12 @@ uint8_t core_t::read8(uint16_t address)
 					return timer->io_read_byte(address);
 				case CORE_SUB_PAGE:
 					switch (address & 0x3f) {
+						case 0x00:
+							// status register
+							return irq_line ? 0b0 : 0b1;
+						case 0x01:
+							return
+								(generate_interrupts   ? 0b00000001 : 0b00000000) ;
 						case 0x02:
 							// core roms
 							return
@@ -155,15 +161,24 @@ void core_t::write8(uint16_t address, uint8_t value)
 					break;
 				case CORE_SUB_PAGE:
 					switch (address & 0x3f) {
+						case 0x00:
+							if ((value & 0b1) && !irq_line) {
+								exceptions->release(irq_number);
+								irq_line = true;
+							}
+							break;
+						case 0x01:
+							generate_interrupts   = (value & 0b00000001) ? true : false;
+							break;
 						case 0x02:
-							// address = 0
-							system_rom_visible    = value & 0b00000001 ? true : false;
-							character_rom_visible = value & 0b00000010 ? true : false;
+							system_rom_visible    = (value & 0b00000001) ? true : false;
+							character_rom_visible = (value & 0b00000010) ? true : false;
 							break;
 						default:
 							//
 							break;
 					}
+					break;
 				default:
 					//
 					break;
@@ -198,9 +213,9 @@ void core_t::attach_bin(char *path)
 		f = fopen(path, "r");
 		fseek(f, 0L, SEEK_END);
 		long pos = ftell(f);
-		printf("[core] Filesize: %lu\n", pos);
+		printf("[core] %s - %lu bytes\n", path, pos);
 		if (pos > 65535) {
-			printf("[core] Can't load: too large\n");
+			printf("[core] Can't load: file too large\n");
 			fclose(f);
 		} else {
 			// go back to beginning of file, read data
@@ -212,12 +227,12 @@ void core_t::attach_bin(char *path)
 			}
 			file_pointer = 0;
 			printf("[core] Attaching file\n");
+			if (generate_interrupts) {
+				exceptions->pull(irq_number);
+				irq_line = false;
+			}
 		}
 	} else {
 		printf("[core] Can't load: %s is a directory\n", path);
-	}
-
-	if (generate_interrupts) {
-		printf("attach bin: %s\n", path);
 	}
 }
