@@ -9,13 +9,14 @@
 
 logo_animation	equ	$00
 execution_addr	equ	$01
+binary_ready	equ	$02
 
 		setdp	$00		; assembler now assumes dp = $00 and
 					; uses dp addressing when appropriate
 
 		org	$fe00
 
-		fcn	"rom 0.6 20250304"
+		fcn	"rom 0.7 20250309"
 reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldu	#$fe00		; sets user stackpointer
 
@@ -29,7 +30,7 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		cmpx	#VDC_TILESET_1+$1000
 		bne	1b
 
-		lda	CORE_ROMS		; only rom remains visible to cpu
+		lda	CORE_ROMS		; turn off font rom
 		anda	#%11111101
 		sta	CORE_ROMS
 
@@ -46,7 +47,9 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		cmpx	#logo_data+32		; did we reach end of data?
 		bne	1b			; no, continue at 1
 
-		clr	logo_animation
+; set variable for letter wobble
+		lda	#$60
+		sta	logo_animation
 
 ; set jump vectors
 		ldx	#exc_irq
@@ -65,6 +68,10 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		lda	#%00000001
 		sta	VDC_CR		; enable irq's for vdc
 
+; cleary binary ready flag
+		clr	binary_ready
+
+; sound
 		bsr	sound_reset
 
 ; enable irq's
@@ -72,7 +79,20 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 
 ; "main" loop
 loop		sync
-		bra	loop
+		lda	binary_ready
+		beq	loop
+
+; disable logo and jump to start of binary
+_jump		orcc	#%00010000		; disable irq's
+		clrb
+1		stb	VDC_CURRENT_SPRITE
+		lda	VDC_SPRITE_FLAGS
+		anda	#%11111110
+		sta	VDC_SPRITE_FLAGS
+		incb
+		cmpb	#$08
+		bne	1b
+		jmp	[execution_addr]
 
 sound_reset	pshu	y,x,a
 		ldx	#$0040
@@ -118,7 +138,7 @@ exc_vdc		lda	VDC_SR
 		sta	VDC_SR
 		ldx	#VECTOR_VDC_INDIRECT
 		jmp	[,x]
-exc_core	lda	CORE_SR
+exc_core	lda	CORE_SR			; triggered when binary inserted
 		beq	exc_irq_end
 		sta	CORE_SR
 		jmp	core_interrupt
@@ -156,22 +176,22 @@ vdc_interrupt	lda	logo_animation
 
 timer_interrupt	rti
 
-core_interrupt	; handle loading of binary
-		; jump to code
-		; how?
-		lda	CORE_FILE_DATA
-		bne	core_int_end
-		lda	CORE_FILE_DATA
+; handle loading of binary and jump to code if successful
+core_interrupt
+		lda	CORE_FILE_DATA		; first value $00?
+		bne	core_int_end		; no
+1		lda	CORE_FILE_DATA		; yes, start chunk
 		ldb	CORE_FILE_DATA
 		tfr	d,y			; y holds size
 		lda	CORE_FILE_DATA
 		ldb	CORE_FILE_DATA
 		tfr	d,x			; x holds memory location
-1		lda	CORE_FILE_DATA		; get a byte
+2		lda	CORE_FILE_DATA		; get a byte
 		sta	,x+
 		leay	-1,y
-		bne	1b			; finished?
+		bne	2b			; finished?
 		lda	CORE_FILE_DATA
+		beq	1b			; is $00 start another chunk
 		cmpa	#$ff
 		bne	core_int_end		; not equal
 		lda	CORE_FILE_DATA
