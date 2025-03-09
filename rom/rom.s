@@ -8,6 +8,7 @@
 		include	"definitions.i"
 
 logo_animation	equ	$00
+execution_addr	equ	$01
 
 		setdp	$00		; assembler now assumes dp = $00 and
 					; uses dp addressing when appropriate
@@ -63,7 +64,6 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		sta	VDC_IRQ_SCANLINE
 		lda	#%00000001
 		sta	VDC_CR		; enable irq's for vdc
-		sta	CORE_CR		; enable irq's for binary insert
 
 		bsr	sound_reset
 
@@ -124,10 +124,19 @@ exc_core	lda	CORE_SR
 		jmp	core_interrupt
 exc_irq_end	rti
 
-vdc_interrupt	inc	logo_animation
+vdc_interrupt	lda	logo_animation
+		inca
+		cmpa	#$80
+		bne	1f			; didn't reach #$80
+		lda	#%00000001		; we did reach #$80
+		sta	CORE_CR			; activate irq's for binary insert
+						; this makes sure letters wobble at least 1 time
+		clra
+
+1		sta	logo_animation
 
 		ldb	#$04			; set current sprite to 4
-1		stb	VDC_CURRENT_SPRITE
+2		stb	VDC_CURRENT_SPRITE
 
 		lda	#80			; set default y value
 		sta	VDC_SPRITE_Y
@@ -135,11 +144,11 @@ vdc_interrupt	inc	logo_animation
 		lda	VDC_SPRITE_X		; load its x register
 		suba	logo_animation		; subtract the ani var
 		suba	#$08
-		bhi	2f			; if difference larger than 8 keep its y value
+		bhi	3f			; if difference larger than 8 keep its y value
 		dec	VDC_SPRITE_Y
-2		incb
+3		incb
 		cmpb	#$08
-		bne	1b
+		bne	2b
 
 		lda	CORE_INPUT_0		; use keyboard input to change screen background color
 		sta	VDC_BG_COLOR
@@ -147,7 +156,7 @@ vdc_interrupt	inc	logo_animation
 
 timer_interrupt	rti
 
-core_interrupt	; handle loading of bin
+core_interrupt	; handle loading of binary
 		; jump to code
 		; how?
 		lda	CORE_FILE_DATA
@@ -158,10 +167,20 @@ core_interrupt	; handle loading of bin
 		lda	CORE_FILE_DATA
 		ldb	CORE_FILE_DATA
 		tfr	d,x			; x holds memory location
-1		lda	CORE_FILE_DATA
+1		lda	CORE_FILE_DATA		; get a byte
 		sta	,x+
 		leay	-1,y
-		bne	1b
+		bne	1b			; finished?
+		lda	CORE_FILE_DATA
+		cmpa	#$ff
+		bne	core_int_end		; not equal
+		lda	CORE_FILE_DATA
+		bne	core_int_end		; not equal to zero
+		lda	CORE_FILE_DATA
+		bne	core_int_end		; not equal to zero
+		lda	CORE_FILE_DATA
+		ldb	CORE_FILE_DATA		; d now contains execution address
+		std	execution_addr
 core_int_end	rti
 
 1		jmp	[VECTOR_IRQ_INDIRECT]

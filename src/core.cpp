@@ -36,6 +36,7 @@ core_t::core_t(system_t *s)
 
 	// register core as an interrupt device
 	irq_number = exceptions->connect_device("core");
+	printf("[core] Connecting to exceptions getting irq %i\n", irq_number);
 }
 
 core_t::~core_t()
