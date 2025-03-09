@@ -84,6 +84,7 @@ loop		sync
 
 ; disable logo and jump to start of binary
 _jump		orcc	#%00010000		; disable irq's
+		clr	CORE_CR			; no irq when new bin inserted
 		clrb
 1		stb	VDC_CURRENT_SPRITE
 		lda	VDC_SPRITE_FLAGS

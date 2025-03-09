@@ -13,14 +13,15 @@
 #include "stats.hpp"
 #include <cmath>
 
-system_t::system_t()
+system_t::system_t(char *bin)
 {
 	system_start_time = std::chrono::steady_clock::now();
 
-	printf("[lime] v%i.%i.%i (C)%i elmerucr\n",
+	printf("[lime] %i.%i %i (C)%i elmerucr\n",
 	       LIME_MAJOR_VERSION,
 	       LIME_MINOR_VERSION,
-	       LIME_BUILD, LIME_YEAR);
+	       LIME_BUILD, LIME_YEAR
+	);
 
     host = new host_t(this);
 
@@ -39,6 +40,10 @@ system_t::system_t()
 	//switch_to_debug_mode();
 
 	core->reset();
+
+	if (bin) {
+		core->attach_bin(bin);
+	}
 }
 
 system_t::~system_t()

@@ -169,7 +169,16 @@ void core_t::write8(uint16_t address, uint8_t value)
 							}
 							break;
 						case 0x01:
-							generate_interrupts   = (value & 0b00000001) ? true : false;
+							if (value & 0b00000001) {
+								generate_interrupts = true;
+								if (bin_attached == true) {
+									bin_attached = false;
+									exceptions->pull(irq_number);
+									irq_line = false;
+								}
+							} else {
+								generate_interrupts = false;
+							}
 							break;
 						case 0x02:
 							system_rom_visible    = (value & 0b00000001) ? true : false;
@@ -198,6 +207,7 @@ void core_t::reset()
 {
 	irq_line = true;
 	generate_interrupts = false;
+	bin_attached = false;
 
 	system_rom_visible = true;
 	character_rom_visible = false;
@@ -228,9 +238,11 @@ void core_t::attach_bin(char *path)
 			}
 			file_pointer = 0;
 			printf("[core] Attaching file\n");
+			bin_attached = true;
 			if (generate_interrupts) {
 				exceptions->pull(irq_number);
 				irq_line = false;
+				bin_attached = false;
 			}
 		}
 	} else {

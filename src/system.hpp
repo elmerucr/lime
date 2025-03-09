@@ -27,7 +27,7 @@ private:
 	std::chrono::time_point<std::chrono::steady_clock> system_start_time;
 	std::chrono::time_point<std::chrono::steady_clock> end_of_frame_time;
 public:
-    system_t();
+    system_t(char *bin);
     ~system_t();
 
     host_t *host;

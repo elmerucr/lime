@@ -86,10 +86,23 @@ const uint32_t palette[256] = {
 	LIME_COLOR_2C,
 	LIME_COLOR_2D,
 	LIME_COLOR_2E,
-	LIME_COLOR_2F
-};
+	LIME_COLOR_2F,
+	0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505,
+	0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505,
+	0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505,
+	0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505,
+	0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505,
+	0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505,
+	0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505,
+	0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505,
+	0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505,
+	0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505,
+	0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505,
+	0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505,
+	0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505, 0xff050505};
 
-struct layer_t {
+struct layer_t
+{
 	uint8_t x{0};
 	uint8_t y{0};
 
@@ -105,13 +118,14 @@ struct layer_t {
 	// -----------------------------------------------------------------
 	uint8_t flags{0b00000000};
 
-	uint8_t colors[4] = { 0b00, 0b01, 0b10, 0b11 };
+	uint8_t colors[4] = {0b00, 0b01, 0b10, 0b11};
 
 	// not to be changed
 	uint16_t address;
 };
 
-struct sprite_t {
+struct sprite_t
+{
 	// x and y positions
 	uint8_t x{0};
 	uint8_t y{0};
@@ -134,12 +148,13 @@ struct sprite_t {
 
 	uint8_t index{0};
 
-	uint8_t colors[4] = { 0b00, 0b01, 0b10, 0b11 };
+	uint8_t colors[4] = {0b00, 0b01, 0b10, 0b11};
 };
 
-class vdc_t {
+class vdc_t
+{
 private:
-    font_cbm_8x8_t font;
+	font_cbm_8x8_t font;
 
 	uint8_t bg_color;
 
@@ -151,7 +166,7 @@ private:
 	uint8_t current_layer;
 	uint8_t current_sprite;
 
-    void draw_scanline(uint16_t scanline);
+	void draw_scanline(uint16_t scanline);
 	void draw_layer(layer_t *l, uint8_t sl);
 	void draw_sprite(sprite_t *s, uint8_t sl, layer_t *t);
 
@@ -160,23 +175,24 @@ private:
 	bool irq_line;
 	bool generate_interrupts;
 	uint16_t irq_scanline;
+
 public:
-    vdc_t(exceptions_ic *e);
-    ~vdc_t();
+	vdc_t(exceptions_ic *e);
+	~vdc_t();
 
 	uint8_t irq_number;
 
-    uint8_t *ram;
+	uint8_t *ram;
 
 	layer_t layer[4];
 	sprite_t sprite[256];
 
-    uint32_t *buffer;
+	uint32_t *buffer;
 
 	uint8_t io_read8(uint16_t address);
 	void io_write8(uint16_t address, uint8_t value);
 
-	inline int32_t get_cycles_run() { return cycles_run ; }
+	inline int32_t get_cycles_run() { return cycles_run; }
 	inline uint16_t get_current_scanline() { return current_scanline; }
 	inline uint16_t get_irq_scanline() { return irq_scanline; }
 	inline bool get_generate_interrupts() { return generate_interrupts; }

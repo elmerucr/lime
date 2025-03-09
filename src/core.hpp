@@ -57,6 +57,7 @@ private:
 	// irq related
 	bool irq_line;
 	bool generate_interrupts;
+	bool bin_attached;
 	uint8_t irq_number;
 
 	FILE *f{NULL};
