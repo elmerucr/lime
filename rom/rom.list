@@ -243,7 +243,8 @@ FF56  B60484                          lda     CORE_FILE_DATA
 FF59  2608                            bne     core_int_end            ; not equal to zero
 FF5B  B60484                          lda     CORE_FILE_DATA
 FF5E  F60484                          ldb     CORE_FILE_DATA          ; d now contains execution address
-FF61  DD01                            std     execution_addr
+FF61  DD01                            std     execution_addr          ; store it
+                                                                      ; how to
 FF63  3B              core_int_end    rti
                       
 FF64  6E9F0208        1               jmp     [VECTOR_IRQ_INDIRECT]

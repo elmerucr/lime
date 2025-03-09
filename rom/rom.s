@@ -180,7 +180,8 @@ core_interrupt	; handle loading of binary
 		bne	core_int_end		; not equal to zero
 		lda	CORE_FILE_DATA
 		ldb	CORE_FILE_DATA		; d now contains execution address
-		std	execution_addr
+		std	execution_addr		; store it
+						; how to
 core_int_end	rti
 
 1		jmp	[VECTOR_IRQ_INDIRECT]
