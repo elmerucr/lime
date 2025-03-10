@@ -55,10 +55,10 @@ private:
 	bool character_rom_visible;	// bit 1
 
 	// irq related
+	uint8_t irq_number;		// unique number assigned by exception unit
 	bool irq_line;
 	bool generate_interrupts;
 	bool bin_attached;
-	uint8_t irq_number;
 
 	FILE *f{NULL};
 	uint8_t file_data[65536];

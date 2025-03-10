@@ -8,12 +8,12 @@
 // ---------------------------------------------------------------------
 //
 // sprites 0-63      front
-// layer_0            .
-// sprites 64-127     .
-// layer 1            .
-// sprites 128-191    .
-// layer 2            .
-// sprites 192-255    .
+// layer_0             .
+// sprites 64-127      .
+// layer 1             .
+// sprites 128-191     .
+// layer 2             .
+// sprites 192-255     .
 // layer 3           back
 //
 // 0x00: SR

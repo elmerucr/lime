@@ -9,14 +9,14 @@
 
 logo_animation	equ	$00
 execution_addr	equ	$01
-binary_ready	equ	$02
+binary_ready	equ	$03
 
 		setdp	$00		; assembler now assumes dp = $00 and
 					; uses dp addressing when appropriate
 
 		org	$fe00
 
-		fcn	"rom 0.7 20250309"
+		fcn	"rom 0.7 20250310"
 reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldu	#$fe00		; sets user stackpointer
 
@@ -48,7 +48,7 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		bne	1b			; no, continue at 1
 
 ; set variable for letter wobble
-		lda	#$60
+		lda	#$40
 		sta	logo_animation
 
 ; set jump vectors
@@ -171,7 +171,7 @@ vdc_interrupt	lda	logo_animation
 		cmpb	#$08
 		bne	2b
 
-		lda	CORE_INPUT_0		; use keyboard input to change screen background color
+		lda	CORE_INPUT_0		; use controller input to change screen background color
 		sta	VDC_BG_COLOR
 		rti
 
@@ -202,7 +202,8 @@ core_interrupt
 		lda	CORE_FILE_DATA
 		ldb	CORE_FILE_DATA		; d now contains execution address
 		std	execution_addr		; store it
-						; how to
+		lda	#$01
+		sta	binary_ready
 core_int_end	rti
 
 1		jmp	[VECTOR_IRQ_INDIRECT]

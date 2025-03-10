@@ -37,8 +37,19 @@
 0402                  VDC_CURRENT_SCANLINE    equ     $0402
 0403                  VDC_IRQ_SCANLINE        equ     $0403
 0404                  VDC_BG_COLOR            equ     $0404
+                      ;$0405
 0406                  VDC_CURRENT_LAYER       equ     $0406
 0407                  VDC_CURRENT_SPRITE      equ     $0407
+                      
+0410                  VDC_LAYER_X             equ     $0410
+0411                  VDC_LAYER_Y             equ     $0411
+0412                  VDC_LAYER_FLAGS         equ     $0412
+                      ;$0413
+0414                  VDC_LAYER_COLOR_0       equ     $0414
+0415                  VDC_LAYER_COLOR_1       equ     $0415
+0416                  VDC_LAYER_COLOR_2       equ     $0416
+0417                  VDC_LAYER_COLOR_3       equ     $0417
+                      
 0418                  VDC_SPRITE_X            equ     $0418
 0419                  VDC_SPRITE_Y            equ     $0419
 041A                  VDC_SPRITE_FLAGS        equ     $041a
@@ -78,14 +89,14 @@
                       
 0000                  logo_animation  equ     $00
 0001                  execution_addr  equ     $01
-0002                  binary_ready    equ     $02
+0003                  binary_ready    equ     $03
                       
 0000                                  setdp   $00             ; assembler now assumes dp = $00 and
                                                               ; uses dp addressing when appropriate
                       
 FE00                                  org     $fe00
                       
-FE00  726F6D20302E3720323032353033303900                 fcn     "rom 0.7 20250309"
+FE00  726F6D20302E3720323032353033313000                 fcn     "rom 0.7 20250310"
 FE11  10CE0200        reset           lds     #$0200          ; sets system stackpointer + enables nmi
 FE15  CEFE00                          ldu     #$fe00          ; sets user stackpointer
                       
@@ -117,7 +128,7 @@ FE4A  8CFEE6                          cmpx    #logo_data+32           ; did we r
 FE4D  26E9                            bne     1b                      ; no, continue at 1
                       
                       ; set variable for letter wobble
-FE4F  8660                            lda     #$60
+FE4F  8640                            lda     #$40
 FE51  9700                            sta     logo_animation
                       
                       ; set jump vectors
@@ -138,7 +149,7 @@ FE73  8601                            lda     #%00000001
 FE75  B70401                          sta     VDC_CR          ; enable irq's for vdc
                       
                       ; cleary binary ready flag
-FE78  0F02                            clr     binary_ready
+FE78  0F03                            clr     binary_ready
                       
                       ; sound
 FE7A  8D21                            bsr     sound_reset
@@ -148,7 +159,7 @@ FE7C  1CEF                            andcc   #%11101111
                       
                       ; "main" loop
 FE7E  13              loop            sync
-FE7F  9602                            lda     binary_ready
+FE7F  9603                            lda     binary_ready
 FE81  27FB                            beq     loop
                       
                       ; disable logo and jump to start of binary
@@ -240,7 +251,7 @@ FF3F  5C              3               incb
 FF40  C108                            cmpb    #$08
 FF42  26E7                            bne     2b
                       
-FF44  B60488                          lda     CORE_INPUT_0            ; use keyboard input to change screen background color
+FF44  B60488                          lda     CORE_INPUT_0            ; use controller input to change screen background color
 FF47  B70404                          sta     VDC_BG_COLOR
 FF4A  3B                              rti
                       
@@ -249,7 +260,7 @@ FF4B  3B              timer_interrupt rti
                       ; handle loading of binary and jump to code if successful
 FF4C                  core_interrupt
 FF4C  B60484                          lda     CORE_FILE_DATA          ; first value $00?
-FF4F  2634                            bne     core_int_end            ; no
+FF4F  2638                            bne     core_int_end            ; no
 FF51  B60484          1               lda     CORE_FILE_DATA          ; yes, start chunk
 FF54  F60484                          ldb     CORE_FILE_DATA
 FF57  1F02                            tfr     d,y                     ; y holds size
@@ -263,25 +274,26 @@ FF68  26F7                            bne     2b                      ; finished
 FF6A  B60484                          lda     CORE_FILE_DATA
 FF6D  27E2                            beq     1b                      ; is $00 start another chunk
 FF6F  81FF                            cmpa    #$ff
-FF71  2612                            bne     core_int_end            ; not equal
+FF71  2616                            bne     core_int_end            ; not equal
 FF73  B60484                          lda     CORE_FILE_DATA
-FF76  260D                            bne     core_int_end            ; not equal to zero
+FF76  2611                            bne     core_int_end            ; not equal to zero
 FF78  B60484                          lda     CORE_FILE_DATA
-FF7B  2608                            bne     core_int_end            ; not equal to zero
+FF7B  260C                            bne     core_int_end            ; not equal to zero
 FF7D  B60484                          lda     CORE_FILE_DATA
 FF80  F60484                          ldb     CORE_FILE_DATA          ; d now contains execution address
 FF83  DD01                            std     execution_addr          ; store it
-                                                                      ; how to
-FF85  3B              core_int_end    rti
+FF85  8601                            lda     #$01
+FF87  9703                            sta     binary_ready
+FF89  3B              core_int_end    rti
                       
-FF86  6E9F0208        1               jmp     [VECTOR_IRQ_INDIRECT]
+FF8A  6E9F0208        1               jmp     [VECTOR_IRQ_INDIRECT]
                       
 FFF0                                  org     $fff0
 FFF0  0000            vectors         fdb     $0000
 FFF2  0000                            fdb     $0000
 FFF4  0000                            fdb     $0000
 FFF6  0000                            fdb     $0000
-FFF8  FF86                            fdb     1b              ; irq vector
+FFF8  FF8A                            fdb     1b              ; irq vector
 FFFA  0000                            fdb     $0000
 FFFC  0000                            fdb     $0000
 FFFE  FE11                            fdb     reset           ; reset vector
