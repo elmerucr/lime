@@ -16,7 +16,7 @@ binary_ready	equ	$03
 
 		org	$fe00
 
-		fcn	"rom 0.7 20250310"
+		fcn	"rom 0.8 20250311"
 reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldu	#$fe00		; sets user stackpointer
 
@@ -95,22 +95,22 @@ _jump		orcc	#%00010000		; disable irq's
 		bne	1b
 		jmp	[execution_addr]
 
-sound_reset	pshu	y,x,a
-		ldx	#$0040
+sound_reset	pshu	y,b,a
+		ldb	#$40
 		ldy	#SID0_F			; start of sound (sid 0)
 1		clr	,y+
-		leax	-1,x
+		decb
 		bne	1b
 		lda	#$7f			; mixer at half volume
-		ldx	#$0008			; 8 mixing registers in total
+		ldb	#$08			; 8 mixing registers in total
 		ldy	#MIX_SID0_LEFT		; start of io mixer
 2		sta	,y+
-		leax	-1,x
+		decb
 		bne	2b
 		lda	#$0f			; set sid volumes to max
 		sta	SID0_V			; sid 0 volume
 		sta	SID1_V			; sid 1 volume
-		pulu	y,x,a
+		pulu	y,b,a
 		rts
 
 logo_data	fcb	112,64,%111,$1c		; icon top left
@@ -122,13 +122,13 @@ logo_data	fcb	112,64,%111,$1c		; icon top left
 		fcb	118,80,%111,$6d		; m
 		fcb	126,80,%111,$65		; e
 
-exc_irq		lda	$0440			; load timer controller register
+exc_irq		lda	TIMER_SR		; load timer status register
 		beq	exc_vdc
 		ldx	#VECTOR_TIMER0_INDIRECT	; it is one of the timers, load x with 1st vector indirect
 		lda	#%00000001
-exc_test_tim	bita	$0440
+exc_test_tim	bita	TIMER_SR
 		beq	exc_next_tim
-		sta	$0440			; acknowledge interrupt
+		sta	TIMER_SR		; acknowledge interrupt
 		jmp	[,x]
 exc_next_tim	asla
 		beq	exc_irq_end
@@ -178,8 +178,7 @@ vdc_interrupt	lda	logo_animation
 timer_interrupt	rti
 
 ; handle loading of binary and jump to code if successful
-core_interrupt
-		lda	CORE_FILE_DATA		; first value $00?
+core_interrupt	lda	CORE_FILE_DATA		; first value $00?
 		bne	core_int_end		; no
 1		lda	CORE_FILE_DATA		; yes, start chunk
 		ldb	CORE_FILE_DATA
@@ -202,8 +201,7 @@ core_interrupt
 		lda	CORE_FILE_DATA
 		ldb	CORE_FILE_DATA		; d now contains execution address
 		std	execution_addr		; store it
-		lda	#$01
-		sta	binary_ready
+		inc	binary_ready		; %00000001
 core_int_end	rti
 
 1		jmp	[VECTOR_IRQ_INDIRECT]

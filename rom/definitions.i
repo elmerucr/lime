@@ -58,6 +58,10 @@ VDC_LAYER_1		equ	$2400
 VDC_LAYER_2		equ	$2800
 VDC_LAYER_3		equ	$2c00
 
+; timer
+TIMER_SR		equ	$0440
+TIMER_CR		equ	$0441
+
 ; core
 CORE_SR			equ	$0480
 CORE_CR			equ	$0481
