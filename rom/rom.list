@@ -100,8 +100,8 @@
                       
 FE00                                  org     $fe00
                       
-FE00 726F6D20302E3820                 fcn     "rom 0.8 20250311"
-     3230323530333131
+FE00 726F6D20302E3820                 fcn     "rom 0.8 20250316"
+     3230323530333136
      00
 FE11 10CE0200         reset           lds     #$0200          ; sets system stackpointer + enables nmi
 FE15 CEFE00                           ldu     #$fe00          ; sets user stackpointer
@@ -233,9 +233,9 @@ FF15 3B               exc_irq_end     rti
                       
 FF16 9600             vdc_interrupt   lda     logo_animation
 FF18 4C                               inca
-FF19 8180                             cmpa    #$80
-FF1B 2606                             bne     1f                      ; didn't reach #$80
-FF1D 8601                             lda     #%00000001              ; we did reach #$80
+FF19 8190                             cmpa    #$90
+FF1B 2606                             bne     1f                      ; didn't reach #$90
+FF1D 8601                             lda     #%00000001              ; we did reach #$90
 FF1F B70481                           sta     CORE_CR                 ; activate irq's for binary insert
                                                                       ; this makes sure letters wobble at least 1 time
 FF22 4F                               clra

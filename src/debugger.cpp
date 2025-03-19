@@ -120,10 +120,10 @@ void debugger_t::redraw()
 	}
 
 	status1->printf("\n\n__vdc__________________________________________________");
-	status1->printf("\n       cycle %3i of %3i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
-	status1->printf("\n in scanline %3i of %3i", system->core->vdc->get_current_scanline(), VDC_SCANLINES - 1);
+	status1->printf("\n   cycle %3i of %3i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
+	status1->printf("\nscanline %3i of %3i", system->core->vdc->get_current_scanline(), VDC_SCANLINES - 1);
 	status1->printf(
-		"\nirq scanline %3i will %scause %sinterrupt%s",
+		"\nscanline %3i will %scause %sinterrupt%s",
 		system->core->vdc->get_irq_scanline(),
 		system->core->vdc->get_generate_interrupts() ? "" : "not ",
 		system->core->vdc->get_generate_interrupts() ? "an " : "",
@@ -434,7 +434,22 @@ void debugger_t::process_command(char *c)
 		have_prompt = false;
 		enter_dgc_line(c);
 	} else if (strcmp(token0, "pal") == 0) {
-		for (int i=0x00; i<0x30; i++) {
+		terminal->printf("\nbased on Gameboy");
+		for (int i=0x00; i<0x10; i++) {
+			if ((i & 0b111) == 0) terminal->printf("\n %02x ", i);
+			terminal->bg_color = palette[i];
+			terminal->printf("    ");
+			terminal->bg_color = C64_BLUE;
+		}
+		terminal->printf("\nbased on C64");
+		for (int i=0x10; i<0x20; i++) {
+			if ((i & 0b111) == 0) terminal->printf("\n %02x ", i);
+			terminal->bg_color = palette[i];
+			terminal->printf("    ");
+			terminal->bg_color = C64_BLUE;
+		}
+		terminal->printf("\nbased on Picotron V5");
+		for (int i=0x20; i<0x40; i++) {
 			if ((i & 0b111) == 0) terminal->printf("\n %02x ", i);
 			terminal->bg_color = palette[i];
 			terminal->printf("    ");

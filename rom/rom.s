@@ -16,7 +16,7 @@ binary_ready	equ	$03
 
 		org	$fe00
 
-		fcn	"rom 0.8 20250311"
+		fcn	"rom 0.8 20250316"
 reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldu	#$fe00		; sets user stackpointer
 
@@ -147,9 +147,9 @@ exc_irq_end	rti
 
 vdc_interrupt	lda	logo_animation
 		inca
-		cmpa	#$80
-		bne	1f			; didn't reach #$80
-		lda	#%00000001		; we did reach #$80
+		cmpa	#$90
+		bne	1f			; didn't reach #$90
+		lda	#%00000001		; we did reach #$90
 		sta	CORE_CR			; activate irq's for binary insert
 						; this makes sure letters wobble at least 1 time
 		clra
