@@ -61,6 +61,14 @@ VDC_LAYER_3		equ	$2c00
 ; timer
 TIMER_SR		equ	$0440
 TIMER_CR		equ	$0441
+TIMER0_BPM		equ	$0450
+TIMER1_BPM		equ	$0452
+TIMER2_BPM		equ	$0454
+TIMER3_BPM		equ	$0456
+TIMER4_BPM		equ	$0458
+TIMER5_BPM		equ	$045a
+TIMER6_BPM		equ	$045c
+TIMER7_BPM		equ	$045e
 
 ; core
 CORE_SR			equ	$0480
@@ -82,3 +90,7 @@ MIX_ANA0_LEFT		equ	$0584
 MIX_ANA0_RIGHT		equ	$0585
 MIX_ANA1_LEFT		equ	$0586
 MIX_ANA1_RIGHT		equ	$0587
+
+; general
+RAM_START		equ	$3000
+ROM_START		equ	$fe00

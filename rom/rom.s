@@ -16,7 +16,7 @@ binary_ready	equ	$03
 
 		org	$fe00
 
-		fcn	"rom 0.8 20250316"
+		fcn	"rom 0.8 20250319"
 reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldu	#$fe00		; sets user stackpointer
 
@@ -85,6 +85,7 @@ loop		sync
 ; disable logo and jump to start of binary
 _jump		orcc	#%00010000		; disable irq's
 		clr	CORE_CR			; no irq when new bin inserted
+		clr	VDC_CR
 		clrb
 1		stb	VDC_CURRENT_SPRITE
 		lda	VDC_SPRITE_FLAGS
