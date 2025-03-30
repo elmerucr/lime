@@ -3,6 +3,7 @@
 #include <cstring>
 #include "terminal.hpp"
 #include "debugger.hpp"
+#include "core.hpp"
 
 terminal_t::terminal_t(system_t *s, uint8_t w, uint8_t h, uint32_t fg, uint32_t bg)
 {
@@ -224,11 +225,11 @@ void terminal_t::cursor_down()
 				break;
 			case DISASSEMBLY:
 				// TODO: !!!
-				//address += system->core->cpu->disassemble_instruction(text_buffer, TEXT_BUFFER_SIZE, address);
-				//add_bottom_row();
-				printf("\n.");
+				address += system->core->cpu->disassemble_instruction(text_buffer, TEXT_BUFFER_SIZE, address);
+				add_bottom_row();
+				printf("\r.");
 				// TODO: !!!
-				//system->debugger->disassemble_instruction(address);
+				system->debugger->disassemble_instruction_terminal(address);
 				break;
 		}
 	}

@@ -47,9 +47,9 @@ void exceptions_ic::toggle(uint8_t device)
 
 void exceptions_ic::status(char *b, int buffer_length)
 {
-	b += snprintf(b, buffer_length, "IRQ State Name");
+	b += snprintf(b, buffer_length, "_IRQ__State__Name___");
 	for (int i=0; i<next_available_device; i++) {
-		b += snprintf(b, buffer_length, "\n %1i    %c   \"%s\"", i, irq_input_pins[i] ? '1' : '0', name[i]);
+		b += snprintf(b, buffer_length, "\n  %1i     %c    \"%s\"", i, irq_input_pins[i] ? '1' : '0', name[i]);
 	}
 }
 

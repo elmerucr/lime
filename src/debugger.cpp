@@ -114,9 +114,9 @@ void debugger_t::redraw()
 	status1->printf("__cpu__________________________________________________\n%s", text_buffer);
 	status1->printf("\n\n__disassembly__________________________________________");
 	uint16_t pc = system->core->cpu->get_pc();
-	for (int i=0; i<5; i++) {
+	for (int i=0; i<7; i++) {
 		status1->putchar('\n');
-		pc += disassemble_instruction(pc);
+		pc += disassemble_instruction_status1(pc);
 	}
 
 	status1->printf("\n\n__vdc__________________________________________________");
@@ -140,7 +140,7 @@ void debugger_t::redraw()
 	}
 
 	status2->clear();
-	status2->printf("__usp__  __ssp__  t_____s___bpm______cycles");
+	status2->printf("___usp___    ___ssp___    _t_____s___bpm______cycles_");
 
 	for (int i=0; i<8; i++) {
 		uint16_t usp = (system->core->cpu->get_us() + i) & 0xffff;
@@ -148,7 +148,7 @@ void debugger_t::redraw()
 		uint16_t ssp = (system->core->cpu->get_sp() + i) & 0xffff;
 		uint8_t ssp_b = system->core->read8(ssp);
 
-		status2->printf("\n%04x %02x  %04x %02x  %u %s %s %5u  %10u",
+		status2->printf("\n %04x %02x      %04x %02x      %u %s %s %5u  %10u",
 		//status2->printf("\n%04x %02x  %04x %02x",
 			usp,
 			usp_b,
@@ -340,20 +340,20 @@ void debugger_t::process_command(char *c)
 		}
 	} else if (strcmp(token0, "cls") == 0) {
 		terminal->clear();
-	// } else if (strcmp(token0, "d") == 0) {
-	// 	have_prompt = false;
-	// 	token1 = strtok(NULL, " ");
+	} else if (strcmp(token0, "d") == 0) {
+	 	have_prompt = false;
+	 	token1 = strtok(NULL, " ");
 
-	// 	uint8_t lines_remaining = terminal->lines_remaining();
-	// 	if (lines_remaining == 0) lines_remaining = 1;
+	 	uint8_t lines_remaining = terminal->lines_remaining();
+	 	if (lines_remaining == 0) lines_remaining = 1;
 
-	// 	uint32_t temp_pc = system->core->cpu->get_pc();
+	 	uint32_t temp_pc = system->core->cpu->get_pc();
 
-	// 	if (token1 == NULL) {
-	// 		for (int i=0; i<lines_remaining; i++) {
-	// 			terminal->printf("\n.");
-	// 			temp_pc += disassemble_instruction(temp_pc);
-	// 		}
+	 	if (token1 == NULL) {
+	 		for (int i=0; i<lines_remaining; i++) {
+	 			terminal->printf("\n.");
+	 			temp_pc += disassemble_instruction_terminal(temp_pc);
+	 		}}
 	// 	} else {
 	// 		if (!hex_string_to_int(token1, &temp_pc)) {
 	// 			terminal->printf("\nerror: '%s' is not a hex number", token1);
@@ -719,20 +719,27 @@ void debugger_t::enter_memory_binary_line(char *buffer)
 	}
 }
 
-uint32_t debugger_t::disassemble_instruction(uint16_t address)
+uint32_t debugger_t::disassemble_instruction_status1(uint16_t address)
 {
 	uint32_t cycles;
 	if (system->core->cpu->breakpoint_array[address]) {
 		status1->fg_color = 0xffe04040;	// orange
-		//terminal->bg_color = bg_acc;
 	}
 	cycles = system->core->cpu->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
 	status1->printf("%s", text_buffer);
 	status1->fg_color = LIME_COLOR_02;
-	//terminal->bg_color = bg;
 
-	status1->putchar('\r');
-	for (int i=0; i<7; i++) status1->cursor_right();
+	return cycles;
+}
+
+uint32_t debugger_t::disassemble_instruction_terminal(uint16_t address)
+{
+	uint32_t cycles;
+	cycles = system->core->cpu->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
+	terminal->printf("%s", text_buffer);
+
+	terminal->putchar('\r');
+	for (int i=0; i<7; i++) terminal->cursor_right();
 	return cycles;
 }
 

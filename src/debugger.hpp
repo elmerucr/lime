@@ -47,7 +47,8 @@ public:
 	void memory_binary_dump(uint16_t address);
 	void enter_memory_binary_line(char *buffer);
 	void enter_dgc_line(char *buffer);
-	uint32_t disassemble_instruction(uint16_t address);
+	uint32_t disassemble_instruction_status1(uint16_t address);
+	uint32_t disassemble_instruction_terminal(uint16_t address);
 
 	bool hex_string_to_int(const char *temp_string, uint32_t *return_value);
 	bool binary_string_to_int(const char *temp_string, uint32_t *return_value);
