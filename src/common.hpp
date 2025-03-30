@@ -13,7 +13,7 @@
 // ---------------------------------------------------------------------
 #define LIME_MAJOR_VERSION		0
 #define LIME_MINOR_VERSION		6
-#define LIME_BUILD				20250319
+#define LIME_BUILD				20250330
 #define LIME_YEAR				2025
 
 // ---------------------------------------------------------------------
@@ -107,6 +107,42 @@
 #define C64_LIGHTGREEN  0xff'bb'fd'a9	// 187, 253, 169
 #define C64_LIGHTBLUE   0xff'6f'6c'e3	// 111, 108, 227
 #define C64_LIGHTGREY   0xff'b1'b1'b1	// 177, 177, 177
+
+// ---------------------------------------------------------------------
+// Picotron Palette WIP v 5 (only black is changed)
+// ---------------------------------------------------------------------
+#define PICOTRON_V5_00	0xff141414
+#define PICOTRON_V5_01	0xff742f29
+#define PICOTRON_V5_02	0xffab5236
+#define PICOTRON_V5_03	0xffff856d
+#define PICOTRON_V5_04	0xffffccaa
+#define PICOTRON_V5_05	0xffff004d
+#define PICOTRON_V5_06	0xffc3004c
+#define PICOTRON_V5_07	0xff7e2553
+#define PICOTRON_V5_08	0xff492d38
+#define PICOTRON_V5_09	0xff5f574f
+#define PICOTRON_V5_0A	0xffa28879
+#define PICOTRON_V5_0B	0xffc2c3c7
+#define PICOTRON_V5_0C	0xfffff1e8
+#define PICOTRON_V5_0D	0xffffacc5
+#define PICOTRON_V5_0E	0xffff77a8
+#define PICOTRON_V5_0F	0xffe40dab
+#define PICOTRON_V5_10	0xff1d2b53
+#define PICOTRON_V5_11	0xff1c5eac
+#define PICOTRON_V5_12	0xff00a5a1
+#define PICOTRON_V5_13	0xff29adff
+#define PICOTRON_V5_14	0xff64dff6
+#define PICOTRON_V5_15	0xffbd9adf
+#define PICOTRON_V5_16	0xff83769c
+#define PICOTRON_V5_17	0xff754e97
+#define PICOTRON_V5_18	0xff125359
+#define PICOTRON_V5_19	0xff008751
+#define PICOTRON_V5_1A	0xff00b251
+#define PICOTRON_V5_1B	0xff00e436
+#define PICOTRON_V5_1C	0xff90ec42
+#define PICOTRON_V5_1D	0xffffec27
+#define PICOTRON_V5_1E	0xffffa300
+#define PICOTRON_V5_1F	0xffeb6b00
 
 // ---------------------------------------------------------------------
 // Ascii values (some of them are petscii)
