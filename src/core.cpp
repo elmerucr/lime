@@ -231,7 +231,7 @@ void core_t::attach_bin(char *path)
 		} else {
 			// go back to beginning of file, read data
 			rewind(f);
-			fread(file_data, pos, 1, f);
+			size_t bytes_read = fread(file_data, pos, 1, f);
 			fclose(f);
 			for (int i=pos; i<65536; i++) {
 				file_data[i] = 0x00;
