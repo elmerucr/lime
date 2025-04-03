@@ -309,9 +309,9 @@ void debugger_t::process_command(char *c)
 	// } else if (token0[0] == '\'') {
 	// 	have_prompt = false;
 	// 	enter_vram_binary_line(c);
-	// } else if (token0[0] == ',') {
-	// 	have_prompt = false;
-	// 	enter_assembly_line(c);
+	} else if (token0[0] == ',') {
+	 	have_prompt = false;
+	 	enter_assembly_line(c);
 	} else if (strcmp(token0, "b") == 0) {
 		bool breakpoints_present = false;
 		token1 = strtok(NULL, " ");
@@ -353,18 +353,18 @@ void debugger_t::process_command(char *c)
 	 		for (int i=0; i<lines_remaining; i++) {
 	 			terminal->printf("\n.");
 	 			temp_pc += disassemble_instruction_terminal(temp_pc);
-	 		}}
-	// 	} else {
-	// 		if (!hex_string_to_int(token1, &temp_pc)) {
-	// 			terminal->printf("\nerror: '%s' is not a hex number", token1);
-	// 			have_prompt = true;
-	// 		} else {
-	// 			for (int i=0; i<lines_remaining; i++) {
-	// 				terminal->printf("\n.");
-	// 				temp_pc += disassemble_instruction(temp_pc);
-	// 			}
-	// 		}
-	// 	}
+	 		}
+	 	} else {
+	 		if (!hex_string_to_int(token1, &temp_pc)) {
+	 			terminal->printf("\nerror: '%s' is not a hex number", token1);
+	 			have_prompt = true;
+	 		} else {
+	 			for (int i=0; i<lines_remaining; i++) {
+	 				terminal->printf("\n.");
+	 				temp_pc += disassemble_instruction_terminal(temp_pc);
+	 			}
+	 		}
+	 	}
 	} else if (strcmp(token0, "x") == 0) {
 		terminal->printf("\nexit punch (y/n)");
 		redraw();
@@ -788,5 +788,54 @@ void debugger_t::enter_dgc_line(char *buffer)
 			terminal->printf("    ");
 		}
 		terminal->bg_color = C64_BLUE;
+	}
+}
+
+void debugger_t::enter_assembly_line(char *buffer)
+{
+	uint32_t word;
+	uint32_t address;
+
+	uint32_t arguments[5];
+
+	buffer[5] = '\0';
+
+	if (!hex_string_to_int(&buffer[1], &word)) {
+		terminal->putchar('\r');
+		terminal->cursor_right();
+		terminal->cursor_right();
+		terminal->puts("????");
+		have_prompt = true;
+	} else {
+		address = word;
+
+		uint8_t count{0};
+		char old_char;
+
+		for (int i=0; i<5; i++) {
+			old_char = buffer[8 + (2 * i)];
+			buffer[8 + (2 * i)] = '\0';
+			if (hex_string_to_int(&buffer[6 + (2 * i)], &word)) {
+				arguments[i] = word;
+				count++;
+				buffer[8 + (2 * i)] = old_char;
+			} else {
+				terminal->putchar('\r');
+				for (int j=0; j<(7 + (2*i)); j++) terminal->cursor_right();
+				terminal->printf("??");
+				break;
+			}
+		}
+
+		for (int i=0; i<count; i++) {
+			system->core->write8((address + i) & 0xffff, arguments[i]);
+		}
+		if (count) {
+			terminal->printf("\r.");
+			uint8_t no = disassemble_instruction_terminal(address);
+			terminal->printf("\n.,%04x ", address + no);
+		} else {
+			if (!count) terminal->printf("\n.");
+		}
 	}
 }

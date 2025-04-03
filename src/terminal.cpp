@@ -316,7 +316,7 @@ enum output_type terminal_t::check_output(bool top_down, uint32_t *address, uint
 			}
 			potential_address[4] = 0;
 			// TODO: !!!
-			//system->debugger->hex_string_to_int(potential_address, address);
+			system->debugger->hex_string_to_int(potential_address, address);
 			if (top_down) break;
 		}
 	}
