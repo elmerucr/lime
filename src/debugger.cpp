@@ -736,7 +736,7 @@ uint32_t debugger_t::disassemble_instruction_terminal(uint16_t address)
 {
 	uint32_t cycles;
 	cycles = system->core->cpu->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
-	terminal->printf("%s", text_buffer);
+	terminal->printf(",%s", text_buffer);
 
 	terminal->putchar('\r');
 	for (int i=0; i<7; i++) terminal->cursor_right();

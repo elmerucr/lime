@@ -4,6 +4,12 @@
  * (C)2021-2025 elmerucr
  */
 
+ /*
+ * MC6809 version 0.16 - 20250405
+ *
+ * Disassembler output includes spaces at the end of row + ',' removed at beginning
+ */
+
 /*
  * MC6809 version 0.15 - 20250118
  *
@@ -43,8 +49,8 @@
 #include <cstddef>
 
 #define MC6809_MAJOR_VERSION	0
-#define MC6809_MINOR_VERSION	15
-#define MC6809_BUILD		20250118
+#define MC6809_MINOR_VERSION	16
+#define MC6809_BUILD		20250405
 #define MC6809_YEAR		2025
 
 #define	C_FLAG	0x01	// carry
