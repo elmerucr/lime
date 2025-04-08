@@ -88,7 +88,7 @@ Run with:
 * [CMOC](https://freshcode.club/projects/cmoc) - CMOC is a 6809-generating cross-compiler for a large subset of the C language by sarrazip.
 * [LWTOOLS](http://www.lwtools.ca) - LWTOOLS is a set of cross-development tools for the Motorola 6809 and Hitachi 6309 microprocessors by Willam 'Lost Wizard' Astle.
 * [vasm](http://sun.hasenbraten.de/vasm/) - A portable and retargetable assembler by Volker Barthelmann.
-* [vbcc](http://sun.hasenbraten.de/vbcc/) - vbcc is a highly optimizing portable and retargetable ISO C compiler by Volker Barthelmann.
+* [vbcc](http://www.compilers.de/vbcc.html) - vbcc is a highly optimizing portable and retargetable ISO C compiler by Volker Barthelmann.
 * [vlink](http://www.compilers.de/vlink.html) - A versatile linker by Frank Wille.
 
 ### Emulators and Fantasy Consoles

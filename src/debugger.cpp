@@ -111,15 +111,15 @@ void debugger_t::redraw()
 	// update status text
 	status1->clear();
 	system->core->cpu->status(text_buffer, 1024);
-	status1->printf("__cpu__________________________________________________\n%s", text_buffer);
-	status1->printf("\n\n__disassembly__________________________________________");
+	status1->printf("__cpu___________________________________________________\n%s", text_buffer);
+	status1->printf("\n\n__disassembly___________________________________________");
 	uint16_t pc = system->core->cpu->get_pc();
 	for (int i=0; i<7; i++) {
 		status1->putchar('\n');
 		pc += disassemble_instruction_status1(pc);
 	}
 
-	status1->printf("\n\n__vdc__________________________________________________");
+	status1->printf("\n\n__vdc___________________________________________________");
 	status1->printf("\n   cycle %3i of %3i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
 	status1->printf("\nscanline %3i of %3i", system->core->vdc->get_current_scanline(), VDC_SCANLINES - 1);
 	status1->printf(
@@ -133,9 +133,9 @@ void debugger_t::redraw()
 	// copy status1 tiles into tiles buffer
 	for (int y = 0; y<status1->height; y++) {
 		for (int x = 0; x<status1->width; x++) {
-			tiles[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = status1->tiles[(y*status1->width)+x];
-			fg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = status1->fg_colors[(y*status1->width)+x];
-			bg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = status1->bg_colors[(y*status1->width)+x];
+			tiles[(y+22)*(SCREEN_WIDTH>>2) + x + 3] = status1->tiles[(y*status1->width)+x];
+			fg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 3] = status1->fg_colors[(y*status1->width)+x];
+			bg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 3] = status1->bg_colors[(y*status1->width)+x];
 		}
 	}
 
@@ -796,19 +796,20 @@ void debugger_t::enter_assembly_line(char *buffer)
 	uint32_t word;
 	uint32_t address;
 
-	uint32_t arguments[5];
-
 	buffer[5] = '\0';
 
 	if (!hex_string_to_int(&buffer[1], &word)) {
+		// not a valid address
 		terminal->putchar('\r');
 		terminal->cursor_right();
 		terminal->cursor_right();
 		terminal->puts("????");
 		have_prompt = true;
 	} else {
+		// valid address
 		address = word;
 
+		// prepare for reading arguments (1 to 5)
 		uint8_t count{0};
 		char old_char;
 
@@ -816,26 +817,18 @@ void debugger_t::enter_assembly_line(char *buffer)
 			old_char = buffer[8 + (2 * i)];
 			buffer[8 + (2 * i)] = '\0';
 			if (hex_string_to_int(&buffer[6 + (2 * i)], &word)) {
-				arguments[i] = word;
+				system->core->write8((address + i) & 0xffff, word & 0xff);
 				count++;
 				buffer[8 + (2 * i)] = old_char;
-			} else {
-				terminal->putchar('\r');
-				for (int j=0; j<(7 + (2*i)); j++) terminal->cursor_right();
-				terminal->printf("??");
-				break;
-			}
+			} else break;
 		}
 
-		for (int i=0; i<count; i++) {
-			system->core->write8((address + i) & 0xffff, arguments[i]);
-		}
 		if (count) {
 			terminal->printf("\r.");
 			uint8_t no = disassemble_instruction_terminal(address);
-			terminal->printf("\n.,%04x ", address + no);
+			terminal->printf("\n.,%04x ", (address + no) & 0xffff);
 		} else {
-			if (!count) terminal->printf("\n.");
+			terminal->printf("\n.");
 		}
 	}
 }
