@@ -103,7 +103,7 @@ struct sprite_t {
 	// flags0
 	//
 	// bit 7 6 5 4 3 2 1 0
-	//     x x x x | | | |
+	//             | | | |
 	//             | | | +- unactive (0b0) / active (1)
 	//             | | +--- tileset 0 (0) / tileset 1 (1)
 	//             | +----- 0b00 patterns code to opaque (0) or transparent (1)
@@ -115,7 +115,7 @@ struct sprite_t {
 	// flags1
 	//
 	// bit 7 6 5 4 3 2 1 0
-	//     x | x | x | | |
+	//       |   |   | | |
 	//       |   |   | | +- flip h  (1)
 	//       |   |   | +--- flip v  (1)
 	//       |   |   +----- flip xy (1)

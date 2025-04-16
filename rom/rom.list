@@ -45,27 +45,27 @@
 0411                  VDC_LAYER_Y             equ     $0411
 0412                  VDC_LAYER_FLAGS         equ     $0412
                       ;$0413
-0418                  VDC_LAYER_COLOR_0       equ     $0418
-0419                  VDC_LAYER_COLOR_1       equ     $0419
-041A                  VDC_LAYER_COLOR_2       equ     $041a
-041B                  VDC_LAYER_COLOR_3       equ     $041b
+0418                  VDC_LAYER_COLOR0        equ     $0418
+0419                  VDC_LAYER_COLOR1        equ     $0419
+041A                  VDC_LAYER_COLOR2        equ     $041a
+041B                  VDC_LAYER_COLOR3        equ     $041b
                       
 0420                  VDC_SPRITE_X            equ     $0420
 0421                  VDC_SPRITE_Y            equ     $0421
 0422                  VDC_SPRITE_FLAGS0       equ     $0422
 0423                  VDC_SPRITE_FLAGS1       equ     $0423
 0424                  VDC_SPRITE_INDEX        equ     $0424
-0428                  VDC_SPRITE_COLOR_0      equ     $0428
-0429                  VDC_SPRITE_COLOR_1      equ     $0429
-042A                  VDC_SPRITE_COLOR_2      equ     $042a
-042B                  VDC_SPRITE_COLOR_3      equ     $042b
+0428                  VDC_SPRITE_COLOR0       equ     $0428
+0429                  VDC_SPRITE_COLOR1       equ     $0429
+042A                  VDC_SPRITE_COLOR2       equ     $042a
+042B                  VDC_SPRITE_COLOR3       equ     $042b
                       
-0800                  VDC_TILESET_0           equ     $0800
-1000                  VDC_TILESET_1           equ     $1000
-2000                  VDC_LAYER_0             equ     $2000
-2400                  VDC_LAYER_1             equ     $2400
-2800                  VDC_LAYER_2             equ     $2800
-2C00                  VDC_LAYER_3             equ     $2c00
+0800                  VDC_TILESET0            equ     $0800
+1000                  VDC_TILESET1            equ     $1000
+2000                  VDC_LAYER0              equ     $2000
+2400                  VDC_LAYER1              equ     $2400
+2800                  VDC_LAYER2              equ     $2800
+2C00                  VDC_LAYER3              equ     $2c00
                       
                       ; timer
 0440                  TIMER_SR                equ     $0440
@@ -84,7 +84,7 @@
 0481                  CORE_CR                 equ     $0481
 0482                  CORE_ROMS               equ     $0482
 0484                  CORE_FILE_DATA          equ     $0484
-0488                  CORE_INPUT_0            equ     $0488
+0488                  CORE_INPUT0             equ     $0488
                       
                       ; sound devices
 0500                  SID0_F                  equ     $0500
@@ -123,10 +123,10 @@ FE18 B60482                           lda     CORE_ROMS       ; make font visibl
 FE1B 8A02                             ora     #%00000010
 FE1D B70482                           sta     CORE_ROMS
                       
-FE20 8E1000                           ldx     #VDC_TILESET_1  ; copy font from rom to ram
+FE20 8E1000                           ldx     #VDC_TILESET1   ; copy font from rom to ram
 FE23 A684             1               lda     ,x
 FE25 A780                             sta     ,x+
-FE27 8C2000                           cmpx    #VDC_TILESET_1+$1000
+FE27 8C2000                           cmpx    #VDC_TILESET1+$1000
 FE2A 26F7                             bne     1b
                       
 FE2C B60482                           lda     CORE_ROMS               ; turn off font rom
@@ -271,7 +271,7 @@ FF46 5C               3               incb
 FF47 C108                             cmpb    #$08
 FF49 26E7                             bne     2b
                       
-FF4B B60488                           lda     CORE_INPUT_0            ; use controller input to change screen background color
+FF4B B60488                           lda     CORE_INPUT0             ; use controller input to change screen background color
 FF4E B70404                           sta     VDC_BG_COLOR
 FF51 3B                               rti
                       

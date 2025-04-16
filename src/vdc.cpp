@@ -86,12 +86,12 @@ void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 				uint8_t px = x % 4;
 				uint8_t tile_index = ram[l->address + ((y >> 3) << 5) + (x >> 3)];
 
-				uint8_t res =
+				uint8_t result =
 					(ram[tileset + (tile_index << 4) + (y_in_tile << 1) + ((x & 0x4) ? 1 : 0)] &
 					(0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
 				// if NOT (transparent AND 0b00) then pixel must be written
-				if (!((l->flags0 & 0b100) && !res)) {
-					buffer[(VDC_XRES * sl) + scr_x] = palette[l->colors[res]];
+				if (!((l->flags0 & 0b100) && !result)) {
+					buffer[(VDC_XRES * sl) + scr_x] = palette[l->colors[result]];
 				}
 			}
 		}
@@ -104,21 +104,33 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 		// Determine tileset
 		uint16_t tileset = (s->flags0 & 0b10) ? VDC_TILESET_1_ADDRESS : VDC_TILESET_0_ADDRESS;
 
-		// Subtract y position from scanline, remainder is y position in sprite
+		// Subtract sprite y position from scanline, remainder is y position in sprite
 		uint8_t y = sl - s->y;
+
+		// Determine vertical size
+		if (s->flags1 & 0b01000000) {
+			y >>= 1;
+		}
 
 		// if y < 8, it's in range of the sprite
 		if (y < 8) {
-			// relative position
+			// test if position is relative to layer
 			uint8_t adj_x = s->x - ((s->flags0 & 0b1000) ? l->x : 0);
 
-			uint8_t start_x{0}, end_x{0};
+			uint8_t start_x, end_x;
+
+			uint8_t width = 8;
+
+			if (s->flags1 & 0b00010000) {
+				width <<= 1;
+			}
 
 			if (s->x < VDC_XRES) {
 				start_x = adj_x;
-				end_x = ((adj_x + 8) > VDC_XRES) ? VDC_XRES : (adj_x + 8);
-			} else if (adj_x >= 248) {
-				end_x = adj_x + 8;
+				end_x = ((adj_x + width) > VDC_XRES) ? VDC_XRES : (adj_x + width);
+			} else if (adj_x >= (256 - width)) {
+				start_x = 0;
+				end_x = adj_x + width;
 			}
 
 			// test flip vertical
@@ -127,17 +139,24 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 			for (uint8_t scr_x=start_x; scr_x<end_x; scr_x++) {
 				uint8_t x = scr_x - adj_x;
 
+				// Check for double width
+				if (s->flags1 & 0b00010000) {
+					x >>= 1;
+				}
+
 				// test flip horizontal flag
 				if (s->flags1 & 0b00000001) x = 7 - x;
 
 				// test flip xy flag, if 1, swap x and y
 				if (s->flags1 & 0b00000100) { uint8_t t = x; x = y; y = t; }
 
-				uint8_t res = (ram[tileset + (s->index << 4) + (y << 1) + ((x & 0x4) ? 1 : 0)] &
+				// look up color value (result) from tile
+				uint8_t result = (ram[tileset + (s->index << 4) + (y << 1) + ((x & 0x4) ? 1 : 0)] &
 					(0b11 << (2 * (3 - (x%4))))) >> (2 * (3 - (x%4)));
+
 				// if NOT (transparent AND 0b00) then pixel must be written
-				if (!((s->flags0 & 0b100) && !res)) {
-					buffer[(VDC_XRES * sl) + scr_x] = palette[s->colors[res]];
+				if (!((s->flags0 & 0b100) && !result)) {
+					buffer[(VDC_XRES * sl) + scr_x] = palette[s->colors[result]];
 				}
 
 				// restore y, if xy flip was done before

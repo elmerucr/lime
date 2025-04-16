@@ -24,10 +24,10 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ora	#%00000010
 		sta	CORE_ROMS
 
-		ldx	#VDC_TILESET_1	; copy font from rom to ram
+		ldx	#VDC_TILESET1	; copy font from rom to ram
 1		lda	,x
 		sta	,x+
-		cmpx	#VDC_TILESET_1+$1000
+		cmpx	#VDC_TILESET1+$1000
 		bne	1b
 
 		lda	CORE_ROMS		; turn off font rom
@@ -172,7 +172,7 @@ vdc_interrupt	lda	logo_animation
 		cmpb	#$08
 		bne	2b
 
-		lda	CORE_INPUT_0		; use controller input to change screen background color
+		lda	CORE_INPUT0		; use controller input to change screen background color
 		sta	VDC_BG_COLOR
 		rti
 
