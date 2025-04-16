@@ -45,19 +45,20 @@
 0411                  VDC_LAYER_Y             equ     $0411
 0412                  VDC_LAYER_FLAGS         equ     $0412
                       ;$0413
-0414                  VDC_LAYER_COLOR_0       equ     $0414
-0415                  VDC_LAYER_COLOR_1       equ     $0415
-0416                  VDC_LAYER_COLOR_2       equ     $0416
-0417                  VDC_LAYER_COLOR_3       equ     $0417
+0418                  VDC_LAYER_COLOR_0       equ     $0418
+0419                  VDC_LAYER_COLOR_1       equ     $0419
+041A                  VDC_LAYER_COLOR_2       equ     $041a
+041B                  VDC_LAYER_COLOR_3       equ     $041b
                       
-0418                  VDC_SPRITE_X            equ     $0418
-0419                  VDC_SPRITE_Y            equ     $0419
-041A                  VDC_SPRITE_FLAGS        equ     $041a
-041B                  VDC_SPRITE_INDEX        equ     $041b
-041C                  VDC_SPRITE_COLOR_0      equ     $041c
-041D                  VDC_SPRITE_COLOR_1      equ     $041d
-041E                  VDC_SPRITE_COLOR_2      equ     $041e
-041F                  VDC_SPRITE_COLOR_3      equ     $041f
+0420                  VDC_SPRITE_X            equ     $0420
+0421                  VDC_SPRITE_Y            equ     $0421
+0422                  VDC_SPRITE_FLAGS0       equ     $0422
+0423                  VDC_SPRITE_FLAGS1       equ     $0423
+0424                  VDC_SPRITE_INDEX        equ     $0424
+0428                  VDC_SPRITE_COLOR_0      equ     $0428
+0429                  VDC_SPRITE_COLOR_1      equ     $0429
+042A                  VDC_SPRITE_COLOR_2      equ     $042a
+042B                  VDC_SPRITE_COLOR_3      equ     $042b
                       
 0800                  VDC_TILESET_0           equ     $0800
 1000                  VDC_TILESET_1           equ     $1000
@@ -69,6 +70,14 @@
                       ; timer
 0440                  TIMER_SR                equ     $0440
 0441                  TIMER_CR                equ     $0441
+0450                  TIMER0_BPM              equ     $0450
+0452                  TIMER1_BPM              equ     $0452
+0454                  TIMER2_BPM              equ     $0454
+0456                  TIMER3_BPM              equ     $0456
+0458                  TIMER4_BPM              equ     $0458
+045A                  TIMER5_BPM              equ     $045a
+045C                  TIMER6_BPM              equ     $045c
+045E                  TIMER7_BPM              equ     $045e
                       
                       ; core
 0480                  CORE_SR                 equ     $0480
@@ -128,13 +137,13 @@ FE31 B70482                           sta     CORE_ROMS
 FE34 8EFEC5                           ldx     #logo_data              ; x points to start of logo data
 FE37 5F                               clrb                            ; b holds current sprite
 FE38 F70407           1               stb     VDC_CURRENT_SPRITE      ; set active sprite
-FE3B 108E0418                         ldy     #VDC_SPRITE_X           ; y points to start of sprite registers
+FE3B 108E0420                         ldy     #VDC_SPRITE_X           ; y points to start of sprite registers
 FE3F A680             2               lda     ,x+                     ; copy data
 FE41 A7A0                             sta     ,y+
-FE43 108C041C                         cmpy    #VDC_SPRITE_X+4         ; did we copy 4 values?
+FE43 108C0425                         cmpy    #VDC_SPRITE_X+5         ; did we copy 5 values?
 FE47 26F6                             bne     2b                      ; not yet, continue at 2
 FE49 5C                               incb                            ; we did, set next active sprite
-FE4A 8CFEE5                           cmpx    #logo_data+32           ; did we reach end of data?
+FE4A 8CFEED                           cmpx    #logo_data+40           ; did we reach end of data?
 FE4D 26E9                             bne     1b                      ; no, continue at 1
                       
                       ; set variable for letter wobble
@@ -142,14 +151,14 @@ FE4F 8640                             lda     #$40
 FE51 9700                             sta     logo_animation
                       
                       ; set jump vectors
-FE53 8EFEE5                           ldx     #exc_irq
+FE53 8EFEED                           ldx     #exc_irq
 FE56 BF0208                           stx     VECTOR_IRQ_INDIRECT
-FE59 8EFF4A                           ldx     #timer_interrupt
+FE59 8EFF52                           ldx     #timer_interrupt
 FE5C 108E0210                         ldy     #VECTOR_TIMER0_INDIRECT
 FE60 AFA1             1               stx     ,y++
 FE62 108C0220                         cmpy    #VECTOR_TIMER0_INDIRECT+16
 FE66 26F8                             bne     1b
-FE68 8EFF19                           ldx     #vdc_interrupt
+FE68 8EFF21                           ldx     #vdc_interrupt
 FE6B BF0220                           stx     VECTOR_VDC_INDIRECT
                       
                       ; set raster irq on scanline 159
@@ -178,9 +187,9 @@ FE85 7F0481                           clr     CORE_CR                 ; no irq w
 FE88 7F0401                           clr     VDC_CR
 FE8B 5F                               clrb
 FE8C F70407           1               stb     VDC_CURRENT_SPRITE
-FE8F B6041A                           lda     VDC_SPRITE_FLAGS
+FE8F B60422                           lda     VDC_SPRITE_FLAGS0
 FE92 84FE                             anda    #%11111110
-FE94 B7041A                           sta     VDC_SPRITE_FLAGS
+FE94 B70422                           sta     VDC_SPRITE_FLAGS0
 FE97 5C                               incb
 FE98 C108                             cmpb    #$08
 FE9A 26F0                             bne     1b
@@ -204,105 +213,105 @@ FEBF B7053B                           sta     SID1_V                  ; sid 1 vo
 FEC2 3726                             pulu    y,b,a
 FEC4 39                               rts
                       
-FEC5 7040071C         logo_data       fcb     112,64,%111,$1c         ; icon top left
-FEC9 7840071D                         fcb     120,64,%111,$1d         ; icon top right
-FECD 7048071E                         fcb     112,72,%111,$1e         ; icon bottom left
-FED1 7848071F                         fcb     120,72,%111,$1f         ; icon bottom right
-FED5 6B50076C                         fcb     107,80,%111,$6c         ; l
-FED9 70500769                         fcb     112,80,%111,$69         ; i
-FEDD 7650076D                         fcb     118,80,%111,$6d         ; m
-FEE1 7E500765                         fcb     126,80,%111,$65         ; e
+FEC5 704007001C       logo_data       fcb     112,64,%111,0,$1c               ; icon top left
+FECA 784007001D                       fcb     120,64,%111,0,$1d               ; icon top right
+FECF 704807001E                       fcb     112,72,%111,0,$1e               ; icon bottom left
+FED4 784807001F                       fcb     120,72,%111,0,$1f               ; icon bottom right
+FED9 6B5007006C                       fcb     107,80,%111,0,$6c               ; l
+FEDE 7050070069                       fcb     112,80,%111,0,$69               ; i
+FEE3 765007006D                       fcb     118,80,%111,0,$6d               ; m
+FEE8 7E50070065                       fcb     126,80,%111,0,$65               ; e
                       
-FEE5 B60440           exc_irq         lda     TIMER_SR                ; load timer status register
-FEE8 2716                             beq     exc_vdc
-FEEA 8E0210                           ldx     #VECTOR_TIMER0_INDIRECT ; it is one of the timers, load x with 1st vector indirect
-FEED 8601                             lda     #%00000001
-FEEF B50440           exc_test_tim    bita    TIMER_SR
-FEF2 2705                             beq     exc_next_tim
-FEF4 B70440                           sta     TIMER_SR                ; acknowledge interrupt
-FEF7 6E94                             jmp     [,x]
-FEF9 48               exc_next_tim    asla
-FEFA 271C                             beq     exc_irq_end
-FEFC 3002                             leax    2,x                     ; load x with address of next vector
-FEFE 20EF                             bra     exc_test_tim
-FF00 B60400           exc_vdc         lda     VDC_SR
-FF03 2708                             beq     exc_core
-FF05 B70400                           sta     VDC_SR
-FF08 8E0220                           ldx     #VECTOR_VDC_INDIRECT
-FF0B 6E94                             jmp     [,x]
-FF0D B60480           exc_core        lda     CORE_SR                 ; triggered when binary inserted
-FF10 2706                             beq     exc_irq_end
-FF12 B70480                           sta     CORE_SR
-FF15 7EFF4B                           jmp     core_interrupt
-FF18 3B               exc_irq_end     rti
+FEED B60440           exc_irq         lda     TIMER_SR                ; load timer status register
+FEF0 2716                             beq     exc_vdc
+FEF2 8E0210                           ldx     #VECTOR_TIMER0_INDIRECT ; it is one of the timers, load x with 1st vector indirect
+FEF5 8601                             lda     #%00000001
+FEF7 B50440           exc_test_tim    bita    TIMER_SR
+FEFA 2705                             beq     exc_next_tim
+FEFC B70440                           sta     TIMER_SR                ; acknowledge interrupt
+FEFF 6E94                             jmp     [,x]
+FF01 48               exc_next_tim    asla
+FF02 271C                             beq     exc_irq_end
+FF04 3002                             leax    2,x                     ; load x with address of next vector
+FF06 20EF                             bra     exc_test_tim
+FF08 B60400           exc_vdc         lda     VDC_SR
+FF0B 2708                             beq     exc_core
+FF0D B70400                           sta     VDC_SR
+FF10 8E0220                           ldx     #VECTOR_VDC_INDIRECT
+FF13 6E94                             jmp     [,x]
+FF15 B60480           exc_core        lda     CORE_SR                 ; triggered when binary inserted
+FF18 2706                             beq     exc_irq_end
+FF1A B70480                           sta     CORE_SR
+FF1D 7EFF53                           jmp     core_interrupt
+FF20 3B               exc_irq_end     rti
                       
-FF19 9600             vdc_interrupt   lda     logo_animation
-FF1B 4C                               inca
-FF1C 8190                             cmpa    #$90
-FF1E 2606                             bne     1f                      ; didn't reach #$90
-FF20 8601                             lda     #%00000001              ; we did reach #$90
-FF22 B70481                           sta     CORE_CR                 ; activate irq's for binary insert
+FF21 9600             vdc_interrupt   lda     logo_animation
+FF23 4C                               inca
+FF24 8190                             cmpa    #$90
+FF26 2606                             bne     1f                      ; didn't reach #$90
+FF28 8601                             lda     #%00000001              ; we did reach #$90
+FF2A B70481                           sta     CORE_CR                 ; activate irq's for binary insert
                                                                       ; this makes sure letters wobble at least 1 time
-FF25 4F                               clra
+FF2D 4F                               clra
                       
-FF26 9700             1               sta     logo_animation
+FF2E 9700             1               sta     logo_animation
                       
-FF28 C604                             ldb     #$04                    ; set current sprite to 4
-FF2A F70407           2               stb     VDC_CURRENT_SPRITE
+FF30 C604                             ldb     #$04                    ; set current sprite to 4
+FF32 F70407           2               stb     VDC_CURRENT_SPRITE
                       
-FF2D 8650                             lda     #80                     ; set default y value
-FF2F B70419                           sta     VDC_SPRITE_Y
+FF35 8650                             lda     #80                     ; set default y value
+FF37 B70421                           sta     VDC_SPRITE_Y
                       
-FF32 B60418                           lda     VDC_SPRITE_X            ; load its x register
-FF35 9000                             suba    logo_animation          ; subtract the ani var
-FF37 8008                             suba    #$08
-FF39 2203                             bhi     3f                      ; if difference larger than 8 keep its y value
-FF3B 7A0419                           dec     VDC_SPRITE_Y
-FF3E 5C               3               incb
-FF3F C108                             cmpb    #$08
-FF41 26E7                             bne     2b
+FF3A B60420                           lda     VDC_SPRITE_X            ; load its x register
+FF3D 9000                             suba    logo_animation          ; subtract the ani var
+FF3F 8008                             suba    #$08
+FF41 2203                             bhi     3f                      ; if difference larger than 8 keep its y value
+FF43 7A0421                           dec     VDC_SPRITE_Y
+FF46 5C               3               incb
+FF47 C108                             cmpb    #$08
+FF49 26E7                             bne     2b
                       
-FF43 B60488                           lda     CORE_INPUT_0            ; use controller input to change screen background color
-FF46 B70404                           sta     VDC_BG_COLOR
-FF49 3B                               rti
+FF4B B60488                           lda     CORE_INPUT_0            ; use controller input to change screen background color
+FF4E B70404                           sta     VDC_BG_COLOR
+FF51 3B                               rti
                       
-FF4A 3B               timer_interrupt rti
+FF52 3B               timer_interrupt rti
                       
                       ; handle loading of binary and jump to code if successful
-FF4B B60484           core_interrupt  lda     CORE_FILE_DATA          ; first value $00?
-FF4E 2636                             bne     core_int_end            ; no
-FF50 B60484           1               lda     CORE_FILE_DATA          ; yes, start chunk
-FF53 F60484                           ldb     CORE_FILE_DATA
-FF56 1F02                             tfr     d,y                     ; y holds size
-FF58 B60484                           lda     CORE_FILE_DATA
+FF53 B60484           core_interrupt  lda     CORE_FILE_DATA          ; first value $00?
+FF56 2636                             bne     core_int_end            ; no
+FF58 B60484           1               lda     CORE_FILE_DATA          ; yes, start chunk
 FF5B F60484                           ldb     CORE_FILE_DATA
-FF5E 1F01                             tfr     d,x                     ; x holds memory location
-FF60 B60484           2               lda     CORE_FILE_DATA          ; get a byte
-FF63 A780                             sta     ,x+
-FF65 313F                             leay    -1,y
-FF67 26F7                             bne     2b                      ; finished?
-FF69 B60484                           lda     CORE_FILE_DATA
-FF6C 27E2                             beq     1b                      ; is $00 start another chunk
-FF6E 81FF                             cmpa    #$ff
-FF70 2614                             bne     core_int_end            ; not equal
-FF72 B60484                           lda     CORE_FILE_DATA
-FF75 260F                             bne     core_int_end            ; not equal to zero
-FF77 B60484                           lda     CORE_FILE_DATA
-FF7A 260A                             bne     core_int_end            ; not equal to zero
-FF7C B60484                           lda     CORE_FILE_DATA
-FF7F F60484                           ldb     CORE_FILE_DATA          ; d now contains execution address
-FF82 DD01                             std     execution_addr          ; store it
-FF84 0C03                             inc     binary_ready            ; %00000001
-FF86 3B               core_int_end    rti
+FF5E 1F02                             tfr     d,y                     ; y holds size
+FF60 B60484                           lda     CORE_FILE_DATA
+FF63 F60484                           ldb     CORE_FILE_DATA
+FF66 1F01                             tfr     d,x                     ; x holds memory location
+FF68 B60484           2               lda     CORE_FILE_DATA          ; get a byte
+FF6B A780                             sta     ,x+
+FF6D 313F                             leay    -1,y
+FF6F 26F7                             bne     2b                      ; finished?
+FF71 B60484                           lda     CORE_FILE_DATA
+FF74 27E2                             beq     1b                      ; is $00 start another chunk
+FF76 81FF                             cmpa    #$ff
+FF78 2614                             bne     core_int_end            ; not equal
+FF7A B60484                           lda     CORE_FILE_DATA
+FF7D 260F                             bne     core_int_end            ; not equal to zero
+FF7F B60484                           lda     CORE_FILE_DATA
+FF82 260A                             bne     core_int_end            ; not equal to zero
+FF84 B60484                           lda     CORE_FILE_DATA
+FF87 F60484                           ldb     CORE_FILE_DATA          ; d now contains execution address
+FF8A DD01                             std     execution_addr          ; store it
+FF8C 0C03                             inc     binary_ready            ; %00000001
+FF8E 3B               core_int_end    rti
                       
-FF87 6E9F0208         1               jmp     [VECTOR_IRQ_INDIRECT]
+FF8F 6E9F0208         1               jmp     [VECTOR_IRQ_INDIRECT]
                       
 FFF0                                  org     $fff0
 FFF0 0000             vectors         fdb     $0000
 FFF2 0000                             fdb     $0000
 FFF4 0000                             fdb     $0000
 FFF6 0000                             fdb     $0000
-FFF8 FF87                             fdb     1b              ; irq vector
+FFF8 FF8F                             fdb     1b              ; irq vector
 FFFA 0000                             fdb     $0000
 FFFC 0000                             fdb     $0000
 FFFE FE11                             fdb     reset           ; reset vector

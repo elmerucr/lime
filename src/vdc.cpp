@@ -53,7 +53,7 @@ void vdc_t::reset()
 		sprite[i].colors[1] = 0b01;
 		sprite[i].colors[2] = 0b10;
 		sprite[i].colors[3] = 0b11;
-		sprite[i].flags = 0;
+		sprite[i].flags0 = 0;
 		sprite[i].index = 0;
 	}
 
@@ -73,9 +73,9 @@ void vdc_t::reset()
 
 void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 {
-	if (l->flags & 0b1) {
+	if (l->flags0 & 0b1) {
 		// Determine tileset
-		uint16_t tileset = (l->flags & 0b10) ? VDC_TILESET_1_ADDRESS : VDC_TILESET_0_ADDRESS;
+		uint16_t tileset = (l->flags0 & 0b10) ? VDC_TILESET_1_ADDRESS : VDC_TILESET_0_ADDRESS;
 
 		if (sl < VDC_YRES) {
 			uint8_t y = (l->y + sl) & 0xff;
@@ -90,7 +90,7 @@ void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 					(ram[tileset + (tile_index << 4) + (y_in_tile << 1) + ((x & 0x4) ? 1 : 0)] &
 					(0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
 				// if NOT (transparent AND 0b00) then pixel must be written
-				if (!((l->flags & 0b100) && !res)) {
+				if (!((l->flags0 & 0b100) && !res)) {
 					buffer[(VDC_XRES * sl) + scr_x] = palette[l->colors[res]];
 				}
 			}
@@ -100,9 +100,9 @@ void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 
 void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 {
-	if (s->flags & 0b1) {
+	if (s->flags0 & 0b1) {
 		// Determine tileset
-		uint16_t tileset = (s->flags & 0b10) ? VDC_TILESET_1_ADDRESS : VDC_TILESET_0_ADDRESS;
+		uint16_t tileset = (s->flags0 & 0b10) ? VDC_TILESET_1_ADDRESS : VDC_TILESET_0_ADDRESS;
 
 		// Subtract y position from scanline, remainder is y position in sprite
 		uint8_t y = sl - s->y;
@@ -110,7 +110,7 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 		// if y < 8, it's in range of the sprite
 		if (y < 8) {
 			// relative position
-			uint8_t adj_x = s->x - ((s->flags & 0b1000) ? l->x : 0);
+			uint8_t adj_x = s->x - ((s->flags0 & 0b1000) ? l->x : 0);
 
 			uint8_t start_x{0}, end_x{0};
 
@@ -122,26 +122,26 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 			}
 
 			// test flip vertical
-			if (s->flags & 0b00100000) y = 7 - y;
+			if (s->flags1 & 0b00000010) y = 7 - y;
 
 			for (uint8_t scr_x=start_x; scr_x<end_x; scr_x++) {
 				uint8_t x = scr_x - adj_x;
 
 				// test flip horizontal flag
-				if (s->flags & 0b00010000) x = 7 - x;
+				if (s->flags1 & 0b00000001) x = 7 - x;
 
 				// test flip xy flag, if 1, swap x and y
-				if (s->flags & 0b01000000) { uint8_t t = x; x = y; y = t; }
+				if (s->flags1 & 0b00000100) { uint8_t t = x; x = y; y = t; }
 
 				uint8_t res = (ram[tileset + (s->index << 4) + (y << 1) + ((x & 0x4) ? 1 : 0)] &
 					(0b11 << (2 * (3 - (x%4))))) >> (2 * (3 - (x%4)));
 				// if NOT (transparent AND 0b00) then pixel must be written
-				if (!((s->flags & 0b100) && !res)) {
+				if (!((s->flags0 & 0b100) && !res)) {
 					buffer[(VDC_XRES * sl) + scr_x] = palette[s->colors[res]];
 				}
 
 				// restore y, if xy flip was done before
-				if (s->flags & 0b01000000) y = x;
+				if (s->flags1 & 0b00000100) y = x;
 			}
 		}
 	}
@@ -166,7 +166,7 @@ void vdc_t::draw_scanline(uint16_t scanline)
 
 uint8_t vdc_t::io_read8(uint16_t address)
 {
-	switch (address & 0x1f) {
+	switch (address & 0x3f) {
 		case 0x00:
 			// status register
 			return irq_line ? 0b0 : 0b1;
@@ -190,34 +190,36 @@ uint8_t vdc_t::io_read8(uint16_t address)
 		case 0x11:
 			return layer[current_layer].y;
 		case 0x12:
-			return layer[current_layer].flags;
+			return layer[current_layer].flags0;
 		//case 0x13:
 		//	return 0;
-		case 0x14:
+		case 0x18:
 			return layer[current_layer].colors[0];
-		case 0x15:
+		case 0x19:
 			return layer[current_layer].colors[1];
-		case 0x16:
+		case 0x1a:
 			return layer[current_layer].colors[2];
-		case 0x17:
+		case 0x1b:
 			return layer[current_layer].colors[3];
 
 		// sprites
-		case 0x18:
+		case 0x20:
 			return sprite[current_sprite].x;
-		case 0x19:
+		case 0x21:
 			return sprite[current_sprite].y;
-		case 0x1a:
-			return sprite[current_sprite].flags;
-		case 0x1b:
+		case 0x22:
+			return sprite[current_sprite].flags0;
+		case 0x23:
+			return sprite[current_sprite].flags1;
+		case 0x24:
 			return sprite[current_sprite].index;
-		case 0x1c:
+		case 0x28:
 			return sprite[current_sprite].colors[0];
-		case 0x1d:
+		case 0x29:
 			return sprite[current_sprite].colors[1];
-		case 0x1e:
+		case 0x2a:
 			return sprite[current_sprite].colors[2];
-		case 0x1f:
+		case 0x2b:
 			return sprite[current_sprite].colors[3];
 
 		default:
@@ -227,7 +229,7 @@ uint8_t vdc_t::io_read8(uint16_t address)
 
 void vdc_t::io_write8(uint16_t address, uint8_t value)
 {
-	switch (address & 0x1f) {
+	switch (address & 0x3f) {
 		case 0x00:
 			if ((value & 0b1) && !irq_line) {
 				exceptions->release(irq_number);
@@ -258,46 +260,49 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			layer[current_layer].y = value;
 			break;
 		case 0x12:
-			layer[current_layer].flags = value & 0b00000111;
+			layer[current_layer].flags0 = value & 0b00000111;
 			break;
 		//case 0x13:
 		//	break;
-		case 0x14:
+		case 0x18:
 			layer[current_layer].colors[0] = value;
 			break;
-		case 0x15:
+		case 0x19:
 			layer[current_layer].colors[1] = value;
 			break;
-		case 0x16:
+		case 0x1a:
 			layer[current_layer].colors[2] = value;
 			break;
-		case 0x17:
+		case 0x1b:
 			layer[current_layer].colors[3] = value;
 			break;
 
 		// sprites
-		case 0x18:
+		case 0x20:
 			sprite[current_sprite].x = value;
 			break;
-		case 0x19:
+		case 0x21:
 			sprite[current_sprite].y = value;
 			break;
-		case 0x1a:
-			sprite[current_sprite].flags = value & 0b01111111;
+		case 0x22:
+			sprite[current_sprite].flags0 = value & 0b00001111;
 			break;
-		case 0x1b:
+		case 0x23:
+			sprite[current_sprite].flags1 = value & 0b01010111;
+			break;
+		case 0x24:
 			sprite[current_sprite].index = value;
 			break;
-		case 0x1c:
+		case 0x28:
 			sprite[current_sprite].colors[0] = value;
 			break;
-		case 0x1d:
+		case 0x29:
 			sprite[current_sprite].colors[1] = value;
 			break;
-		case 0x1e:
+		case 0x2a:
 			sprite[current_sprite].colors[2] = value;
 			break;
-		case 0x1f:
+		case 0x2b:
 			sprite[current_sprite].colors[3] = value;
 			break;
 

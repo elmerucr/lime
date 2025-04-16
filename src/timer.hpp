@@ -63,8 +63,7 @@ struct timer_unit {
 	uint32_t counter;
 };
 
-class timer_ic
-{
+class timer_ic {
 private:
 	uint8_t status_register;
 	uint8_t control_register;

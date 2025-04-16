@@ -72,13 +72,12 @@ const uint32_t palette[256] = {
 	LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00
 };
 
-struct layer_t
-{
+struct layer_t {
 	uint8_t x{0};
 	uint8_t y{0};
 
 	// -----------------------------------------------------------------
-	// flags
+	// flags0
 	//
 	// bit 7 6 5 4 3 2 1 0
 	//               | | |
@@ -87,7 +86,7 @@ struct layer_t
 	//               +----- 0b00 patterns code to opaque (0) or transparent (1)
 	//
 	// -----------------------------------------------------------------
-	uint8_t flags{0b00000000};
+	uint8_t flags0{0b00000000};
 
 	uint8_t colors[4] = {0b00, 0b01, 0b10, 0b11};
 
@@ -95,35 +94,44 @@ struct layer_t
 	uint16_t address;
 };
 
-struct sprite_t
-{
+struct sprite_t {
 	// x and y positions
 	uint8_t x{0};
 	uint8_t y{0};
 
 	// -----------------------------------------------------------------
-	// flags
+	// flags0
 	//
 	// bit 7 6 5 4 3 2 1 0
-	//       | | | | | | |
-	//       | | | | | | +- unactive (0b0) / active (1)
-	//       | | | | | +--- tileset 0 (0) / tileset 1 (1)
-	//       | | | | +----- 0b00 patterns code to opaque (0) or transparent (1)
-	//       | | | +------- x pos relative to screen (0) or associated layer (1)
-	//       | | +--------- flip h  (1)
-	//       | +----------- flip v  (1)
-	//       +------------- flip xy (1)
-	//
+	//     x x x x | | | |
+	//             | | | +- unactive (0b0) / active (1)
+	//             | | +--- tileset 0 (0) / tileset 1 (1)
+	//             | +----- 0b00 patterns code to opaque (0) or transparent (1)
+	//             +------- x pos relative to screen (0) or associated layer (1)
 	// -----------------------------------------------------------------
-	uint8_t flags{0b00000000};
+	uint8_t flags0{0b00000000};
+
+	// -----------------------------------------------------------------
+	// flags1
+	//
+	// bit 7 6 5 4 3 2 1 0
+	//     x | x | x | | |
+	//       |   |   | | +- flip h  (1)
+	//       |   |   | +--- flip v  (1)
+	//       |   |   +----- flip xy (1)
+	//       |   |
+	//       |   +--------- double size h
+	//       |
+	//       +------------- double size v
+	// -----------------------------------------------------------------
+	uint8_t flags1{0b00000000};
 
 	uint8_t index{0};
 
 	uint8_t colors[4] = {0b00, 0b01, 0b10, 0b11};
 };
 
-class vdc_t
-{
+class vdc_t {
 private:
 	font_cbm_8x8_t font;
 

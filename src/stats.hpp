@@ -12,8 +12,7 @@
 #ifndef STATS_HPP
 #define STATS_HPP
 
-class stats_t
-{
+class stats_t {
 private:
 	std::chrono::time_point<std::chrono::steady_clock> start_core;
 	std::chrono::time_point<std::chrono::steady_clock> start_core_old;
