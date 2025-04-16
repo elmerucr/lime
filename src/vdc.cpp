@@ -79,10 +79,20 @@ void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 
 		if (sl < VDC_YRES) {
 			uint8_t y = (l->y + sl) & 0xff;
+
+			if (l->flags1 & 0b01000000) {
+				y >>= 1;
+			}
+
 			uint8_t y_in_tile = y % 8;
 
 			for (uint16_t scr_x = 0; scr_x < VDC_XRES; scr_x++) {
 				uint8_t x = (l->x + scr_x) & 0xff;
+
+				if (l->flags1 & 0b00010000) {
+					x >>= 1;
+				}
+
 				uint8_t px = x % 4;
 				uint8_t tile_index = ram[l->address + ((y >> 3) << 5) + (x >> 3)];
 
@@ -210,8 +220,8 @@ uint8_t vdc_t::io_read8(uint16_t address)
 			return layer[current_layer].y;
 		case 0x12:
 			return layer[current_layer].flags0;
-		//case 0x13:
-		//	return 0;
+		case 0x13:
+			return layer[current_layer].flags1;
 		case 0x18:
 			return layer[current_layer].colors[0];
 		case 0x19:
@@ -281,8 +291,9 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 		case 0x12:
 			layer[current_layer].flags0 = value & 0b00000111;
 			break;
-		//case 0x13:
-		//	break;
+		case 0x13:
+			layer[current_layer].flags1 = value & 0b01010000;
+			break;
 		case 0x18:
 			layer[current_layer].colors[0] = value;
 			break;
