@@ -16,7 +16,7 @@ binary_ready	equ	$03
 
 		org	$fe00
 
-		fcn	"rom 0.8 20250319"
+		fcn	"rom 0.8 20250420"
 reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldu	#$fe00		; sets user stackpointer
 
@@ -146,7 +146,9 @@ exc_core	lda	CORE_SR			; triggered when binary inserted
 		jmp	core_interrupt
 exc_irq_end	rti
 
-vdc_interrupt	lda	logo_animation
+vdc_interrupt	lda	VDC_CURRENT_SPRITE
+		pshs	a
+		lda	logo_animation
 		inca
 		cmpa	#$90
 		bne	1f			; didn't reach #$90
@@ -174,6 +176,8 @@ vdc_interrupt	lda	logo_animation
 
 		lda	CORE_INPUT0		; use controller input to change screen background color
 		sta	VDC_BG_COLOR
+		puls	a
+		sta	VDC_CURRENT_SPRITE
 		rti
 
 timer_interrupt	rti

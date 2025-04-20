@@ -15,7 +15,7 @@ sound_reset	equ	65184
 VECTOR_SWI_INDIRECT	equ	522
 SID0_PW	equ	1282
 CORE_CR	equ	1153
-core_int_end	equ	65422
+core_int_end	equ	65432
 _jump	equ	65155
 MIX_SID1_LEFT	equ	1410
 binary_ready	equ	3
@@ -72,7 +72,7 @@ VDC_SPRITE_COLOR1	equ	1065
 VDC_SPRITE_COLOR0	equ	1064
 VDC_CURRENT_SPRITE	equ	1031
 VDC_LAYER_COLOR3	equ	1051
-timer_interrupt	equ	65362
+timer_interrupt	equ	65372
 VDC_LAYER_COLOR2	equ	1050
 vectors	equ	65520
 VDC_LAYER_COLOR1	equ	1049
@@ -81,7 +81,7 @@ exc_irq_end	equ	65312
 VECTOR_TIMER2_INDIRECT	equ	532
 exc_irq	equ	65261
 logo_animation	equ	0
-core_interrupt	equ	65363
+core_interrupt	equ	65373
 VDC_CR	equ	1025
 VECTOR_IRQ_INDIRECT	equ	520
 VECTOR_SWI2_INDIRECT	equ	516
