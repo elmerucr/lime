@@ -68,23 +68,13 @@ debugger_t::debugger_t(system_t *s)
 {
 	system = s;
 
-	tiles = new uint8_t[(SCREEN_WIDTH >> 2) * (SCREEN_HEIGHT >> 3)];
-	fg_colors = new uint32_t[(SCREEN_WIDTH >> 2) * (SCREEN_HEIGHT >> 3)];
-	bg_colors = new uint32_t[(SCREEN_WIDTH >> 2) * (SCREEN_HEIGHT >> 3)];
-
-	for (int i=0; i<(SCREEN_WIDTH >> 2) * (SCREEN_HEIGHT >> 3); i++) {
-		tiles[i] = ' ';
-		fg_colors[i] = PUNCH_BLUE;
-		bg_colors[i] = PUNCH_LIGHTBLUE;
-	}
-
-	terminal = new terminal_t(system, 48, 17, PUNCH_LIGHTBLUE, PUNCH_BLUE);
+	terminal = new terminal_t(system, 58, 17, PUNCH_LIGHTBLUE, PUNCH_BLUE);
 	terminal->clear();
 	print_version();
 	terminal->activate_cursor();
 
 	status1 = new terminal_t(system, 54, 20, LIME_COLOR_02, LIME_COLOR_00);
-	status2 = new terminal_t(system, 18, 17, LIME_COLOR_02, LIME_COLOR_00);
+	status2 = new terminal_t(system, 18, 16, LIME_COLOR_02, LIME_COLOR_00);
 }
 
 debugger_t::~debugger_t()
@@ -92,9 +82,6 @@ debugger_t::~debugger_t()
 	delete status2;
 	delete status1;
 	delete terminal;
-	delete [] bg_colors;
-	delete [] fg_colors;
-	delete [] tiles;
 }
 
 void debugger_t::redraw()
@@ -155,9 +142,9 @@ void debugger_t::redraw()
 	}
 
 	status2->clear();
-	status2->printf(" _usp____ _ssp___");
+	status2->printf(" __usp___ __ssp__");
 
-	for (int i=0; i<5; i++) {
+	for (int i=0; i<4; i++) {
 		uint16_t usp = (system->core->cpu->get_us() + i) & 0xffff;
 		uint8_t usp_b = system->core->read8(usp);
 		uint16_t ssp = (system->core->cpu->get_sp() + i) & 0xffff;
@@ -180,22 +167,13 @@ void debugger_t::redraw()
 		status2->printf("\n irpt        %3i", system->core->vdc->get_irq_scanline());
 	}
 
-	// copy status2 tiles into tiles buffer
-	for (int y = 0; y<status2->height; y++) {
-		for (int x = 0; x<status2->width; x++) {
-			tiles[(y+22)*(SCREEN_WIDTH>>2) + x + 100] = status2->tiles[(y*status2->width)+x];
-			fg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 100] = status2->fg_colors[(y*status2->width)+x];
-			bg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 100] = status2->bg_colors[(y*status2->width)+x];
-		}
-	}
-
 	// draw status2 tiles
 	for (int y = 0; y < (status2->height << 3); y++) {
 		uint8_t y_in_char = y % 8;
 		for (int x = 0; x < (status2->width << 2); x++) {
 			uint8_t symbol = status2->tiles[((y>>3) * status2->width) + (x >> 2)];
 	 		uint8_t x_in_char = x % 4;
-			system->host->video_framebuffer[((y + 176) * SCREEN_WIDTH) + x + 400] =
+			system->host->video_framebuffer[((y + 40) * SCREEN_WIDTH) + x + 152] =
 				(debugger_font.data[(symbol << 3) + y_in_char] & (0b1 << (3 - x_in_char))) ?
 				status2->fg_colors[((y>>3) * status2->width) + (x >> 2)] :
 				status2->bg_colors[((y>>3) * status2->width) + (x >> 2)] ;

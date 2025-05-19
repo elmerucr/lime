@@ -20,9 +20,6 @@ class debugger_t {
 private:
 	font_4x8_t debugger_font;
 	font_cbm_8x8_t debugger_cbm_font;
-	uint8_t *tiles;
-	uint32_t *fg_colors;
-	uint32_t *bg_colors;
 	rca_t rca;
 	terminal_t *status1;
 	terminal_t *status2;
