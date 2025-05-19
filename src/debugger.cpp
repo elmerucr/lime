@@ -133,9 +133,9 @@ void debugger_t::redraw()
 	// copy status1 tiles into tiles buffer
 	for (int y = 0; y<status1->height; y++) {
 		for (int x = 0; x<status1->width; x++) {
-			tiles[(y+22)*(SCREEN_WIDTH>>2) + x + 3] = status1->tiles[(y*status1->width)+x];
-			fg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 3] = status1->fg_colors[(y*status1->width)+x];
-			bg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 3] = status1->bg_colors[(y*status1->width)+x];
+			tiles[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = status1->tiles[(y*status1->width)+x];
+			fg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = status1->fg_colors[(y*status1->width)+x];
+			bg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = status1->bg_colors[(y*status1->width)+x];
 		}
 	}
 
