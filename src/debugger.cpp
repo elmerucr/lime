@@ -74,17 +74,17 @@ debugger_t::debugger_t(system_t *s)
 
 	for (int i=0; i<(SCREEN_WIDTH >> 2) * (SCREEN_HEIGHT >> 3); i++) {
 		tiles[i] = ' ';
-		fg_colors[i] = C64_BLUE;
-		bg_colors[i] = C64_LIGHTBLUE;
+		fg_colors[i] = PUNCH_BLUE;
+		bg_colors[i] = PUNCH_LIGHTBLUE;
 	}
 
-	terminal = new terminal_t(system, 54, 20, C64_LIGHTBLUE, C64_BLUE);
+	terminal = new terminal_t(system, 96, 17, PUNCH_LIGHTBLUE, PUNCH_BLUE);
 	terminal->clear();
 	print_version();
 	terminal->activate_cursor();
 
-	status1 = new terminal_t(system, 61, 17, LIME_COLOR_02, LIME_COLOR_00);
-	status2 = new terminal_t(system, 55, 17, LIME_COLOR_02, LIME_COLOR_00);
+	status1 = new terminal_t(system, 54, 20, LIME_COLOR_02, LIME_COLOR_00);
+	status2 = new terminal_t(system, 18, 17, LIME_COLOR_02, LIME_COLOR_00);
 }
 
 debugger_t::~debugger_t()
@@ -102,58 +102,26 @@ void debugger_t::redraw()
 	// copy terminal tiles into tiles buffer
 	for (int y = 0; y<terminal->height; y++) {
 		for (int x = 0; x<terminal->width; x++) {
-			tiles[(y+1)*(SCREEN_WIDTH>>2) + x + 2] = terminal->tiles[(y*terminal->width)+x];
-			fg_colors[(y+1)*(SCREEN_WIDTH>>2) + x + 2] = terminal->fg_colors[(y*terminal->width)+x];
-			bg_colors[(y+1)*(SCREEN_WIDTH>>2) + x + 2] = terminal->bg_colors[(y*terminal->width)+x];
+			tiles[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = terminal->tiles[(y*terminal->width)+x];
+			fg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = terminal->fg_colors[(y*terminal->width)+x];
+			bg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = terminal->bg_colors[(y*terminal->width)+x];
 		}
 	}
 
 	// update status text
 	status1->clear();
 	system->core->cpu->status(text_buffer, 1024);
-	status1->printf("__cpu___________________________________________________\n%s", text_buffer);
-	status1->printf("\n\n__disassembly___________________________________________");
+	status1->printf("__cpu_________________________________________________%s", text_buffer);
+	status1->printf("\n\n__disassembly_________________________________________");
 	uint16_t pc = system->core->cpu->get_pc();
-	for (int i=0; i<7; i++) {
-		status1->putchar('\n');
+	for (int i=0; i<4; i++) {
 		pc += disassemble_instruction_status1(pc);
+		status1->putchar('\n');
 	}
 
-	status1->printf("\n\n__vdc___________________________________________________");
-	status1->printf("\n   cycle %3i of %3i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
-	status1->printf("\nscanline %3i of %3i", system->core->vdc->get_current_scanline(), VDC_SCANLINES - 1);
-	status1->printf(
-		"\nscanline %3i will %scause %sinterrupt%s",
-		system->core->vdc->get_irq_scanline(),
-		system->core->vdc->get_generate_interrupts() ? "" : "not ",
-		system->core->vdc->get_generate_interrupts() ? "an " : "",
-		system->core->vdc->get_generate_interrupts() ? "" : "s"
-	);
-
-	// copy status1 tiles into tiles buffer
-	for (int y = 0; y<status1->height; y++) {
-		for (int x = 0; x<status1->width; x++) {
-			tiles[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = status1->tiles[(y*status1->width)+x];
-			fg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = status1->fg_colors[(y*status1->width)+x];
-			bg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = status1->bg_colors[(y*status1->width)+x];
-		}
-	}
-
-	status2->clear();
-	status2->printf("___usp___    ___ssp___    _t_____s___bpm______cycles_");
-
+	status1->printf("\n__timer_____s___bpm___cycles__");
 	for (int i=0; i<8; i++) {
-		uint16_t usp = (system->core->cpu->get_us() + i) & 0xffff;
-		uint8_t usp_b = system->core->read8(usp);
-		uint16_t ssp = (system->core->cpu->get_sp() + i) & 0xffff;
-		uint8_t ssp_b = system->core->read8(ssp);
-
-		status2->printf("\n %04x %02x      %04x %02x      %u %s %s %5u  %10u",
-		//status2->printf("\n%04x %02x  %04x %02x",
-			usp,
-			usp_b,
-			ssp,
-			ssp_b,
+		status1->printf("\n    %u   %s %s %5u %10u",
 			i,
 			system->core->timer->io_read_byte(0x01) & (1 << i) ? " on" : "off",
 			system->core->timer->io_read_byte(0x00) & (1 << i) ? "*" : "-",
@@ -161,15 +129,48 @@ void debugger_t::redraw()
 			system->core->timer->get_timer_clock_interval(i) - system->core->timer->get_timer_counter(i)
 		);
 	}
+
+	// copy status1 tiles into tiles buffer
+	for (int y = 0; y<status1->height; y++) {
+		for (int x = 0; x<status1->width; x++) {
+			tiles[(y+1)*(SCREEN_WIDTH>>2) + x + 2] = status1->tiles[(y*status1->width)+x];
+			fg_colors[(y+1)*(SCREEN_WIDTH>>2) + x + 2] = status1->fg_colors[(y*status1->width)+x];
+			bg_colors[(y+1)*(SCREEN_WIDTH>>2) + x + 2] = status1->bg_colors[(y*status1->width)+x];
+		}
+	}
+
+	status2->clear();
+	status2->printf(" _usp____ _ssp___");
+
+	for (int i=0; i<5; i++) {
+		uint16_t usp = (system->core->cpu->get_us() + i) & 0xffff;
+		uint8_t usp_b = system->core->read8(usp);
+		uint16_t ssp = (system->core->cpu->get_sp() + i) & 0xffff;
+		uint8_t ssp_b = system->core->read8(ssp);
+
+		status2->printf("\n %04x %02x  %04x %02x",
+			usp,
+			usp_b,
+			ssp,
+			ssp_b
+		);
+	}
 	system->core->exceptions->status(text_buffer, 2048);
 	status2->printf("\n\n%s", text_buffer);
+
+	status2->printf("\n _vdc____________");
+	status2->printf("\n cycl %3i of %3i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
+	status2->printf("\n   sl %3i of %3i", system->core->vdc->get_current_scanline(), VDC_SCANLINES - 1);
+	if (system->core->vdc->get_generate_interrupts()) {
+		status2->printf("\n irpt        %3i", system->core->vdc->get_irq_scanline());
+	}
 
 	// copy status2 tiles into tiles buffer
 	for (int y = 0; y<status2->height; y++) {
 		for (int x = 0; x<status2->width; x++) {
-			tiles[(y+22)*(SCREEN_WIDTH>>2) + x + 63] = status2->tiles[(y*status2->width)+x];
-			fg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 63] = status2->fg_colors[(y*status2->width)+x];
-			bg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 63] = status2->bg_colors[(y*status2->width)+x];
+			tiles[(y+22)*(SCREEN_WIDTH>>2) + x + 100] = status2->tiles[(y*status2->width)+x];
+			fg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 100] = status2->fg_colors[(y*status2->width)+x];
+			bg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 100] = status2->bg_colors[(y*status2->width)+x];
 		}
 	}
 
@@ -438,7 +439,7 @@ void debugger_t::process_command(char *c)
 			if ((i & 0b111) == 0) terminal->printf("\n %02x ", i);
 			terminal->bg_color = palette[i];
 			terminal->printf("  ");
-			terminal->bg_color = C64_BLUE;
+			terminal->bg_color = PUNCH_BLUE;
 		}
 		terminal->printf(
 			"\n\ndgc  %02x  %02x  %02x  %02x\n    ",
@@ -451,7 +452,7 @@ void debugger_t::process_command(char *c)
 			terminal->bg_color = palette[terminal_graphics_colors[i]];
 			terminal->printf("    ");
 		}
-		terminal->bg_color = C64_BLUE;
+		terminal->bg_color = PUNCH_BLUE;
 	} else if (strcmp(token0, "reset") == 0) {
 		terminal->printf("\nreset lime (y/n)");
 		redraw();
@@ -511,8 +512,8 @@ void debugger_t::memory_dump(uint16_t address)
 		terminal->putsymbol(data[i]);
 	}
 
-	terminal->bg_color = C64_BLUE;
-	terminal->fg_color = C64_LIGHTBLUE;
+	terminal->bg_color = PUNCH_BLUE;
+	terminal->fg_color = PUNCH_LIGHTBLUE;
 
 	for (int i=0; i<32; i++) {
 		terminal->cursor_left();
@@ -626,7 +627,7 @@ void debugger_t::memory_binary_dump(uint16_t address)
 		terminal->bg_color = palette[terminal_graphics_colors[res[i]]];
 		terminal->printf("  ");
 	}
-	terminal->bg_color = C64_BLUE;
+	terminal->bg_color = PUNCH_BLUE;
 
 	for (int i=0; i<40; i++) {
 		terminal->cursor_left();
@@ -787,7 +788,7 @@ void debugger_t::enter_dgc_line(char *buffer)
 			terminal->bg_color = palette[terminal_graphics_colors[i]];
 			terminal->printf("    ");
 		}
-		terminal->bg_color = C64_BLUE;
+		terminal->bg_color = PUNCH_BLUE;
 	}
 }
 
