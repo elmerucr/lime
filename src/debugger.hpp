@@ -11,6 +11,7 @@
 #include <cstdint>
 #include "common.hpp"
 #include "font_4x8.hpp"
+#include "font_cbm_8x8.hpp"
 #include "rca.hpp"
 #include "terminal.hpp"
 #include "system.hpp"
@@ -18,6 +19,7 @@
 class debugger_t {
 private:
 	font_4x8_t debugger_font;
+	font_cbm_8x8_t debugger_cbm_font;
 	uint8_t *tiles;
 	uint32_t *fg_colors;
 	uint32_t *bg_colors;

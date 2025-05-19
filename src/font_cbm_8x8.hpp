@@ -22,9 +22,8 @@
 #define FONT_CBM_8X8_HPP
 
 class font_cbm_8x8_t {
-private:
-	uint8_t *data;
 public:
+	uint8_t *data;
 	font_cbm_8x8_t() {
 		data = new uint8_t[0x1000];
 

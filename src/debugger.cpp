@@ -78,7 +78,7 @@ debugger_t::debugger_t(system_t *s)
 		bg_colors[i] = PUNCH_LIGHTBLUE;
 	}
 
-	terminal = new terminal_t(system, 96, 17, PUNCH_LIGHTBLUE, PUNCH_BLUE);
+	terminal = new terminal_t(system, 48, 17, PUNCH_LIGHTBLUE, PUNCH_BLUE);
 	terminal->clear();
 	print_version();
 	terminal->activate_cursor();
@@ -99,12 +99,23 @@ debugger_t::~debugger_t()
 
 void debugger_t::redraw()
 {
-	// copy terminal tiles into tiles buffer
-	for (int y = 0; y<terminal->height; y++) {
-		for (int x = 0; x<terminal->width; x++) {
-			tiles[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = terminal->tiles[(y*terminal->width)+x];
-			fg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = terminal->fg_colors[(y*terminal->width)+x];
-			bg_colors[(y+22)*(SCREEN_WIDTH>>2) + x + 2] = terminal->bg_colors[(y*terminal->width)+x];
+	// clear buffer
+	for (int y=0; y<SCREEN_HEIGHT; y++) {
+		for (int x=0; x<SCREEN_WIDTH; x++) {
+			system->host->video_framebuffer[(y * SCREEN_WIDTH) + x] = PUNCH_LIGHTBLUE;
+		}
+	}
+
+	// draw terminal tiles
+	for (int y = 0; y < (terminal->height << 3); y++) {
+		uint8_t y_in_char = y % 8;
+		for (int x = 0; x < (terminal->width << 3); x++) {
+			uint8_t symbol = terminal->tiles[((y>>3) * terminal->width) + (x >> 3)];
+	 		uint8_t x_in_char = x % 8;
+			system->host->video_framebuffer[((y + 176) * SCREEN_WIDTH) + x + 8] =
+				(debugger_cbm_font.original_data[(symbol << 3) + y_in_char] & (0b1 << (7 - x_in_char))) ?
+				terminal->fg_colors[((y>>3) * terminal->width) + (x >> 3)] :
+				terminal->bg_colors[((y>>3) * terminal->width) + (x >> 3)] ;
 		}
 	}
 
@@ -130,12 +141,16 @@ void debugger_t::redraw()
 		);
 	}
 
-	// copy status1 tiles into tiles buffer
-	for (int y = 0; y<status1->height; y++) {
-		for (int x = 0; x<status1->width; x++) {
-			tiles[(y+1)*(SCREEN_WIDTH>>2) + x + 2] = status1->tiles[(y*status1->width)+x];
-			fg_colors[(y+1)*(SCREEN_WIDTH>>2) + x + 2] = status1->fg_colors[(y*status1->width)+x];
-			bg_colors[(y+1)*(SCREEN_WIDTH>>2) + x + 2] = status1->bg_colors[(y*status1->width)+x];
+	// draw status1 tiles
+	for (int y = 0; y < (status1->height << 3); y++) {
+		uint8_t y_in_char = y % 8;
+		for (int x = 0; x < (status1->width << 2); x++) {
+			uint8_t symbol = status1->tiles[((y>>3) * status1->width) + (x >> 2)];
+	 		uint8_t x_in_char = x % 4;
+			system->host->video_framebuffer[((y + 8) * SCREEN_WIDTH) + x + 8] =
+				(debugger_font.data[(symbol << 3) + y_in_char] & (0b1 << (3 - x_in_char))) ?
+				status1->fg_colors[((y>>3) * status1->width) + (x >> 2)] :
+				status1->bg_colors[((y>>3) * status1->width) + (x >> 2)] ;
 		}
 	}
 
@@ -174,16 +189,16 @@ void debugger_t::redraw()
 		}
 	}
 
-	// render characters into buffer
-	for (int y=0; y<SCREEN_HEIGHT; y++) {
+	// draw status2 tiles
+	for (int y = 0; y < (status2->height << 3); y++) {
 		uint8_t y_in_char = y % 8;
-		for (int x=0; x<SCREEN_WIDTH; x++) {
-			uint8_t symbol = tiles[((y>>3) * (SCREEN_WIDTH >> 2)) + (x >> 2)];
-			uint8_t x_in_char = x % 4;
-			system->host->video_framebuffer[(y * SCREEN_WIDTH) + x] =
+		for (int x = 0; x < (status2->width << 2); x++) {
+			uint8_t symbol = status2->tiles[((y>>3) * status2->width) + (x >> 2)];
+	 		uint8_t x_in_char = x % 4;
+			system->host->video_framebuffer[((y + 176) * SCREEN_WIDTH) + x + 400] =
 				(debugger_font.data[(symbol << 3) + y_in_char] & (0b1 << (3 - x_in_char))) ?
-				fg_colors[((y>>3) * (SCREEN_WIDTH >> 2)) + (x >> 2)] :
-				bg_colors[((y>>3) * (SCREEN_WIDTH >> 2)) + (x >> 2)] ;
+				status2->fg_colors[((y>>3) * status2->width) + (x >> 2)] :
+				status2->bg_colors[((y>>3) * status2->width) + (x >> 2)] ;
 		}
 	}
 
@@ -625,11 +640,11 @@ void debugger_t::memory_binary_dump(uint16_t address)
 	}
 	for (int i=0; i<8; i++) {
 		terminal->bg_color = palette[terminal_graphics_colors[res[i]]];
-		terminal->printf("  ");
+		terminal->printf(" ");
 	}
 	terminal->bg_color = PUNCH_BLUE;
 
-	for (int i=0; i<40; i++) {
+	for (int i=0; i<32; i++) {
 		terminal->cursor_left();
 	}
 }
