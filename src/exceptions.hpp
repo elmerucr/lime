@@ -20,7 +20,7 @@ private:
 	uint8_t next_available_device;
 
 	bool irq_input_pins[8];
-	const char *name[8];
+	const char *dev_name[8];
 	std::string empty_name = "unassigned";
 
 	inline void update_status() {

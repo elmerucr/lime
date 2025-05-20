@@ -68,13 +68,13 @@ debugger_t::debugger_t(system_t *s)
 {
 	system = s;
 
-	terminal = new terminal_t(system, 58, 17, PUNCH_LIGHTBLUE, PUNCH_BLUE);
+	terminal = new terminal_t(system, 60, 17, PUNCH_LIGHTBLUE, PUNCH_BLUE);
 	terminal->clear();
 	print_version();
 	terminal->activate_cursor();
 
 	status1 = new terminal_t(system, 54, 20, LIME_COLOR_02, LIME_COLOR_00);
-	status2 = new terminal_t(system, 18, 16, LIME_COLOR_02, LIME_COLOR_00);
+	status2 = new terminal_t(system, 17, 16, LIME_COLOR_02, LIME_COLOR_00);
 }
 
 debugger_t::~debugger_t()
@@ -89,7 +89,7 @@ void debugger_t::redraw()
 	// clear buffer
 	for (int y=0; y<SCREEN_HEIGHT; y++) {
 		for (int x=0; x<SCREEN_WIDTH; x++) {
-			system->host->video_framebuffer[(y * SCREEN_WIDTH) + x] = PUNCH_LIGHTBLUE;
+			system->host->video_framebuffer[(y * SCREEN_WIDTH) + x] = PUNCH_BLACK;
 		}
 	}
 
@@ -99,7 +99,7 @@ void debugger_t::redraw()
 		for (int x = 0; x < (terminal->width << 3); x++) {
 			uint8_t symbol = terminal->tiles[((y>>3) * terminal->width) + (x >> 3)];
 	 		uint8_t x_in_char = x % 8;
-			system->host->video_framebuffer[((y + 176) * SCREEN_WIDTH) + x + 8] =
+			system->host->video_framebuffer[((y + 176) * SCREEN_WIDTH) + x + 0] =
 				(debugger_cbm_font.original_data[(symbol << 3) + y_in_char] & (0b1 << (7 - x_in_char))) ?
 				terminal->fg_colors[((y>>3) * terminal->width) + (x >> 3)] :
 				terminal->bg_colors[((y>>3) * terminal->width) + (x >> 3)] ;
@@ -110,9 +110,9 @@ void debugger_t::redraw()
 	status1->clear();
 	system->core->cpu->status(text_buffer, 1024);
 	status1->printf("__cpu_________________________________________________%s", text_buffer);
-	status1->printf("\n\n__disassembly_________________________________________");
+	status1->printf("\n\n__disassembly___________________________\n");
 	uint16_t pc = system->core->cpu->get_pc();
-	for (int i=0; i<4; i++) {
+	for (int i=0; i<5; i++) {
 		pc += disassemble_instruction_status1(pc);
 		status1->putchar('\n');
 	}
@@ -150,7 +150,7 @@ void debugger_t::redraw()
 		uint16_t ssp = (system->core->cpu->get_sp() + i) & 0xffff;
 		uint8_t ssp_b = system->core->read8(ssp);
 
-		status2->printf("\n %04x %02x  %04x %02x",
+		status2->printf(" %04x %02x  %04x %02x",
 			usp,
 			usp_b,
 			ssp,
@@ -158,13 +158,13 @@ void debugger_t::redraw()
 		);
 	}
 	system->core->exceptions->status(text_buffer, 2048);
-	status2->printf("\n\n%s", text_buffer);
+	status2->printf("\n%s", text_buffer);
 
-	status2->printf("\n _vdc____________");
-	status2->printf("\n cycl %3i of %3i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
-	status2->printf("\n   sl %3i of %3i", system->core->vdc->get_current_scanline(), VDC_SCANLINES - 1);
+	status2->printf("\n __vdc___________");
+	status2->printf("   cycle %3i/%3i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
+	status2->printf("\n  scanln %3i/%3i", system->core->vdc->get_current_scanline(), VDC_SCANLINES - 1);
 	if (system->core->vdc->get_generate_interrupts()) {
-		status2->printf("\n irpt        %3i", system->core->vdc->get_irq_scanline());
+		status2->printf("\n  irq at     %3i", system->core->vdc->get_irq_scanline());
 	}
 
 	// draw status2 tiles
@@ -173,7 +173,7 @@ void debugger_t::redraw()
 		for (int x = 0; x < (status2->width << 2); x++) {
 			uint8_t symbol = status2->tiles[((y>>3) * status2->width) + (x >> 2)];
 	 		uint8_t x_in_char = x % 4;
-			system->host->video_framebuffer[((y + 40) * SCREEN_WIDTH) + x + 152] =
+			system->host->video_framebuffer[((y + 40) * SCREEN_WIDTH) + x + 156] =
 				(debugger_font.data[(symbol << 3) + y_in_char] & (0b1 << (3 - x_in_char))) ?
 				status2->fg_colors[((y>>3) * status2->width) + (x >> 2)] :
 				status2->bg_colors[((y>>3) * status2->width) + (x >> 2)] ;

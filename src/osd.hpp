@@ -22,7 +22,7 @@ private:
 	//const uint32_t bg = 0x80804008;
 	const uint32_t fg = LIME_COLOR_03;
 	//const uint32_t bg = 0xff'1a'34'2b;
-	const uint32_t bg = (LIME_COLOR_01 & 0x00ffffff) | 0x80000000;
+	const uint32_t bg = (LIME_COLOR_01 & 0x00ffffff) | 0xc0000000;
 
 	font_cbm_8x8_t font;
 	terminal_t *terminal;

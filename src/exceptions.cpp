@@ -11,7 +11,7 @@ exceptions_ic::exceptions_ic()
 {
 	for(int i=0; i<8; i++) {
 		irq_input_pins[i] = true;
-		name[i] = empty_name.c_str();
+		dev_name[i] = empty_name.c_str();
 	}
 	next_available_device = 0;
 	nmi_output_pin = true;
@@ -21,7 +21,7 @@ exceptions_ic::exceptions_ic()
 uint8_t exceptions_ic::connect_device(const char *n)
 {
 	uint8_t return_value = next_available_device;
-	name[next_available_device] = n;
+	dev_name[next_available_device] = n;
 	next_available_device++;
 	next_available_device &= 7;
 	return return_value;
@@ -47,9 +47,9 @@ void exceptions_ic::toggle(uint8_t device)
 
 void exceptions_ic::status(char *b, int buffer_length)
 {
-	b += snprintf(b, buffer_length, " _IRQ_Line_Name__\n");
+	b += snprintf(b, buffer_length, " _IRQ_Line_Dev___");
 	for (int i=0; i<next_available_device; i++) {
-		b += snprintf(b, buffer_length, "   %1i   %c  \"%s\"\n", i, irq_input_pins[i] ? '1' : '0', name[i]);
+		b += snprintf(b, buffer_length, "   %1i   %c   %s\n", i, irq_input_pins[i] ? '1' : '0', dev_name[i]);
 	}
 }
 
@@ -57,7 +57,7 @@ void exceptions_ic::status(char *b, int buffer_length)
 void exceptions_ic::status(char *b, int buffer_length, uint8_t device)
 {
 	if (device < next_available_device) {
-		snprintf(b, buffer_length, "%1i  %c \"%s\"", device, irq_input_pins[device] ? '1' : '0', name[device]);
+		snprintf(b, buffer_length, "%1i  %c \"%s\"", device, irq_input_pins[device] ? '1' : '0', dev_name[device]);
 	} else {
 		b[0] = '\0';
 	}
