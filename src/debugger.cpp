@@ -73,7 +73,7 @@ debugger_t::debugger_t(system_t *s)
 	print_version();
 	terminal->activate_cursor();
 
-	status1 = new terminal_t(system, 54, 20, LIME_COLOR_02, LIME_COLOR_00);
+	status1 = new terminal_t(system, 58, 20, LIME_COLOR_02, LIME_COLOR_00);
 	status2 = new terminal_t(system, 17, 16, LIME_COLOR_02, LIME_COLOR_00);
 }
 
@@ -109,8 +109,8 @@ void debugger_t::redraw()
 	// update status text
 	status1->clear();
 	system->core->cpu->status(text_buffer, 1024);
-	status1->printf("__cpu_________________________________________________%s", text_buffer);
-	status1->printf("\n\n__disassembly___________________________\n");
+	status1->printf("__cpu_____________________________________________________%s", text_buffer);
+	status1->printf("\n\n__disassembly____________________________\n");
 	uint16_t pc = system->core->cpu->get_pc();
 	for (int i=0; i<5; i++) {
 		pc += disassemble_instruction_status1(pc);
@@ -134,7 +134,7 @@ void debugger_t::redraw()
 		for (int x = 0; x < (status1->width << 2); x++) {
 			uint8_t symbol = status1->tiles[((y>>3) * status1->width) + (x >> 2)];
 	 		uint8_t x_in_char = x % 4;
-			system->host->video_framebuffer[((y + 8) * SCREEN_WIDTH) + x + 8] =
+			system->host->video_framebuffer[((y + 8) * SCREEN_WIDTH) + x + 0] =
 				(debugger_font.data[(symbol << 3) + y_in_char] & (0b1 << (3 - x_in_char))) ?
 				status1->fg_colors[((y>>3) * status1->width) + (x >> 2)] :
 				status1->bg_colors[((y>>3) * status1->width) + (x >> 2)] ;
@@ -164,7 +164,7 @@ void debugger_t::redraw()
 	status2->printf("   cycle %3i/%3i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
 	status2->printf("\n  scanln %3i/%3i", system->core->vdc->get_current_scanline(), VDC_SCANLINES - 1);
 	if (system->core->vdc->get_generate_interrupts()) {
-		status2->printf("\n  irq at     %3i", system->core->vdc->get_irq_scanline());
+		status2->printf("\n     irq     %3i", system->core->vdc->get_irq_scanline());
 	}
 
 	// draw status2 tiles
@@ -173,7 +173,7 @@ void debugger_t::redraw()
 		for (int x = 0; x < (status2->width << 2); x++) {
 			uint8_t symbol = status2->tiles[((y>>3) * status2->width) + (x >> 2)];
 	 		uint8_t x_in_char = x % 4;
-			system->host->video_framebuffer[((y + 40) * SCREEN_WIDTH) + x + 156] =
+			system->host->video_framebuffer[((y + 40) * SCREEN_WIDTH) + x + 164] =
 				(debugger_font.data[(symbol << 3) + y_in_char] & (0b1 << (3 - x_in_char))) ?
 				status2->fg_colors[((y>>3) * status2->width) + (x >> 2)] :
 				status2->bg_colors[((y>>3) * status2->width) + (x >> 2)] ;
@@ -183,35 +183,33 @@ void debugger_t::redraw()
 	// copy vdc buffer contents into video framebuffer (no need for scanline stuff)
 	for (int y = 0; y < VDC_YRES; y++) {
 		for (int x = 0; x < VDC_XRES; x++) {
-			system->host->video_framebuffer[((y + 8) * SCREEN_WIDTH) + x + 232] =
+			system->host->video_framebuffer[((y + 8) * SCREEN_WIDTH) + x + 240] =
 				system->core->vdc->buffer[(y * VDC_XRES) + x];
 		}
 	}
 
-	const int16_t arrows[16][2] = {
-		{0,-3},
-		{0,-2},{1,-2},
-		{0,-1},{1,-1},{2,-1},
-		{0, 0},{1, 0},{2, 0},{3,0},
-		{0, 1},{1, 1},{2, 1},
-		{0, 2},{1, 2},
-		{0, 3}
+	const int16_t arrows[9][2] = {
+		{1,-2},
+		{1,-1},{2,-1},
+		{1, 0},{2, 0},{3,0},
+		{1, 1},{2, 1},
+		{1, 2}
 	};
 
 	if (system->core->vdc->get_current_scanline() < VDC_YRES) {
-		for (int i=0; i<16; i++) {
-			system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + 227 + arrows[i][0]] = LIME_COLOR_02;
-			system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + -4 + (SCREEN_WIDTH-arrows[i][0])] = LIME_COLOR_02;
+		for (int i=0; i<9; i++) {
+			system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + 239 + arrows[i][0]] = LIME_COLOR_02;
+			system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + 0 + (SCREEN_WIDTH-arrows[i][0])] = LIME_COLOR_02;
 		}
 		system->host->video_framebuffer[
-			((system->core->vdc->get_cycles_run()*VDC_XRES/CPU_CYCLES_PER_SCANLINE)+232) +
+			((system->core->vdc->get_cycles_run()*VDC_XRES/CPU_CYCLES_PER_SCANLINE)+240) +
 			((8+system->core->vdc->get_current_scanline()) * SCREEN_WIDTH)
 		] = LIME_COLOR_02;
 	}
 
 	// progress bar for cycles done for scanline
-	for (int x=232; x<(232+VDC_XRES); x++) {
-		if (x < ((system->core->vdc->get_cycles_run()*VDC_XRES)/CPU_CYCLES_PER_SCANLINE)+232) {
+	for (int x=240; x<(240+VDC_XRES); x++) {
+		if (x < ((system->core->vdc->get_cycles_run()*VDC_XRES)/CPU_CYCLES_PER_SCANLINE)+240) {
 			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_02;
 			system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_02;
 		} else {
