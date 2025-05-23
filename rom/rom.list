@@ -43,8 +43,8 @@
                       
 0410                  VDC_LAYER_X             equ     $0410
 0411                  VDC_LAYER_Y             equ     $0411
-0412                  VDC_LAYER_FLAGS         equ     $0412
-                      ;$0413
+0412                  VDC_LAYER_FLAGS0        equ     $0412
+0413                  VDC_LAYER_FLAGS1        equ     $0413
 0418                  VDC_LAYER_COLOR0        equ     $0418
 0419                  VDC_LAYER_COLOR1        equ     $0419
 041A                  VDC_LAYER_COLOR2        equ     $041a

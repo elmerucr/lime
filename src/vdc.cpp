@@ -41,7 +41,7 @@ void vdc_t::reset()
 		}
 	}
 
-    // fill memory with alternating pattern
+    // fill 64k memory with alternating pattern
     for (int i = 0; i < VDC_RAM; i++) {
         ram[i] = (i & 0x40) ? 0xff : 0x00;
     }
@@ -49,12 +49,24 @@ void vdc_t::reset()
 	for (int i=0; i<256; i++) {
 		sprite[i].x = 0;
 		sprite[i].y = 0;
+		sprite[i].flags0 = 0;
+		sprite[i].flags1 = 0;
+		sprite[i].index = 0;
 		sprite[i].colors[0] = 0b00;
 		sprite[i].colors[1] = 0b01;
 		sprite[i].colors[2] = 0b10;
 		sprite[i].colors[3] = 0b11;
-		sprite[i].flags0 = 0;
-		sprite[i].index = 0;
+	}
+
+	for (int i=0; i<4; i++) {
+		layer[i].x = 0;
+		layer[i].y = 0;
+		layer[i].flags0 = 0x00;
+		layer[i].flags1 = 0x00;
+		layer[i].colors[0] = 0b00;
+		layer[i].colors[1] = 0b01;
+		layer[i].colors[2] = 0b10;
+		layer[i].colors[3] = 0b11;
 	}
 
 	current_layer = 0;
