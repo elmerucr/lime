@@ -13,7 +13,7 @@
 // ---------------------------------------------------------------------
 #define LIME_MAJOR_VERSION		0
 #define LIME_MINOR_VERSION		7
-#define LIME_BUILD				20250523
+#define LIME_BUILD				20250531
 #define LIME_YEAR				2025
 
 // ---------------------------------------------------------------------
