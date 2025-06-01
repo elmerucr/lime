@@ -161,10 +161,10 @@ void debugger_t::redraw()
 	status2->printf("\n%s", text_buffer);
 
 	status2->printf("\n __vdc___________");
-	status2->printf("   cycle %3i/%3i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
-	status2->printf("\n  scanln %3i/%3i", system->core->vdc->get_current_scanline(), VDC_SCANLINES - 1);
+	status2->printf(" cycle %i/%i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
+	status2->printf("\n scanl %i/%i", system->core->vdc->get_current_scanline(), VDC_SCANLINES - 1);
 	if (system->core->vdc->get_generate_interrupts()) {
-		status2->printf("\n     irq     %3i", system->core->vdc->get_irq_scanline());
+		status2->printf("\n   irq %i", system->core->vdc->get_irq_scanline());
 	}
 
 	// draw status2 tiles
@@ -426,9 +426,23 @@ void debugger_t::process_command(char *c)
 		have_prompt = false;
 		enter_dgc_line(c);
 	} else if (strcmp(token0, "pal") == 0) {
-		for (int i=0x00; i<0x40; i++) {
-			if ((i & 0b111) == 0) terminal->printf("\n %02x ", i);
-			terminal->bg_color = palette[i];
+		token1 = strtok(NULL, " ");
+
+		uint32_t temp_no;
+
+		if (token1 == NULL) {
+			temp_no = 0x00;
+		} else {
+			if (!hex_string_to_int(token1, &temp_no)) {
+				temp_no = 0x00;
+			} else {
+				temp_no &= 0xf8;
+			}
+	}
+
+		for (int i=temp_no; i<(temp_no + 0x40); i++) {
+			if ((i & 0b111) == 0) terminal->printf("\n %02x ", i & 0xff);
+			terminal->bg_color = system->core->vdc->palette[i & 0xff];
 			terminal->printf("  ");
 			terminal->bg_color = PUNCH_BLUE;
 		}
@@ -440,7 +454,7 @@ void debugger_t::process_command(char *c)
 			terminal_graphics_colors[3]
 		);
 		for (int i=0; i<4; i++) {
-			terminal->bg_color = palette[terminal_graphics_colors[i]];
+			terminal->bg_color = system->core->vdc->palette[terminal_graphics_colors[i]];
 			terminal->printf("    ");
 		}
 		terminal->bg_color = PUNCH_BLUE;
@@ -615,7 +629,7 @@ void debugger_t::memory_binary_dump(uint16_t address)
 		terminal->printf("%c%c ", res[i] & 0b10 ? '1' : '.', res[i] & 0b1 ? '1' : '.');
 	}
 	for (int i=0; i<8; i++) {
-		terminal->bg_color = palette[terminal_graphics_colors[res[i]]];
+		terminal->bg_color = system->core->vdc->palette[terminal_graphics_colors[res[i]]];
 		terminal->printf(" ");
 	}
 	terminal->bg_color = PUNCH_BLUE;
@@ -776,7 +790,7 @@ void debugger_t::enter_dgc_line(char *buffer)
 		terminal->printf("\n    ");
 		//for (int i=0; i<16; i++) terminal->cursor_right();
 		for (int i=0; i<4; i++) {
-			terminal->bg_color = palette[terminal_graphics_colors[i]];
+			terminal->bg_color = system->core->vdc->palette[terminal_graphics_colors[i]];
 			terminal->printf("    ");
 		}
 		terminal->bg_color = PUNCH_BLUE;

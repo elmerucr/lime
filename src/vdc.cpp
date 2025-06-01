@@ -71,6 +71,7 @@ void vdc_t::reset()
 
 	current_layer = 0;
 	current_sprite = 0;
+	current_palette = 0;
 
 	cycles_run = 0;
 	current_scanline = 0;
@@ -220,10 +221,20 @@ uint8_t vdc_t::io_read8(uint16_t address)
 			return irq_scanline & 0xff;
 		case 0x04:
 			return bg_color;
+		case 0x05:
+			return current_palette;
 		case 0x06:
 			return current_layer;
 		case 0x07:
 			return current_sprite;
+		case 0x08:
+			return (palette[current_palette] & 0xff000000) >> 24;
+		case 0x09:
+			return (palette[current_palette] & 0x00ff0000) >> 16;
+		case 0x0a:
+			return (palette[current_palette] & 0x0000ff00) >>  8;
+		case 0x0b:
+			return (palette[current_palette] & 0x000000ff) >>  0;
 
 		// layers
 		case 0x10:
@@ -286,11 +297,32 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 		case 0x04:
 			bg_color = value;
 			break;
+		case 0x05:
+			current_palette = value;
+			break;
 		case 0x06:
 			current_layer = value &0b11;
 			break;
 		case 0x07:
 			current_sprite = value;
+			break;
+		case 0x08:
+			// don't change, is always 0xff
+			break;
+		case 0x09:
+			if (current_palette & 0x80) {
+				palette[current_palette] = (palette[current_palette] & 0xff00ffff) | (value << 16);
+			}
+			break;
+		case 0x0a:
+			if (current_palette & 0x80) {
+				palette[current_palette] = (palette[current_palette] & 0xffff00ff) | (value << 8);
+			}
+			break;
+		case 0x0b:
+			if (current_palette & 0x80) {
+				palette[current_palette] = (palette[current_palette] & 0xffffff00) | value;
+			}
 			break;
 
 		// layers
