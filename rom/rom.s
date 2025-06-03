@@ -5,18 +5,32 @@
 ; Copyright © 2025 elmerucr. All rights reserved.
 ;-----------------------------------------------------------------------
 
+; rom 0.9 20250603
+;
+; adding rnd routine
+
+; rom 0.8 20250420
+;
+;
+
 		include	"definitions.i"
+
+		setdp	$00
 
 logo_animation	equ	$00
 execution_addr	equ	$01
 binary_ready	equ	$03
+rnda		equ	$fc
+rndb		equ	$fd
+rndc		equ	$fe
+rndx		equ	$ff
 
 		setdp	$00		; assembler now assumes dp = $00 and
 					; uses dp addressing when appropriate
 
 		org	$fe00
 
-		fcn	"rom 0.8 20250420"
+		fcn	"rom 0.9 20250603"
 reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldu	#$fe00		; sets user stackpointer
 
@@ -76,6 +90,12 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 
 ; enable irq's
 		andcc	#%11101111
+
+; clear rnd variables
+		clr	rnda
+		clr	rndb
+		clr	rndc
+		clr	rndx
 
 ; "main" loop
 loop		sync
@@ -209,9 +229,33 @@ core_interrupt	lda	CORE_FILE_DATA		; first value $00?
 		inc	binary_ready		; %00000001
 core_int_end	rti
 
+; prng / rnd routine, value contained in ac
+; see:
+; c version:
+;
+;
+;
+;
+;
+rnd_impl	inc	rndx
+		lda	rnda
+		eora	rndc
+		eora	rndx
+		sta	rnda
+		adda	rndb
+		sta	rndb
+		lsra
+		adda	rndc
+		eora	rnda
+		sta	rndc
+		rts
+
 1		jmp	[VECTOR_IRQ_INDIRECT]
 
-		org	$fff0
+		org	$fff0 - (vectors - rnd)
+
+rnd		jmp	rnd_impl
+
 vectors		fdb	$0000
 		fdb	$0000
 		fdb	$0000
