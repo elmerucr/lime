@@ -21,10 +21,13 @@ core_t::core_t(system_t *s)
 
 	vdc = new vdc_t(exceptions);
 
-	cpu = new cpu_t(system);
+	cpu_mc6809 = new cpu_mc6809_t(system);
 
-	cpu->assign_nmi_line(&exceptions->nmi_output_pin);
-	cpu->assign_irq_line(&exceptions->irq_output_pin);
+	cpu_mc6809->assign_nmi_line(&exceptions->nmi_output_pin);
+	cpu_mc6809->assign_irq_line(&exceptions->irq_output_pin);
+
+	cpu_m68k = new cpu_m68k_t(system);
+	cpu_m68k->setModel(moira::Model::M68000 , moira::Model::M68000);
 
 	timer = new timer_ic(exceptions);
 
@@ -45,9 +48,10 @@ core_t::~core_t()
 	delete cpu2sid;
 	delete sound;
 	delete timer;
-	delete exceptions;
-	delete cpu;
+	delete cpu_m68k;
+	delete cpu_mc6809;
 	delete vdc;
+	delete exceptions;
 	delete rom;
 }
 
@@ -58,16 +62,16 @@ enum output_states core_t::run(bool debug)
 
 	do {
 
-		uint16_t cpu_cycles = cpu->execute();
+		uint16_t cpu_cycles = cpu_mc6809->execute();
 		frame_done = vdc->run(cpu_cycles);
 		timer->run(cpu_cycles);
 		uint16_t sound_cycles = cpu2sid->clock(cpu_cycles);
 		sound->run(sound_cycles);
 		sound_cycle_saldo += sound_cycles;
 
-	} while ((!cpu->breakpoint()) && (!frame_done) && (!debug));
+	} while ((!cpu_mc6809->breakpoint()) && (!frame_done) && (!debug));
 
-	if (cpu->breakpoint()) output_state = BREAKPOINT;
+	if (cpu_mc6809->breakpoint()) output_state = BREAKPOINT;
 
 	return output_state;
 }
@@ -215,7 +219,19 @@ void core_t::reset()
 	sound->reset();
 	timer->reset();
 	vdc->reset();	// vdc before cpu, as vdc also inits ram
-	cpu->reset();
+	cpu_mc6809->reset();
+
+	write8(0, 0x12);
+	write8(1, 0x34);
+	write8(2, 0x56);
+	write8(3, 0x78);
+	write8(4, 0xde);
+	write8(5, 0xad);
+	write8(6, 0xbe);
+	write8(7, 0xef);
+
+	cpu_m68k->reset();
+	cpu_m68k->setD(0, 0xd020d021);
 }
 
 void core_t::attach_bin(char *path)

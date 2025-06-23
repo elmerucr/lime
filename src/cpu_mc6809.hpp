@@ -1,19 +1,19 @@
 /*
- * cpu.hpp
+ * cpu_mc6809.hpp
  * lime
  *
  * Copyright © 2023-2025 elmerucr. All rights reserved.
  */
 
-#ifndef CPU_HPP
-#define CPU_HPP
+#ifndef CPU_MC6809_HPP
+#define CPU_MC6809_HPP
 
 #include "mc6809.hpp"
 #include "system.hpp"
 
-class cpu_t : public mc6809 {
+class cpu_mc6809_t : public mc6809 {
 public:
-	cpu_t(system_t *s) {
+	cpu_mc6809_t(system_t *s) {
 		system = s;
 	}
 

@@ -68,13 +68,13 @@ debugger_t::debugger_t(system_t *s)
 {
 	system = s;
 
-	terminal = new terminal_t(system, 60, 17, PUNCH_LIGHTBLUE, PUNCH_BLUE);
+	terminal = new terminal_t(system, 60, 16, PUNCH_LIGHTBLUE, PUNCH_BLUE);
 	terminal->clear();
 	print_version();
 	terminal->activate_cursor();
 
-	status1 = new terminal_t(system, 58, 20, LIME_COLOR_02, LIME_COLOR_00);
-	status2 = new terminal_t(system, 17, 16, LIME_COLOR_02, LIME_COLOR_00);
+	status1 = new terminal_t(system, 60, 24, LIME_COLOR_02, 0xff000000);
+	status2 = new terminal_t(system, 17, 10, LIME_COLOR_02, 0xff000000);
 }
 
 debugger_t::~debugger_t()
@@ -99,33 +99,97 @@ void debugger_t::redraw()
 		for (int x = 0; x < (terminal->width << 3); x++) {
 			uint8_t symbol = terminal->tiles[((y>>3) * terminal->width) + (x >> 3)];
 	 		uint8_t x_in_char = x % 8;
-			system->host->video_framebuffer[((y + 176) * SCREEN_WIDTH) + x + 0] =
+			system->host->video_framebuffer[((y + 192) * SCREEN_WIDTH) + x + 0] =
 				(debugger_cbm_font.original_data[(symbol << 3) + y_in_char] & (0b1 << (7 - x_in_char))) ?
 				terminal->fg_colors[((y>>3) * terminal->width) + (x >> 3)] :
 				terminal->bg_colors[((y>>3) * terminal->width) + (x >> 3)] ;
 		}
 	}
 
+	const bool mockup = true;
+
 	// update status text
 	status1->clear();
-	system->core->cpu->status(text_buffer, 1024);
-	status1->printf("__cpu_____________________________________________________%s", text_buffer);
-	status1->printf("\n\n__disassembly____________________________\n");
-	uint16_t pc = system->core->cpu->get_pc();
-	for (int i=0; i<5; i++) {
-		pc += disassemble_instruction_status1(pc);
-		status1->putchar('\n');
-	}
+	if (!mockup) {
+		system->core->cpu_mc6809->status(text_buffer, 1024);
+		status1->printf("__cpu_______________________________________________________%s", text_buffer);
+		status1->printf("\n\n__disassembly_______________________________________________");
+		uint16_t pc = system->core->cpu_mc6809->get_pc();
+		for (int i=0; i<9; i++) {
+			pc += disassemble_instruction_status1(pc);
+			status1->putchar('\n');
+		}
 
-	status1->printf("\n__timer_____s___bpm___cycles__");
-	for (int i=0; i<8; i++) {
-		status1->printf("\n    %u   %s %s %5u %10u",
-			i,
-			system->core->timer->io_read_byte(0x01) & (1 << i) ? " on" : "off",
-			system->core->timer->io_read_byte(0x00) & (1 << i) ? "*" : "-",
-			system->core->timer->get_timer_bpm(i),
-			system->core->timer->get_timer_clock_interval(i) - system->core->timer->get_timer_counter(i)
+		status1->printf("\n__timer_____s___bpm___cycles_________ __usp__  __ssp__");
+		for (int i=0; i<8; i++) {
+			uint16_t usp = (system->core->cpu_mc6809->get_us() + i) & 0xffff;
+			uint8_t usp_b = system->core->read8(usp);
+			uint16_t ssp = (system->core->cpu_mc6809->get_sp() + i) & 0xffff;
+			uint8_t ssp_b = system->core->read8(ssp);
+
+			status1->printf("\n    %u   %s %s %5u %10u        %04x %02x  %04x %02x",
+				i,
+				system->core->timer->io_read_byte(0x01) & (1 << i) ? " on" : "off",
+				system->core->timer->io_read_byte(0x00) & (1 << i) ? "*" : "-",
+				system->core->timer->get_timer_bpm(i),
+				system->core->timer->get_timer_clock_interval(i) - system->core->timer->get_timer_counter(i),
+				usp,
+				usp_b,
+				ssp,
+				ssp_b
+			);
+		}
+	} else {
+		uint16_t sr = system->core->cpu_m68k->getSR();
+
+		status1->printf(
+			"__cpu_______________________________________________________"
+			"D0:%08x A0:%08x  PC:%08x\n"
+			"D1:%08x A1:%08x SSP:%08x 0000 0000 0000 0000\n"
+			"D2:%08x A2:%08x USP:%08x 0000 0000 0000 0000\n"
+			"D3:%08x A3:%08x\n"
+			"D4:%08x A4:%08x  SR:%c-%c--%c%c%c---%c%c%c%c%c (%04x)\n"
+			"D5:%08x A5:%08x IPL:     %c%c%c\n"
+			"D6:%08x A6:%08x\n"
+			"D7:%08x A7:%08x\n\n"
+			"__disassembly_______________________________________________"
+			",00020518 beq     $20512\n"
+			",0002051a move.b  #-$3f, ($1,A0)\n"
+			",0002051a move.b  #-$3f, ($1,A0)\n\n",
+			system->core->cpu_m68k->getD(0), system->core->cpu_m68k->getA(0), system->core->cpu_m68k->getPC(),
+			system->core->cpu_m68k->getD(1), system->core->cpu_m68k->getA(1), system->core->cpu_m68k->getISP(),
+			system->core->cpu_m68k->getD(2), system->core->cpu_m68k->getA(2), system->core->cpu_m68k->getUSP(),
+			system->core->cpu_m68k->getD(3), system->core->cpu_m68k->getA(3),
+
+			system->core->cpu_m68k->getD(4), system->core->cpu_m68k->getA(4),
+			sr & 0x8000 ? 'T' : 't',
+			sr & 0x2000 ? 'S' : 's',
+			sr & 0x0400 ? '1' : '0',
+			sr & 0x0200 ? '1' : '0',
+			sr & 0x0100 ? '1' : '0',
+			sr & 0x0010 ? 'X' : 'x',
+			sr & 0x0008 ? 'N' : 'n',
+			sr & 0x0004 ? 'Z' : 'z',
+			sr & 0x0002 ? 'V' : 'v',
+			sr & 0x0001 ? 'C' : 'c',
+			sr,
+
+			system->core->cpu_m68k->getD(5), system->core->cpu_m68k->getA(5),
+			system->core->cpu_m68k->getIPL() & 0b100 ? '1' : '0',
+			system->core->cpu_m68k->getIPL() & 0b010 ? '1' : '0',
+			system->core->cpu_m68k->getIPL() & 0b001 ? '1' : '0',
+
+			system->core->cpu_m68k->getD(6), system->core->cpu_m68k->getA(6),
+			system->core->cpu_m68k->getD(7), system->core->cpu_m68k->getA(7)
 		);
+		status1->printf(
+			"__timer__________________________timer______________________"
+		);
+		for (int i=0; i<4; i++) {
+			status1->printf(
+				"   %02x                             %02x\n", i, i + 4
+			);
+		}
 	}
 
 	// draw status1 tiles
@@ -134,7 +198,7 @@ void debugger_t::redraw()
 		for (int x = 0; x < (status1->width << 2); x++) {
 			uint8_t symbol = status1->tiles[((y>>3) * status1->width) + (x >> 2)];
 	 		uint8_t x_in_char = x % 4;
-			system->host->video_framebuffer[((y + 8) * SCREEN_WIDTH) + x + 0] =
+			system->host->video_framebuffer[((y + 0) * SCREEN_WIDTH) + x + 0] =
 				(debugger_font.data[(symbol << 3) + y_in_char] & (0b1 << (3 - x_in_char))) ?
 				status1->fg_colors[((y>>3) * status1->width) + (x >> 2)] :
 				status1->bg_colors[((y>>3) * status1->width) + (x >> 2)] ;
@@ -142,23 +206,9 @@ void debugger_t::redraw()
 	}
 
 	status2->clear();
-	status2->printf(" __usp___ __ssp__");
 
-	for (int i=0; i<4; i++) {
-		uint16_t usp = (system->core->cpu->get_us() + i) & 0xffff;
-		uint8_t usp_b = system->core->read8(usp);
-		uint16_t ssp = (system->core->cpu->get_sp() + i) & 0xffff;
-		uint8_t ssp_b = system->core->read8(ssp);
-
-		status2->printf(" %04x %02x  %04x %02x",
-			usp,
-			usp_b,
-			ssp,
-			ssp_b
-		);
-	}
 	system->core->exceptions->status(text_buffer, 2048);
-	status2->printf("\n%s", text_buffer);
+	status2->printf("%s", text_buffer);
 
 	status2->printf("\n __vdc___________");
 	status2->printf(" cycle %i/%i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
@@ -172,8 +222,8 @@ void debugger_t::redraw()
 		uint8_t y_in_char = y % 8;
 		for (int x = 0; x < (status2->width << 2); x++) {
 			uint8_t symbol = status2->tiles[((y>>3) * status2->width) + (x >> 2)];
-	 		uint8_t x_in_char = x % 4;
-			system->host->video_framebuffer[((y + 40) * SCREEN_WIDTH) + x + 164] =
+			uint8_t x_in_char = x % 4;
+			system->host->video_framebuffer[((y + 224) * SCREEN_WIDTH) + x + 368] =
 				(debugger_font.data[(symbol << 3) + y_in_char] & (0b1 << (3 - x_in_char))) ?
 				status2->fg_colors[((y>>3) * status2->width) + (x >> 2)] :
 				status2->bg_colors[((y>>3) * status2->width) + (x >> 2)] ;
@@ -211,10 +261,10 @@ void debugger_t::redraw()
 	for (int x=240; x<(240+VDC_XRES); x++) {
 		if (x < ((system->core->vdc->get_cycles_run()*VDC_XRES)/CPU_CYCLES_PER_SCANLINE)+240) {
 			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_02;
-			system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_02;
+			//system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_02;
 		} else {
 			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_00;
-			system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_00;
+			//system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_00;
 		}
 	}
 }
@@ -310,7 +360,7 @@ void debugger_t::process_command(char *c)
 		if (token1 == NULL) {
 			terminal->printf("\nbreakpoints:");
 			for (int i=0; i<65536; i++) {
-				if (system->core->cpu->breakpoint_array[i]) {
+				if (system->core->cpu_mc6809->breakpoint_array[i]) {
 					breakpoints_present = true;
 					terminal->printf("\n$%04x", i);
 				}
@@ -322,8 +372,8 @@ void debugger_t::process_command(char *c)
 				terminal->printf("\nerror: '%s' is not a hex number", token1);
 			} else {
 				address &= 0xffff;
-				system->core->cpu->toggle_breakpoint(address);
-				if (system->core->cpu->breakpoint_array[address]) {
+				system->core->cpu_mc6809->toggle_breakpoint(address);
+				if (system->core->cpu_mc6809->breakpoint_array[address]) {
 					terminal->printf("\nbreakpoint set at $%04x", address);
 				} else {
 					terminal->printf("\nbreakpoint removed at $%04x", address);
@@ -339,7 +389,7 @@ void debugger_t::process_command(char *c)
 	 	uint8_t lines_remaining = terminal->lines_remaining();
 	 	if (lines_remaining == 0) lines_remaining = 1;
 
-	 	uint32_t temp_pc = system->core->cpu->get_pc();
+	 	uint32_t temp_pc = system->core->cpu_mc6809->get_pc();
 
 	 	if (token1 == NULL) {
 	 		for (int i=0; i<lines_remaining; i++) {
@@ -358,7 +408,7 @@ void debugger_t::process_command(char *c)
 	 		}
 	 	}
 	} else if (strcmp(token0, "x") == 0) {
-		terminal->printf("\nexit punch (y/n)");
+		terminal->printf("\nexit lime (y/n)");
 		redraw();
 		system->host->update_screen();
 		if (system->host->events_yes_no()) {
@@ -375,7 +425,7 @@ void debugger_t::process_command(char *c)
 		uint8_t lines_remaining = terminal->lines_remaining();
 		if (lines_remaining == 0) lines_remaining = 1;
 
-		uint32_t temp_pc = system->core->cpu->get_pc();
+		uint32_t temp_pc = system->core->cpu_mc6809->get_pc();
 
 		if (token1 == NULL) {
 			for (int i=0; i<lines_remaining; i++) {
@@ -402,7 +452,7 @@ void debugger_t::process_command(char *c)
 		uint8_t lines_remaining = terminal->lines_remaining();
 		if (lines_remaining == 0) lines_remaining = 1;
 
-		uint32_t temp_pc = system->core->cpu->get_pc();
+		uint32_t temp_pc = system->core->cpu_mc6809->get_pc();
 
 		if (token1 == NULL) {
 			for (int i=0; i<lines_remaining; i++) {
@@ -425,6 +475,8 @@ void debugger_t::process_command(char *c)
 	} else if (strcmp(token0, "dgc") == 0) {
 		have_prompt = false;
 		enter_dgc_line(c);
+	} else if (strcmp(token0, "n") == 0) {
+		system->core->cpu_m68k->execute();
 	} else if (strcmp(token0, "pal") == 0) {
 		token1 = strtok(NULL, " ");
 
@@ -728,10 +780,10 @@ void debugger_t::enter_memory_binary_line(char *buffer)
 uint32_t debugger_t::disassemble_instruction_status1(uint16_t address)
 {
 	uint32_t cycles;
-	if (system->core->cpu->breakpoint_array[address]) {
+	if (system->core->cpu_mc6809->breakpoint_array[address]) {
 		status1->fg_color = 0xffe04040;	// orange
 	}
-	cycles = system->core->cpu->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
+	cycles = system->core->cpu_mc6809->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
 	status1->printf("%s", text_buffer);
 	status1->fg_color = LIME_COLOR_02;
 
@@ -741,7 +793,7 @@ uint32_t debugger_t::disassemble_instruction_status1(uint16_t address)
 uint32_t debugger_t::disassemble_instruction_terminal(uint16_t address)
 {
 	uint32_t cycles;
-	cycles = system->core->cpu->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
+	cycles = system->core->cpu_mc6809->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
 	terminal->printf(",%s", text_buffer);
 
 	terminal->putchar('\r');

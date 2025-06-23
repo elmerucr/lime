@@ -18,10 +18,10 @@ vdc_t::vdc_t(exceptions_ic *e)
     ram = new uint8_t[VDC_RAM];
     buffer = new uint32_t[VDC_XRES * VDC_YRES];
 
-	layer[0].address = VDC_LAYERS_ADDRESS + 0x0000;
-	layer[1].address = VDC_LAYERS_ADDRESS + 0x0400;
-	layer[2].address = VDC_LAYERS_ADDRESS + 0x0800;
-	layer[3].address = VDC_LAYERS_ADDRESS + 0x0c00;
+	layer[0].address = VDC_LAYER0_ADDRESS;
+	layer[1].address = VDC_LAYER1_ADDRESS;
+	layer[2].address = VDC_LAYER2_ADDRESS;
+	layer[3].address = VDC_LAYER3_ADDRESS;
 }
 
 vdc_t::~vdc_t()
@@ -88,7 +88,7 @@ void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 {
 	if (l->flags0 & 0b1) {
 		// Determine tileset
-		uint16_t tileset = (l->flags0 & 0b10) ? VDC_TILESET_1_ADDRESS : VDC_TILESET_0_ADDRESS;
+		uint16_t tileset = (l->flags0 & 0b10) ? VDC_TILESET1_ADDRESS : VDC_TILESET0_ADDRESS;
 
 		if (sl < VDC_YRES) {
 			uint8_t y = (l->y + sl) & 0xff;
@@ -125,7 +125,7 @@ void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
 {
 	if (s->flags0 & 0b1) {
 		// Determine tileset
-		uint16_t tileset = (s->flags0 & 0b10) ? VDC_TILESET_1_ADDRESS : VDC_TILESET_0_ADDRESS;
+		uint16_t tileset = (s->flags0 & 0b10) ? VDC_TILESET1_ADDRESS : VDC_TILESET0_ADDRESS;
 
 		// Subtract sprite y position from scanline, remainder is y position in sprite
 		uint8_t y = sl - s->y;

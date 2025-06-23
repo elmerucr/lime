@@ -202,7 +202,7 @@ void host_t::update_screen()
 		case RUN_MODE:
 			// copy lines
 			for (int y=0; y<VDC_YRES; y++) {
-				for (int x=0; x<VDC_XRES; x ++) {
+				for (int x=0; x<VDC_XRES; x++) {
 					video_framebuffer[((y << 1) * SCREEN_WIDTH) + (x<<1)] = system->core->vdc->buffer[(VDC_XRES * y) + x];
 					video_framebuffer[((y << 1) * SCREEN_WIDTH) + (x<<1) + 1] = system->core->vdc->buffer[(VDC_XRES * y) + x];
 				}
@@ -322,7 +322,7 @@ void host_t::video_init()
 
 	if (video_scaling < 1) video_scaling = 1;
 
-    printf("[SDL] Video scaling will be %i times\n", video_scaling);
+    printf("[SDL] Video scaling will be %i time(s)\n", video_scaling);
 
 	char title[64];
 	snprintf(title, 64, "lime  %i.%i.%i", LIME_MAJOR_VERSION, LIME_MINOR_VERSION, LIME_BUILD);

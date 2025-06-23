@@ -18,8 +18,9 @@
 
 #include "system.hpp"
 #include "vdc.hpp"
-#include "cpu.hpp"
+#include "cpu_mc6809.hpp"
 #include "exceptions.hpp"
+#include "cpu_m68k.hpp"
 #include "rom.hpp"
 #include "font_cbm_8x8.hpp"
 #include "timer.hpp"
@@ -68,8 +69,12 @@ public:
 	~core_t();
 
 	vdc_t *vdc;
+
 	exceptions_ic *exceptions;
-	cpu_t *cpu;
+	cpu_mc6809_t *cpu_mc6809;
+
+	cpu_m68k_t *cpu_m68k;
+
 	clocks *cpu2sid;
 	font_cbm_8x8_t *font;
 	timer_ic *timer;
