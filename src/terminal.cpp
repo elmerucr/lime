@@ -186,12 +186,12 @@ void terminal_t::cursor_up()
 				break;
 			case MEMORY:
 				add_top_row();
-				system->debugger->memory_dump((address - 8) & 0xffff);
+				system->debugger->memory_dump((address - 8) & 0xfffffe);
 				break;
 			case MEMORY_BINARY:
 				add_top_row();
 				printf("\r");
-				system->debugger->memory_binary_dump((address - 2) & 0xffff);
+				system->debugger->memory_binary_dump((address - 2) & 0xfffffe);
 				break;
 			case DISASSEMBLY:
 				break;
@@ -217,11 +217,11 @@ void terminal_t::cursor_down()
 				break;
 			case MEMORY:
 				add_bottom_row();
-				system->debugger->memory_dump((address + 8) & 0xffff);
+				system->debugger->memory_dump((address + 8) & 0xfffffe);
 				break;
 			case MEMORY_BINARY:
 				printf("\n");
-				system->debugger->memory_binary_dump((address + 2) & 0xffff);
+				system->debugger->memory_binary_dump((address + 2) & 0xfffffe);
 				break;
 			case DISASSEMBLY:
 				// TODO: !!!
@@ -290,31 +290,31 @@ enum output_type terminal_t::check_output(bool top_down, uint32_t *address, uint
 {
 	enum output_type output = NOTHING;
 
-	char potential_address[5];
+	char potential_address[7];
 
 	for (int i = 0; i < total_tiles; i += width) {
 		if (tiles[i + 1] == ':') {
 			output = MEMORY;
-			for (int j=0; j<4; j++) {
+			for (int j=0; j<6; j++) {
 				potential_address[j] = tiles[i + 2 + j];
 			}
-			potential_address[4] = 0;
+			potential_address[6] = 0;
 			system->debugger->hex_string_to_int(potential_address, address);
 			if (top_down) break;
 		} else if (tiles[i + 1] == ';') {
 			output = MEMORY_BINARY;
-			for (int j=0; j<4; j++) {
+			for (int j=0; j<6; j++) {
 				potential_address[j] = tiles[i + 2 + j];
 			}
-			potential_address[4] = 0;
+			potential_address[6] = 0;
 			system->debugger->hex_string_to_int(potential_address, address);
 			if (top_down) break;
 		} else if (tiles[i + 1] == ',') {
 			output = DISASSEMBLY;
-			for (int j=0; j<4; j++) {
+			for (int j=0; j<6; j++) {
 				potential_address[j] = tiles[i + 2 + j];
 			}
-			potential_address[4] = 0;
+			potential_address[6] = 0;
 			// TODO: !!!
 			system->debugger->hex_string_to_int(potential_address, address);
 			if (top_down) break;

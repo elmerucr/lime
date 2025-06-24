@@ -41,9 +41,9 @@ public:
 	void process_command(char *c);
 	void prompt();
 	void print_version();
-	void memory_dump(uint16_t address);
+	void memory_dump(uint32_t address);
 	void enter_memory_line(char *buffer);
-	void memory_binary_dump(uint16_t address);
+	void memory_binary_dump(uint32_t address);
 	void enter_memory_binary_line(char *buffer);
 	void enter_dgc_line(char *buffer);
 	void enter_assembly_line(char *buffer);
