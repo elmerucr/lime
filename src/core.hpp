@@ -88,8 +88,8 @@ public:
 
 	void reset();
 
-	uint8_t read8(uint16_t address);
-	void write8(uint16_t address, uint8_t value);
+	uint8_t read8(uint32_t address);
+	void write8(uint32_t address, uint8_t value);
 
 	enum output_states run(bool debug);
 

@@ -140,39 +140,25 @@ void debugger_t::redraw()
 			);
 		}
 	} else {
-		uint16_t sr = system->core->cpu_m68k->getSR();
-
+		system->core->cpu_m68k->disassembleSR(text_buffer);
 		status1->printf(
 			"__cpu_______________________________________________________"
-			"D0:%08x A0:%08x  PC:%08x\n"
-			"D1:%08x A1:%08x SSP:%08x 0000 0000 0000 0000\n"
-			"D2:%08x A2:%08x USP:%08x 0000 0000 0000 0000\n"
-			"D3:%08x A3:%08x\n"
-			"D4:%08x A4:%08x  SR:%c-%c--%c%c%c---%c%c%c%c%c (%04x)\n"
-			"D5:%08x A5:%08x IPL:     %c%c%c\n"
-			"D6:%08x A6:%08x\n"
-			"D7:%08x A7:%08x\n\n"
-			"__disassembly_______________________________________________"
-			",00020518 beq     $20512\n"
-			",0002051a move.b  #-$3f, ($1,A0)\n"
-			",0002051a move.b  #-$3f, ($1,A0)\n\n",
+			" D0:%08x A0:%08x  PC: %08x\n"
+			" D1:%08x A1:%08x SSP: %08x 0000 0000 0000 0000\n"
+			" D2:%08x A2:%08x USP: %08x 0000 0000 0000 0000\n"
+			" D3:%08x A3:%08x\n"
+			" D4:%08x A4:%08x  SR: %s (%04x)\n"
+			" D5:%08x A5:%08x IPL:      %c%c%c\n"
+			" D6:%08x A6:%08x\n"
+			" D7:%08x A7:%08x\n\n",
 			system->core->cpu_m68k->getD(0), system->core->cpu_m68k->getA(0), system->core->cpu_m68k->getPC(),
 			system->core->cpu_m68k->getD(1), system->core->cpu_m68k->getA(1), system->core->cpu_m68k->getISP(),
 			system->core->cpu_m68k->getD(2), system->core->cpu_m68k->getA(2), system->core->cpu_m68k->getUSP(),
 			system->core->cpu_m68k->getD(3), system->core->cpu_m68k->getA(3),
 
 			system->core->cpu_m68k->getD(4), system->core->cpu_m68k->getA(4),
-			sr & 0x8000 ? 'T' : 't',
-			sr & 0x2000 ? 'S' : 's',
-			sr & 0x0400 ? '1' : '0',
-			sr & 0x0200 ? '1' : '0',
-			sr & 0x0100 ? '1' : '0',
-			sr & 0x0010 ? 'X' : 'x',
-			sr & 0x0008 ? 'N' : 'n',
-			sr & 0x0004 ? 'Z' : 'z',
-			sr & 0x0002 ? 'V' : 'v',
-			sr & 0x0001 ? 'C' : 'c',
-			sr,
+			text_buffer,
+			system->core->cpu_m68k->getSR(),
 
 			system->core->cpu_m68k->getD(5), system->core->cpu_m68k->getA(5),
 			system->core->cpu_m68k->getIPL() & 0b100 ? '1' : '0',
@@ -182,12 +168,24 @@ void debugger_t::redraw()
 			system->core->cpu_m68k->getD(6), system->core->cpu_m68k->getA(6),
 			system->core->cpu_m68k->getD(7), system->core->cpu_m68k->getA(7)
 		);
+
 		status1->printf(
-			"__timer__________________________timer______________________"
+			"__disassembly_______________________________________________"
+		);
+		uint32_t pc = system->core->cpu_m68k->getPC();
+		uint32_t new_pc;
+		for (int i=0; i<7; i++) {
+			new_pc = pc + system->core->cpu_m68k->disassemble(text_buffer, pc);
+			status1->printf(",%08x %s\n", pc, text_buffer);
+			pc = new_pc;
+		}
+
+		status1->printf(
+			"\n__timer_______________________ __timer_____________________"
 		);
 		for (int i=0; i<4; i++) {
 			status1->printf(
-				"   %02x                             %02x\n", i, i + 4
+				"\n   %1x                              %1x", i, i + 4
 			);
 		}
 	}

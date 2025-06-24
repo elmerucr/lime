@@ -28,6 +28,8 @@ core_t::core_t(system_t *s)
 
 	cpu_m68k = new cpu_m68k_t(system);
 	cpu_m68k->setModel(moira::Model::M68000 , moira::Model::M68000);
+	cpu_m68k->setDasmSyntax(moira::Syntax::MOIRA);
+	cpu_m68k->setDasmIndentation(8);
 
 	timer = new timer_ic(exceptions);
 
@@ -76,8 +78,9 @@ enum output_states core_t::run(bool debug)
 	return output_state;
 }
 
-uint8_t core_t::read8(uint16_t address)
+uint8_t core_t::read8(uint32_t address)
 {
+	address &= VDC_RAM_MASK;
 	uint8_t r;
 	switch (address >> 8) {
 		case CBM_FONT_PAGE + 0x0:
@@ -153,8 +156,9 @@ uint8_t core_t::read8(uint16_t address)
 	}
 }
 
-void core_t::write8(uint16_t address, uint8_t value)
+void core_t::write8(uint32_t address, uint8_t value)
 {
+	address &= VDC_RAM_MASK;
 	switch (address >> 8) {
 		case COMBINED_PAGE:
 			switch (address & 0x00c0) {
@@ -221,17 +225,27 @@ void core_t::reset()
 	vdc->reset();	// vdc before cpu, as vdc also inits ram
 	cpu_mc6809->reset();
 
-	write8(0, 0x12);
-	write8(1, 0x34);
-	write8(2, 0x56);
-	write8(3, 0x78);
-	write8(4, 0xde);
-	write8(5, 0xad);
-	write8(6, 0xbe);
-	write8(7, 0xef);
+	write8(0, 0x00);
+	write8(1, 0x00);
+	write8(2, 0xc0);
+	write8(3, 0x00);
+	write8(4, 0x00);
+	write8(5, 0x00);
+	write8(6, 0xd0);
+	write8(7, 0x00);
+
+	write8(0xd000, 0x1e);
+	write8(0xd001, 0x3c);
+	write8(0xd002, 0x00);
+	write8(0xd003, 0xbe);
+	write8(0xd004, 0x1f);
+	write8(0xd005, 0x3c);
+	write8(0xd006, 0x00);
+	write8(0xd007, 0xba);
+	write8(0xd008, 0x10);
+	write8(0xd009, 0x1f);
 
 	cpu_m68k->reset();
-	cpu_m68k->setD(0, 0xd020d021);
 }
 
 void core_t::attach_bin(char *path)

@@ -41,7 +41,7 @@ void vdc_t::reset()
 		}
 	}
 
-    // fill 64k memory with alternating pattern
+    // fill memory with alternating pattern
     for (int i = 0; i < VDC_RAM; i++) {
         ram[i] = (i & 0x40) ? 0xff : 0x00;
     }
