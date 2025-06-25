@@ -32,6 +32,8 @@ private:
 		0b00, 0b01, 0b10, 0b11
 	};
 
+	bool m68k_disassembly = true;
+
 public:
 	debugger_t(system_t *s);
 	~debugger_t();

@@ -141,19 +141,34 @@ void debugger_t::redraw()
 		}
 	} else {
 		system->core->cpu_m68k->disassembleSR(text_buffer);
+		uint32_t isp = system->core->cpu_m68k->getISP();
+		uint32_t usp = system->core->cpu_m68k->getUSP();
 		status1->printf(
 			"__cpu_______________________________________________________"
 			" D0:%08x A0:%08x  PC: %08x\n"
-			" D1:%08x A1:%08x SSP: %08x 0000 0000 0000 0000\n"
-			" D2:%08x A2:%08x USP: %08x 0000 0000 0000 0000\n"
+			" D1:%08x A1:%08x SSP: %08x %02x%02x %02x%02x %02x%02x %02x%02x\n"
+			" D2:%08x A2:%08x USP: %08x %02x%02x %02x%02x %02x%02x %02x%02x\n"
 			" D3:%08x A3:%08x\n"
 			" D4:%08x A4:%08x  SR: %s (%04x)\n"
 			" D5:%08x A5:%08x IPL:      %c%c%c\n"
 			" D6:%08x A6:%08x\n"
 			" D7:%08x A7:%08x\n\n",
-			system->core->cpu_m68k->getD(0), system->core->cpu_m68k->getA(0), system->core->cpu_m68k->getPC(),
-			system->core->cpu_m68k->getD(1), system->core->cpu_m68k->getA(1), system->core->cpu_m68k->getISP(),
-			system->core->cpu_m68k->getD(2), system->core->cpu_m68k->getA(2), system->core->cpu_m68k->getUSP(),
+			system->core->cpu_m68k->getD(0),
+			system->core->cpu_m68k->getA(0),
+			system->core->cpu_m68k->getPC(),
+
+			system->core->cpu_m68k->getD(1), system->core->cpu_m68k->getA(1), isp,
+			system->core->read8(isp+0), system->core->read8(isp+1),
+			system->core->read8(isp+2), system->core->read8(isp+3),
+			system->core->read8(isp+4), system->core->read8(isp+5),
+			system->core->read8(isp+6), system->core->read8(isp+7),
+
+			system->core->cpu_m68k->getD(2), system->core->cpu_m68k->getA(2), usp,
+			system->core->read8(usp+0), system->core->read8(usp+1),
+			system->core->read8(usp+2), system->core->read8(usp+3),
+			system->core->read8(usp+4), system->core->read8(usp+5),
+			system->core->read8(usp+6), system->core->read8(usp+7),
+
 			system->core->cpu_m68k->getD(3), system->core->cpu_m68k->getA(3),
 
 			system->core->cpu_m68k->getD(4), system->core->cpu_m68k->getA(4),
@@ -176,7 +191,15 @@ void debugger_t::redraw()
 		uint32_t new_pc;
 		for (int i=0; i<7; i++) {
 			new_pc = pc + system->core->cpu_m68k->disassemble(text_buffer, pc);
-			status1->printf(",%08x %s\n", pc, text_buffer);
+			if (m68k_disassembly) {
+				status1->printf(",%08x %s\n", pc, text_buffer);
+			} else {
+				status1->printf(",%08x ", pc);
+				for (int i=pc; i < new_pc; i++) {
+					status1->printf("%02x", system->core->read8(i));
+				}
+				status1->printf("\n");
+			}
 			pc = new_pc;
 		}
 
@@ -290,12 +313,9 @@ void debugger_t::run()
 					system->core->run(true);
 				} while (!system->core->vdc->started_new_scanline());
 				break;
-//			case ASCII_F3:
-//				terminal->deactivate_cursor();
-//				terminal->printf("run");
-//				system->switch_to_run_mode();
-//				system->host->events_wait_until_key_released(SDLK_F3);
-//				break;
+			case ASCII_F3:
+				m68k_disassembly = !m68k_disassembly;
+				break;
 			case ASCII_CURSOR_LEFT:
 				terminal->cursor_left();
 				break;

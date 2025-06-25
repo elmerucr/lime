@@ -311,10 +311,10 @@ enum output_type terminal_t::check_output(bool top_down, uint32_t *address, uint
 			if (top_down) break;
 		} else if (tiles[i + 1] == ',') {
 			output = DISASSEMBLY;
-			for (int j=0; j<6; j++) {
+			for (int j=0; j<4; j++) {
 				potential_address[j] = tiles[i + 2 + j];
 			}
-			potential_address[6] = 0;
+			potential_address[4] = 0;
 			// TODO: !!!
 			system->debugger->hex_string_to_int(potential_address, address);
 			if (top_down) break;
