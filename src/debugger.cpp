@@ -115,7 +115,7 @@ void debugger_t::redraw()
 		uint32_t isp = system->core->cpu_m68k->getISP();
 		uint32_t usp = system->core->cpu_m68k->getUSP();
 		status1->printf(
-			"__cpu______________________________________________________"
+			"____________________________cpu____________________________"
 			" D0:%08x A0:%08x\n"
 			" D1:%08x A1:%08x  PC: %08x\n"
 			" D2:%08x A2:%08x SSP: %08x %02x%02x %02x%02x %02x%02x %02x%02x\n"
@@ -165,9 +165,9 @@ void debugger_t::redraw()
 		for (int i=0; i<7; i++) {
 			new_pc = pc + system->core->cpu_m68k->disassemble(text_buffer, pc);
 			if (m68k_disassembly) {
-				status1->printf(",%08x %s\n", pc, text_buffer);
+				status1->printf(" %08x %s\n", pc, text_buffer);
 			} else {
-				status1->printf(",%08x ", pc);
+				status1->printf(" %08x ", pc);
 				for (int i=pc; i < new_pc; i++) {
 					status1->printf("%02x", system->core->read8(i));
 				}
@@ -187,10 +187,10 @@ void debugger_t::redraw()
 		}
 	} else {
 		system->core->cpu_mc6809->status(text_buffer, 1024);
-		status1->printf("__cpu_______________________________________________________%s", text_buffer);
-		status1->printf("\n\n__disassembly_______________________________________________");
+		status1->printf("____________________________cpu____________________________%s", text_buffer);
+		status1->printf("\n\n________________________disassembly________________________");
 		uint16_t pc = system->core->cpu_mc6809->get_pc();
-		for (int i=0; i<9; i++) {
+		for (int i=0; i<7; i++) {
 			pc += disassemble_instruction_status1(pc);
 			status1->putchar('\n');
 		}
