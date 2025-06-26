@@ -68,6 +68,8 @@ public:
 	core_t(system_t *s);
 	~core_t();
 
+	bool m68k_active;
+
 	vdc_t *vdc;
 
 	exceptions_ic *exceptions;

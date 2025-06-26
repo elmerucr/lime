@@ -73,7 +73,7 @@ debugger_t::debugger_t(system_t *s)
 	print_version();
 	terminal->activate_cursor();
 
-	status1 = new terminal_t(system, 60, 24, LIME_COLOR_02, 0xff000000);
+	status1 = new terminal_t(system, 59, 22, LIME_COLOR_02, LIME_COLOR_00);
 	status2 = new terminal_t(system, 17, 10, LIME_COLOR_02, 0xff000000);
 }
 
@@ -110,7 +110,82 @@ void debugger_t::redraw()
 
 	// update status text
 	status1->clear();
-	if (!mockup) {
+	if (system->core->m68k_active) {
+		system->core->cpu_m68k->disassembleSR(text_buffer);
+		uint32_t isp = system->core->cpu_m68k->getISP();
+		uint32_t usp = system->core->cpu_m68k->getUSP();
+		status1->printf(
+			"__cpu______________________________________________________"
+			" D0:%08x A0:%08x\n"
+			" D1:%08x A1:%08x  PC: %08x\n"
+			" D2:%08x A2:%08x SSP: %08x %02x%02x %02x%02x %02x%02x %02x%02x\n"
+			" D3:%08x A3:%08x USP: %08x %02x%02x %02x%02x %02x%02x %02x%02x\n"
+			" D4:%08x A4:%08x\n"
+			" D5:%08x A5:%08x  SR: %s (%04x)\n"
+			" D6:%08x A6:%08x IPL:      %c%c%c\n"
+			" D7:%08x A7:%08x\n",
+			system->core->cpu_m68k->getD(0),
+			system->core->cpu_m68k->getA(0),
+
+			system->core->cpu_m68k->getD(1),
+			system->core->cpu_m68k->getA(1),
+			system->core->cpu_m68k->getPC(),
+
+			system->core->cpu_m68k->getD(2), system->core->cpu_m68k->getA(2), isp,
+			system->core->read8(isp+0), system->core->read8(isp+1),
+			system->core->read8(isp+2), system->core->read8(isp+3),
+			system->core->read8(isp+4), system->core->read8(isp+5),
+			system->core->read8(isp+6), system->core->read8(isp+7),
+
+			system->core->cpu_m68k->getD(3), system->core->cpu_m68k->getA(3), usp,
+			system->core->read8(usp+0), system->core->read8(usp+1),
+			system->core->read8(usp+2), system->core->read8(usp+3),
+			system->core->read8(usp+4), system->core->read8(usp+5),
+			system->core->read8(usp+6), system->core->read8(usp+7),
+
+			system->core->cpu_m68k->getD(4), system->core->cpu_m68k->getA(4),
+
+			system->core->cpu_m68k->getD(5), system->core->cpu_m68k->getA(5),
+			text_buffer,
+			system->core->cpu_m68k->getSR(),
+
+			system->core->cpu_m68k->getD(6), system->core->cpu_m68k->getA(6),
+			system->core->cpu_m68k->getIPL() & 0b100 ? '1' : '0',
+			system->core->cpu_m68k->getIPL() & 0b010 ? '1' : '0',
+			system->core->cpu_m68k->getIPL() & 0b001 ? '1' : '0',
+
+			system->core->cpu_m68k->getD(7), system->core->cpu_m68k->getA(7)
+		);
+
+		status1->printf(
+			"________________________disassembly________________________"
+		);
+		uint32_t pc = system->core->cpu_m68k->getPC();
+		uint32_t new_pc;
+		for (int i=0; i<7; i++) {
+			new_pc = pc + system->core->cpu_m68k->disassemble(text_buffer, pc);
+			if (m68k_disassembly) {
+				status1->printf(",%08x %s\n", pc, text_buffer);
+			} else {
+				status1->printf(",%08x ", pc);
+				for (int i=pc; i < new_pc; i++) {
+					status1->printf("%02x", system->core->read8(i));
+				}
+				status1->printf("\n");
+			}
+			pc = new_pc;
+		}
+
+		status1->printf(
+			"__timer_______________________ __timer_____________________"
+		);
+		for (int i=0; i<4; i++) {
+			if (i) status1->printf("\n");
+			status1->printf(
+				"   %1x                              %1x", i, i + 4
+			);
+		}
+	} else {
 		system->core->cpu_mc6809->status(text_buffer, 1024);
 		status1->printf("__cpu_______________________________________________________%s", text_buffer);
 		status1->printf("\n\n__disassembly_______________________________________________");
@@ -139,78 +214,6 @@ void debugger_t::redraw()
 				ssp_b
 			);
 		}
-	} else {
-		system->core->cpu_m68k->disassembleSR(text_buffer);
-		uint32_t isp = system->core->cpu_m68k->getISP();
-		uint32_t usp = system->core->cpu_m68k->getUSP();
-		status1->printf(
-			"__cpu_______________________________________________________"
-			" D0:%08x A0:%08x  PC: %08x\n"
-			" D1:%08x A1:%08x SSP: %08x %02x%02x %02x%02x %02x%02x %02x%02x\n"
-			" D2:%08x A2:%08x USP: %08x %02x%02x %02x%02x %02x%02x %02x%02x\n"
-			" D3:%08x A3:%08x\n"
-			" D4:%08x A4:%08x  SR: %s (%04x)\n"
-			" D5:%08x A5:%08x IPL:      %c%c%c\n"
-			" D6:%08x A6:%08x\n"
-			" D7:%08x A7:%08x\n\n",
-			system->core->cpu_m68k->getD(0),
-			system->core->cpu_m68k->getA(0),
-			system->core->cpu_m68k->getPC(),
-
-			system->core->cpu_m68k->getD(1), system->core->cpu_m68k->getA(1), isp,
-			system->core->read8(isp+0), system->core->read8(isp+1),
-			system->core->read8(isp+2), system->core->read8(isp+3),
-			system->core->read8(isp+4), system->core->read8(isp+5),
-			system->core->read8(isp+6), system->core->read8(isp+7),
-
-			system->core->cpu_m68k->getD(2), system->core->cpu_m68k->getA(2), usp,
-			system->core->read8(usp+0), system->core->read8(usp+1),
-			system->core->read8(usp+2), system->core->read8(usp+3),
-			system->core->read8(usp+4), system->core->read8(usp+5),
-			system->core->read8(usp+6), system->core->read8(usp+7),
-
-			system->core->cpu_m68k->getD(3), system->core->cpu_m68k->getA(3),
-
-			system->core->cpu_m68k->getD(4), system->core->cpu_m68k->getA(4),
-			text_buffer,
-			system->core->cpu_m68k->getSR(),
-
-			system->core->cpu_m68k->getD(5), system->core->cpu_m68k->getA(5),
-			system->core->cpu_m68k->getIPL() & 0b100 ? '1' : '0',
-			system->core->cpu_m68k->getIPL() & 0b010 ? '1' : '0',
-			system->core->cpu_m68k->getIPL() & 0b001 ? '1' : '0',
-
-			system->core->cpu_m68k->getD(6), system->core->cpu_m68k->getA(6),
-			system->core->cpu_m68k->getD(7), system->core->cpu_m68k->getA(7)
-		);
-
-		status1->printf(
-			"__disassembly_______________________________________________"
-		);
-		uint32_t pc = system->core->cpu_m68k->getPC();
-		uint32_t new_pc;
-		for (int i=0; i<7; i++) {
-			new_pc = pc + system->core->cpu_m68k->disassemble(text_buffer, pc);
-			if (m68k_disassembly) {
-				status1->printf(",%08x %s\n", pc, text_buffer);
-			} else {
-				status1->printf(",%08x ", pc);
-				for (int i=pc; i < new_pc; i++) {
-					status1->printf("%02x", system->core->read8(i));
-				}
-				status1->printf("\n");
-			}
-			pc = new_pc;
-		}
-
-		status1->printf(
-			"\n__timer_______________________ __timer_____________________"
-		);
-		for (int i=0; i<4; i++) {
-			status1->printf(
-				"\n   %1x                              %1x", i, i + 4
-			);
-		}
 	}
 
 	// draw status1 tiles
@@ -219,7 +222,7 @@ void debugger_t::redraw()
 		for (int x = 0; x < (status1->width << 2); x++) {
 			uint8_t symbol = status1->tiles[((y>>3) * status1->width) + (x >> 2)];
 	 		uint8_t x_in_char = x % 4;
-			system->host->video_framebuffer[((y + 0) * SCREEN_WIDTH) + x + 0] =
+			system->host->video_framebuffer[((y + 8) * SCREEN_WIDTH) + x + 0] =
 				(debugger_font.data[(symbol << 3) + y_in_char] & (0b1 << (3 - x_in_char))) ?
 				status1->fg_colors[((y>>3) * status1->width) + (x >> 2)] :
 				status1->bg_colors[((y>>3) * status1->width) + (x >> 2)] ;
