@@ -132,6 +132,9 @@ private:
 	osd_t			*osd;
 	SDL_Rect		osd_placement;
 
+	SDL_Texture		*viewer_texture;
+	SDL_Rect		viewer_placement;
+
     inline uint32_t video_blend(uint32_t c0, uint32_t c1) {
 		    return
 			((((c0 & 0x00ff00ff) + (c1 & 0x00ff00ff)) >> 1) & 0x00ff00ff) |

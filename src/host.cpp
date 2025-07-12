@@ -235,6 +235,11 @@ void host_t::update_screen()
 	SDL_UpdateTexture(video_texture, nullptr, (void *)video_framebuffer, SCREEN_WIDTH*sizeof(uint32_t));
 	SDL_RenderCopy(video_renderer, video_texture, nullptr, &video_placement);
 
+	if (system->current_mode == DEBUG_MODE) {
+		SDL_UpdateTexture(viewer_texture, nullptr, (void *)system->core->vdc->buffer, VDC_XRES*sizeof(uint32_t));
+		SDL_RenderCopy(video_renderer, viewer_texture, nullptr, &viewer_placement);
+	}
+
 	if (osd_visible) {
 		osd->redraw();
 		SDL_UpdateTexture(osd_texture, nullptr, (void *)osd->buffer, osd->width*8*sizeof(uint32_t));
@@ -387,11 +392,22 @@ void host_t::video_init()
 		.h = video_window_height
 	};
 
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");	// bilinear filtering hint
+	viewer_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VDC_XRES, VDC_YRES);
+	// hack
+	viewer_placement = {
+		.x = (43 * 8 * video_window_width) / SCREEN_WIDTH,
+		.y = (28 * 8 * video_window_height) / SCREEN_HEIGHT,
+		.w = (15 * 8 * video_window_width) / SCREEN_WIDTH,
+		.h = (10 * 8 * video_window_height) / SCREEN_HEIGHT
+	};
+
     SDL_ShowCursor(SDL_DISABLE);	// make sure cursor isn't visible
 }
 
 void host_t::video_stop()
 {
+	SDL_DestroyTexture(viewer_texture);
 	SDL_DestroyTexture(osd_texture);
     SDL_DestroyTexture(video_texture);
     SDL_DestroyRenderer(video_renderer);
@@ -430,6 +446,7 @@ void host_t::video_toggle_fullscreen_stretched()
 				.w = (3 * video_window_height) / 2,
 				.h = video_window_height
 			};
+
 		} else {
 			video_placement = {
 				.x = (video_window_width - (video_scaling * SCREEN_WIDTH)) / 2,

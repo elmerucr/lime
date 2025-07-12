@@ -68,12 +68,12 @@ debugger_t::debugger_t(system_t *s)
 {
 	system = s;
 
-	terminal = new terminal_t(system, 60, 16, PUNCH_LIGHTBLUE, PUNCH_BLUE);
+	terminal = new terminal_t(system, 60, 14, PUNCH_LIGHTBLUE, PUNCH_BLUE);
 	terminal->clear();
 	print_version();
 	terminal->activate_cursor();
 
-	status1 = new terminal_t(system, 59, 22, LIME_COLOR_02, LIME_COLOR_00);
+	status1 = new terminal_t(system, 60, 26, LIME_COLOR_02, LIME_COLOR_00);
 	status2 = new terminal_t(system, 17, 10, LIME_COLOR_02, 0xff000000);
 }
 
@@ -99,7 +99,7 @@ void debugger_t::redraw()
 		for (int x = 0; x < (terminal->width << 3); x++) {
 			uint8_t symbol = terminal->tiles[((y>>3) * terminal->width) + (x >> 3)];
 	 		uint8_t x_in_char = x % 8;
-			system->host->video_framebuffer[((y + 192) * SCREEN_WIDTH) + x + 0] =
+			system->host->video_framebuffer[((y + 208) * SCREEN_WIDTH) + x + 0] =
 				(debugger_cbm_font.original_data[(symbol << 3) + y_in_char] & (0b1 << (7 - x_in_char))) ?
 				terminal->fg_colors[((y>>3) * terminal->width) + (x >> 3)] :
 				terminal->bg_colors[((y>>3) * terminal->width) + (x >> 3)] ;
@@ -115,59 +115,71 @@ void debugger_t::redraw()
 		uint32_t isp = system->core->cpu_m68k->getISP();
 		uint32_t usp = system->core->cpu_m68k->getUSP();
 		status1->printf(
-			"____________________________cpu____________________________"
-			" D0:%08x A0:%08x\n"
-			" D1:%08x A1:%08x  PC: %08x\n"
-			" D2:%08x A2:%08x SSP: %08x %02x%02x %02x%02x %02x%02x %02x%02x\n"
-			" D3:%08x A3:%08x USP: %08x %02x%02x %02x%02x %02x%02x %02x%02x\n"
-			" D4:%08x A4:%08x\n"
-			" D5:%08x A5:%08x  SR: %s (%04x)\n"
-			" D6:%08x A6:%08x IPL:      %c%c%c\n"
-			" D7:%08x A7:%08x\n",
+			"----------------------------cpu-----------------------------"
+			"  D0:%08x   D4:%08x     A0:%08x   A4:%08x\n"
+			"  D1:%08x   D5:%08x     A1:%08x   A5:%08x\n"
+			"  D2:%08x   D6:%08x     A2:%08x   A6:%08x\n"
+			"  D3:%08x   D7:%08x     A3:%08x   A7:%08x\n\n"
+			"        PC: %08x    SR: %04x (%s)\n\n"
+			"   SSP: %08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n"
+			"   USP: %08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n",
+
 			system->core->cpu_m68k->getD(0),
+			system->core->cpu_m68k->getD(4),
 			system->core->cpu_m68k->getA(0),
+			system->core->cpu_m68k->getA(4),
 
 			system->core->cpu_m68k->getD(1),
+			system->core->cpu_m68k->getD(5),
 			system->core->cpu_m68k->getA(1),
-			system->core->cpu_m68k->getPC(),
+			system->core->cpu_m68k->getA(5),
 
-			system->core->cpu_m68k->getD(2), system->core->cpu_m68k->getA(2), isp,
+			system->core->cpu_m68k->getD(2),
+			system->core->cpu_m68k->getD(6),
+			system->core->cpu_m68k->getA(2),
+			system->core->cpu_m68k->getA(6),
+
+			system->core->cpu_m68k->getD(3),
+			system->core->cpu_m68k->getD(7),
+			system->core->cpu_m68k->getA(3),
+			system->core->cpu_m68k->getA(7),
+
+			system->core->cpu_m68k->getPC(),
+			system->core->cpu_m68k->getSR(),
+			text_buffer,
+
+			isp,
 			system->core->read8(isp+0), system->core->read8(isp+1),
 			system->core->read8(isp+2), system->core->read8(isp+3),
 			system->core->read8(isp+4), system->core->read8(isp+5),
 			system->core->read8(isp+6), system->core->read8(isp+7),
+			system->core->read8(isp+8), system->core->read8(isp+9),
+			system->core->read8(isp+10), system->core->read8(isp+11),
+			system->core->read8(isp+12), system->core->read8(isp+13),
+			system->core->read8(isp+14), system->core->read8(isp+15),
 
-			system->core->cpu_m68k->getD(3), system->core->cpu_m68k->getA(3), usp,
+			usp,
 			system->core->read8(usp+0), system->core->read8(usp+1),
 			system->core->read8(usp+2), system->core->read8(usp+3),
 			system->core->read8(usp+4), system->core->read8(usp+5),
 			system->core->read8(usp+6), system->core->read8(usp+7),
-
-			system->core->cpu_m68k->getD(4), system->core->cpu_m68k->getA(4),
-
-			system->core->cpu_m68k->getD(5), system->core->cpu_m68k->getA(5),
-			text_buffer,
-			system->core->cpu_m68k->getSR(),
-
-			system->core->cpu_m68k->getD(6), system->core->cpu_m68k->getA(6),
-			system->core->cpu_m68k->getIPL() & 0b100 ? '1' : '0',
-			system->core->cpu_m68k->getIPL() & 0b010 ? '1' : '0',
-			system->core->cpu_m68k->getIPL() & 0b001 ? '1' : '0',
-
-			system->core->cpu_m68k->getD(7), system->core->cpu_m68k->getA(7)
+			system->core->read8(usp+8), system->core->read8(usp+9),
+			system->core->read8(usp+10), system->core->read8(usp+11),
+			system->core->read8(usp+12), system->core->read8(usp+13),
+			system->core->read8(usp+14), system->core->read8(usp+15)
 		);
 
 		status1->printf(
-			"________________________disassembly________________________"
+			"\n------------------------disassembler------------------------"
 		);
 		uint32_t pc = system->core->cpu_m68k->getPC();
 		uint32_t new_pc;
-		for (int i=0; i<7; i++) {
+		for (int i=0; i<4; i++) {
 			new_pc = pc + system->core->cpu_m68k->disassemble(text_buffer, pc);
 			if (m68k_disassembly) {
-				status1->printf(" %08x %s\n", pc, text_buffer);
+				status1->printf(",%08x %s\n", pc, text_buffer);
 			} else {
-				status1->printf(" %08x ", pc);
+				status1->printf(",%08x ", pc);
 				for (int i=pc; i < new_pc; i++) {
 					status1->printf("%02x", system->core->read8(i));
 				}
@@ -177,25 +189,24 @@ void debugger_t::redraw()
 		}
 
 		status1->printf(
-			"__timer_______________________ __timer_____________________"
+			"\n--timer----------------------"
 		);
-		for (int i=0; i<4; i++) {
-			if (i) status1->printf("\n");
+		for (int i=0; i<8; i++) {
 			status1->printf(
-				"   %1x                              %1x", i, i + 4
+				"\n   %1x", i
 			);
 		}
 	} else {
 		system->core->cpu_mc6809->status(text_buffer, 1024);
-		status1->printf("____________________________cpu____________________________%s", text_buffer);
-		status1->printf("\n\n________________________disassembly________________________");
+		status1->printf("-------------------------cpu mc6809-------------------------%s", text_buffer);
+		status1->printf("\n\n------------------------disassembler------------------------");
 		uint16_t pc = system->core->cpu_mc6809->get_pc();
 		for (int i=0; i<7; i++) {
 			pc += disassemble_instruction_status1(pc);
 			status1->putchar('\n');
 		}
 
-		status1->printf("\n__timer_____s___bpm___cycles_________ __usp__  __ssp__");
+		status1->printf("\n--timer-----s---bpm---cycles--------- --usp--  --ssp--");
 		for (int i=0; i<8; i++) {
 			uint16_t usp = (system->core->cpu_mc6809->get_us() + i) & 0xffff;
 			uint8_t usp_b = system->core->read8(usp);
@@ -216,16 +227,15 @@ void debugger_t::redraw()
 		}
 	}
 
-	// draw status1 tiles
 	for (int y = 0; y < (status1->height << 3); y++) {
 		uint8_t y_in_char = y % 8;
-		for (int x = 0; x < (status1->width << 2); x++) {
-			uint8_t symbol = status1->tiles[((y>>3) * status1->width) + (x >> 2)];
-	 		uint8_t x_in_char = x % 4;
-			system->host->video_framebuffer[((y + 8) * SCREEN_WIDTH) + x + 0] =
-				(debugger_font.data[(symbol << 3) + y_in_char] & (0b1 << (3 - x_in_char))) ?
-				status1->fg_colors[((y>>3) * status1->width) + (x >> 2)] :
-				status1->bg_colors[((y>>3) * status1->width) + (x >> 2)] ;
+		for (int x = 0; x < (status1->width << 3); x++) {
+			uint8_t symbol = status1->tiles[((y>>3) * status1->width) + (x >> 3)];
+	 		uint8_t x_in_char = x % 8;
+			system->host->video_framebuffer[((y + 0) * SCREEN_WIDTH) + x + 0] =
+				(debugger_cbm_font.original_data[(symbol << 3) + y_in_char] & (0b1 << (7 - x_in_char))) ?
+				status1->fg_colors[((y>>3) * status1->width) + (x >> 3)] :
+				status1->bg_colors[((y>>3) * status1->width) + (x >> 3)] ;
 		}
 	}
 
@@ -254,14 +264,6 @@ void debugger_t::redraw()
 		}
 	}
 
-	// copy vdc buffer contents into video framebuffer (no need for scanline stuff)
-	for (int y = 0; y < VDC_YRES; y++) {
-		for (int x = 0; x < VDC_XRES; x++) {
-			system->host->video_framebuffer[((y + 8) * SCREEN_WIDTH) + x + 240] =
-				system->core->vdc->buffer[(y * VDC_XRES) + x];
-		}
-	}
-
 	const int16_t arrows[9][2] = {
 		{1,-2},
 		{1,-1},{2,-1},
@@ -270,25 +272,36 @@ void debugger_t::redraw()
 		{1, 2}
 	};
 
-	if (system->core->vdc->get_current_scanline() < VDC_YRES) {
-		for (int i=0; i<9; i++) {
-			system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + 239 + arrows[i][0]] = LIME_COLOR_02;
-			system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + 0 + (SCREEN_WIDTH-arrows[i][0])] = LIME_COLOR_02;
-		}
-		system->host->video_framebuffer[
-			((system->core->vdc->get_cycles_run()*VDC_XRES/CPU_CYCLES_PER_SCANLINE)+240) +
-			((8+system->core->vdc->get_current_scanline()) * SCREEN_WIDTH)
-		] = LIME_COLOR_02;
-	}
+	if (false) {
+		// copy vdc buffer contents into video framebuffer (no need for scanline stuff)
+		// for (int y = 0; y < VDC_YRES; y++) {
+		// 	for (int x = 0; x < VDC_XRES; x++) {
+		// 		system->host->video_framebuffer[((y + 8) * SCREEN_WIDTH) + x + 240] =
+		// 			system->core->vdc->buffer[(y * VDC_XRES) + x];
+		// 	}
+		// }
 
-	// progress bar for cycles done for scanline
-	for (int x=240; x<(240+VDC_XRES); x++) {
-		if (x < ((system->core->vdc->get_cycles_run()*VDC_XRES)/CPU_CYCLES_PER_SCANLINE)+240) {
-			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_02;
-			//system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_02;
-		} else {
-			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_00;
-			//system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_00;
+		// draw arrows / dot
+		if (system->core->vdc->get_current_scanline() < VDC_YRES) {
+			for (int i=0; i<9; i++) {
+				system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + 239 + arrows[i][0]] = LIME_COLOR_02;
+				system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + 0 + (SCREEN_WIDTH-arrows[i][0])] = LIME_COLOR_02;
+			}
+			system->host->video_framebuffer[
+				((system->core->vdc->get_cycles_run()*VDC_XRES/CPU_CYCLES_PER_SCANLINE)+240) +
+				((8+system->core->vdc->get_current_scanline()) * SCREEN_WIDTH)
+			] = LIME_COLOR_02;
+		}
+
+		// progress bar for cycles done for scanline
+		for (int x=240; x<(240+VDC_XRES); x++) {
+			if (x < ((system->core->vdc->get_cycles_run()*VDC_XRES)/CPU_CYCLES_PER_SCANLINE)+240) {
+				system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_02;
+				//system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_02;
+			} else {
+				system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_00;
+				//system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_00;
+			}
 		}
 	}
 }
