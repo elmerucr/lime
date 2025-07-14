@@ -197,8 +197,23 @@ void debugger_t::redraw()
 			);
 		}
 	} else {
+		uint16_t ssp = system->core->cpu_mc6809->get_sp() & 0xffff;
+		uint16_t usp = system->core->cpu_mc6809->get_us() & 0xffff;
+
 		system->core->cpu_mc6809->status(text_buffer, 1024);
-		status1->printf("-------------------------cpu mc6809-------------------------%s", text_buffer);
+		status1->printf("---------------------------cpu------------------------------%s", text_buffer);
+		status1->printf(
+			"\n\n      system stack: %04x %02x %02x %02x %02x %02x %02x %02x %02x",
+			ssp, system->core->read8(ssp), system->core->read8(ssp+1), system->core->read8(ssp+2),
+			system->core->read8(ssp+3), system->core->read8(ssp+4), system->core->read8(ssp+5),
+			system->core->read8(ssp+6), system->core->read8(ssp+7)
+		);
+		status1->printf(
+			"\n        user stack: %04x %02x %02x %02x %02x %02x %02x %02x %02x",
+			usp, system->core->read8(usp), system->core->read8(usp+1), system->core->read8(usp+2),
+			system->core->read8(usp+3), system->core->read8(usp+4), system->core->read8(usp+5),
+			system->core->read8(usp+6), system->core->read8(usp+7)
+		);
 		status1->printf("\n\n------------------------disassembler------------------------");
 		uint16_t pc = system->core->cpu_mc6809->get_pc();
 		for (int i=0; i<7; i++) {
@@ -206,23 +221,14 @@ void debugger_t::redraw()
 			status1->putchar('\n');
 		}
 
-		status1->printf("\n--timer-----s---bpm---cycles--------- --usp--  --ssp--");
+		status1->printf("\n--timer-----s---bpm---cycles---------");
 		for (int i=0; i<8; i++) {
-			uint16_t usp = (system->core->cpu_mc6809->get_us() + i) & 0xffff;
-			uint8_t usp_b = system->core->read8(usp);
-			uint16_t ssp = (system->core->cpu_mc6809->get_sp() + i) & 0xffff;
-			uint8_t ssp_b = system->core->read8(ssp);
-
-			status1->printf("\n    %u   %s %s %5u %10u        %04x %02x  %04x %02x",
+			status1->printf("\n    %u   %s %s %5u %10u",
 				i,
 				system->core->timer->io_read_byte(0x01) & (1 << i) ? " on" : "off",
 				system->core->timer->io_read_byte(0x00) & (1 << i) ? "*" : "-",
 				system->core->timer->get_timer_bpm(i),
-				system->core->timer->get_timer_clock_interval(i) - system->core->timer->get_timer_counter(i),
-				usp,
-				usp_b,
-				ssp,
-				ssp_b
+				system->core->timer->get_timer_clock_interval(i) - system->core->timer->get_timer_counter(i)
 			);
 		}
 	}

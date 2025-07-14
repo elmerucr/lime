@@ -275,11 +275,18 @@ void host_t::video_toggle_fullscreen()
 				.h = video_window_height
 			};
 		} else {
+			// not stretched
 			video_placement = {
 				.x = (video_window_width - (video_scaling * SCREEN_WIDTH)) / 2,
 				.y = (video_window_height - (video_scaling * SCREEN_HEIGHT)) / 2,
 				.w = video_scaling * SCREEN_WIDTH,
 				.h = video_scaling * SCREEN_HEIGHT
+			};
+			viewer_placement = {
+				.x = ((video_window_width - (video_scaling * SCREEN_WIDTH)) / 2) + (8 * 43 * video_scaling),
+				.y = ((video_window_height - (video_scaling * SCREEN_HEIGHT)) / 2) + (8 * 28 * video_scaling),
+				.w = 15 * 8 * video_scaling,
+				.h = 10 * 8 * video_scaling
 			};
 		}
 		printf("[SDL] Fullscreen size: %i x %i\n", video_window_width, video_window_height);
@@ -292,6 +299,12 @@ void host_t::video_toggle_fullscreen()
 			.y = 0,
 			.w = video_window_width,
 			.h = video_window_height
+		};
+		viewer_placement = {
+			.x = 43 * 8 * video_scaling,
+			.y = 28 * 8 * video_scaling,
+			.w = 15 * 8 * video_scaling,
+			.h = 10 * 8 * video_scaling
 		};
 		printf("[SDL] Window size: %i x %i\n", video_window_width, video_window_height);
 	}
@@ -396,10 +409,10 @@ void host_t::video_init()
 	viewer_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VDC_XRES, VDC_YRES);
 	// hack
 	viewer_placement = {
-		.x = (43 * 8 * video_window_width) / SCREEN_WIDTH,
-		.y = (28 * 8 * video_window_height) / SCREEN_HEIGHT,
-		.w = (15 * 8 * video_window_width) / SCREEN_WIDTH,
-		.h = (10 * 8 * video_window_height) / SCREEN_HEIGHT
+		.x = 43 * 8 * video_scaling,
+		.y = 28 * 8 * video_scaling,
+		.w = 15 * 8 * video_scaling,
+		.h = 10 * 8 * video_scaling
 	};
 
     SDL_ShowCursor(SDL_DISABLE);	// make sure cursor isn't visible
