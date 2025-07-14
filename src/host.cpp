@@ -274,6 +274,12 @@ void host_t::video_toggle_fullscreen()
 				.w = (3 * video_window_height) / 2,
 				.h = video_window_height
 			};
+			viewer_placement = {
+				.x = ((8 * 43 * video_window_height) / SCREEN_HEIGHT) + (video_window_width - (3 * video_window_height) / 2) / 2,
+				.y = (8 * 28 * video_window_height) / SCREEN_HEIGHT,
+				.w = 15 * 8 * (video_window_height) / SCREEN_HEIGHT,
+				.h = 10 * 8 * video_window_height / SCREEN_HEIGHT
+			};
 		} else {
 			// not stretched
 			video_placement = {
@@ -459,6 +465,12 @@ void host_t::video_toggle_fullscreen_stretched()
 				.w = (3 * video_window_height) / 2,
 				.h = video_window_height
 			};
+			viewer_placement = {
+				.x = ((8 * 43 * video_window_height) / SCREEN_HEIGHT) + (video_window_width - (3 * video_window_height) / 2) / 2,
+				.y = (8 * 28 * video_window_height) / SCREEN_HEIGHT,
+				.w = 15 * 8 * (video_window_height) / SCREEN_HEIGHT,
+				.h = 10 * 8 * video_window_height / SCREEN_HEIGHT
+			};
 
 		} else {
 			video_placement = {
@@ -466,6 +478,12 @@ void host_t::video_toggle_fullscreen_stretched()
 				.y = (video_window_height - (video_scaling * SCREEN_HEIGHT)) / 2,
 				.w = video_scaling * SCREEN_WIDTH,
 				.h = video_scaling * SCREEN_HEIGHT
+			};
+			viewer_placement = {
+				.x = ((video_window_width - (video_scaling * SCREEN_WIDTH)) / 2) + (8 * 43 * video_scaling),
+				.y = ((video_window_height - (video_scaling * SCREEN_HEIGHT)) / 2) + (8 * 28 * video_scaling),
+				.w = 15 * 8 * video_scaling,
+				.h = 10 * 8 * video_scaling
 			};
 		}
 	}

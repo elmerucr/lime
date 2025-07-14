@@ -263,7 +263,7 @@ void debugger_t::redraw()
 		for (int x = 0; x < (status2->width << 2); x++) {
 			uint8_t symbol = status2->tiles[((y>>3) * status2->width) + (x >> 2)];
 			uint8_t x_in_char = x % 4;
-			system->host->video_framebuffer[((y + 224) * SCREEN_WIDTH) + x + 368] =
+			system->host->video_framebuffer[((y + 124) * SCREEN_WIDTH) + x + 368] =
 				(debugger_font.data[(symbol << 3) + y_in_char] & (0b1 << (3 - x_in_char))) ?
 				status2->fg_colors[((y>>3) * status2->width) + (x >> 2)] :
 				status2->bg_colors[((y>>3) * status2->width) + (x >> 2)] ;
@@ -602,15 +602,15 @@ void debugger_t::memory_dump(uint32_t address)
 		address &= 0xffffff;
 	}
 
-	terminal->bg_color = LIME_COLOR_00;
-	terminal->fg_color = LIME_COLOR_02;
+	//terminal->bg_color = LIME_COLOR_00;
+	//terminal->fg_color = LIME_COLOR_02;
 
 	for (int i=0; i<8; i++) {
 		terminal->putsymbol(data[i]);
 	}
 
-	terminal->bg_color = PUNCH_BLUE;
-	terminal->fg_color = PUNCH_LIGHTBLUE;
+	//terminal->bg_color = PUNCH_BLUE;
+	//terminal->fg_color = PUNCH_LIGHTBLUE;
 
 	for (int i=0; i<32; i++) {
 		terminal->cursor_left();
@@ -642,35 +642,35 @@ void debugger_t::enter_memory_line(char *buffer)
 		terminal->puts("??????");
 	} else if (!hex_string_to_int(&buffer[8], &arg0)) {
 		terminal->putchar('\r');
-		for (int i=0; i<7; i++) terminal->cursor_right();
+		for (int i=0; i<9; i++) terminal->cursor_right();
 		terminal->puts("??");
 	} else if (!hex_string_to_int(&buffer[11], &arg1)) {
 		terminal->putchar('\r');
-		for (int i=0; i<10; i++) terminal->cursor_right();
+		for (int i=0; i<12; i++) terminal->cursor_right();
 		terminal->puts("??");
 	} else if (!hex_string_to_int(&buffer[14], &arg2)) {
 		terminal->putchar('\r');
-		for (int i=0; i<13; i++) terminal->cursor_right();
+		for (int i=0; i<15; i++) terminal->cursor_right();
 		terminal->puts("??");
 	} else if (!hex_string_to_int(&buffer[17], &arg3)) {
 		terminal->putchar('\r');
-		for (int i=0; i<16; i++) terminal->cursor_right();
+		for (int i=0; i<18; i++) terminal->cursor_right();
 		terminal->puts("??");
 	} else if (!hex_string_to_int(&buffer[20], &arg4)) {
 		terminal->putchar('\r');
-		for (int i=0; i<19; i++) terminal->cursor_right();
+		for (int i=0; i<21; i++) terminal->cursor_right();
 		terminal->puts("??");
 	} else if (!hex_string_to_int(&buffer[23], &arg5)) {
 		terminal->putchar('\r');
-		for (int i=0; i<22; i++) terminal->cursor_right();
+		for (int i=0; i<24; i++) terminal->cursor_right();
 		terminal->puts("??");
 	} else if (!hex_string_to_int(&buffer[26], &arg6)) {
 		terminal->putchar('\r');
-		for (int i=0; i<25; i++) terminal->cursor_right();
+		for (int i=0; i<27; i++) terminal->cursor_right();
 		terminal->puts("??");
 	} else if (!hex_string_to_int(&buffer[29], &arg7)) {
 		terminal->putchar('\r');
-		for (int i=0; i<28; i++) terminal->cursor_right();
+		for (int i=0; i<30; i++) terminal->cursor_right();
 		terminal->puts("??");
 	} else {
 		address &= 0xfffffe;
