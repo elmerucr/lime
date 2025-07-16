@@ -129,7 +129,7 @@ void system_t::run()
 			}
 		}
 
-        host->update_screen();
+        host->video_update_screen();
 
 		stats->start_core_time();
 

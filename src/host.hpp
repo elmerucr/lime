@@ -160,7 +160,8 @@ public:
 	void video_stop();
     void video_toggle_fullscreen();
     void video_toggle_fullscreen_stretched();
-    void update_screen();
+	void video_set_dimensions();
+    void video_update_screen();
 
     uint32_t *video_framebuffer;	// used for scanline effect
 

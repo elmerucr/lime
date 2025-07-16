@@ -450,7 +450,7 @@ void debugger_t::process_command(char *c)
 	} else if (strcmp(token0, "x") == 0) {
 		terminal->printf("\nexit lime (y/n)");
 		redraw();
-		system->host->update_screen();
+		system->host->video_update_screen();
 		if (system->host->events_yes_no()) {
 			system->running = false;
 			system->host->events_wait_until_key_released(SDLK_y);
@@ -553,7 +553,7 @@ void debugger_t::process_command(char *c)
 	} else if (strcmp(token0, "reset") == 0) {
 		terminal->printf("\nreset lime (y/n)");
 		redraw();
-		system->host->update_screen();
+		system->host->video_update_screen();
 		if (system->host->events_yes_no()) {
 			system->core->reset();
 			system->host->events_wait_until_key_released(SDLK_y);

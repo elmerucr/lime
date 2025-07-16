@@ -194,7 +194,7 @@ enum events_output_state host_t::events_process_events()
 	return return_value;
 }
 
-void host_t::update_screen()
+void host_t::video_update_screen()
 {
 	SDL_RenderClear(video_renderer);
 
