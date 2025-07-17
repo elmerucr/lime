@@ -106,8 +106,6 @@ void debugger_t::redraw()
 		}
 	}
 
-	const bool mockup = true;
-
 	// update status text
 	status1->clear();
 	if (system->core->m68k_active) {
@@ -217,13 +215,14 @@ void debugger_t::redraw()
 		status1->printf("\n\n------------------------disassembler------------------------");
 		uint16_t pc = system->core->cpu_mc6809->get_pc();
 		for (int i=0; i<7; i++) {
+			status1->putchar(',');
 			pc += disassemble_instruction_status1(pc);
 			status1->putchar('\n');
 		}
 
-		status1->printf("\n--timer-----s---bpm---cycles---------");
+		status1->printf("\n-t-----s--bpm---cycles--");
 		for (int i=0; i<8; i++) {
-			status1->printf("\n    %u   %s %s %5u %10u",
+			status1->printf("\n %1x %s %s %05u %08x",
 				i,
 				system->core->timer->io_read_byte(0x01) & (1 << i) ? " on" : "off",
 				system->core->timer->io_read_byte(0x00) & (1 << i) ? "*" : "-",
@@ -233,6 +232,26 @@ void debugger_t::redraw()
 		}
 	}
 
+	status2->clear();
+
+	system->core->exceptions->status(text_buffer, 2048);
+	status2->printf("%s", text_buffer);
+
+	status2->printf("\n ----vdc---------");
+	status2->printf(" cycle %i/%i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
+	status2->printf("\n scanl %i/%i", system->core->vdc->get_current_scanline(), VDC_SCANLINES - 1);
+	if (system->core->vdc->get_generate_interrupts()) {
+		status2->printf("\n   irq %i", system->core->vdc->get_irq_scanline());
+	}
+	// copy status2 into status1
+	for (int y = 0; y < status2->height; y++) {
+		for (int x = 0; x < status2->width; x++) {
+			status1->tiles[((16 + y) * status1->width) + 40 + x] =
+				status2->tiles[(y * status2->width) + x];
+		}
+	}
+
+	// draw status1 (including chars of status2)
 	for (int y = 0; y < (status1->height << 3); y++) {
 		uint8_t y_in_char = y % 8;
 		for (int x = 0; x < (status1->width << 3); x++) {
@@ -245,71 +264,65 @@ void debugger_t::redraw()
 		}
 	}
 
-	status2->clear();
+	// // draw status2 tiles
+	// for (int y = 0; y < (status2->height << 3); y++) {
+	// 	uint8_t y_in_char = y % 8;
+	// 	for (int x = 0; x < (status2->width << 2); x++) {
+	// 		uint8_t symbol = status2->tiles[((y>>3) * status2->width) + (x >> 2)];
+	// 		uint8_t x_in_char = x % 4;
+	// 		system->host->video_framebuffer[((y + 124) * SCREEN_WIDTH) + x + 368] =
+	// 			(debugger_font.data[(symbol << 3) + y_in_char] & (0b1 << (3 - x_in_char))) ?
+	// 			status2->fg_colors[((y>>3) * status2->width) + (x >> 2)] :
+	// 			status2->bg_colors[((y>>3) * status2->width) + (x >> 2)] ;
+	// 	}
+	// }
 
-	system->core->exceptions->status(text_buffer, 2048);
-	status2->printf("%s", text_buffer);
+	// const int16_t arrows[9][2] = {
+	// 	{1,-2},
+	// 	{1,-1},{2,-1},
+	// 	{1, 0},{2, 0},{3,0},
+	// 	{1, 1},{2, 1},
+	// 	{1, 2}
+	// };
 
-	status2->printf("\n __vdc___________");
-	status2->printf(" cycle %i/%i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
-	status2->printf("\n scanl %i/%i", system->core->vdc->get_current_scanline(), VDC_SCANLINES - 1);
-	if (system->core->vdc->get_generate_interrupts()) {
-		status2->printf("\n   irq %i", system->core->vdc->get_irq_scanline());
+	for (int i=0; i<(VDC_XRES*VDC_YRES); i++) {
+		system->host->video_viewer_framebuffer[i] = system->core->vdc->buffer[i];
+	}
+	// highlight scanline being drawn + dot for current pixel
+	int y = system->core->vdc->get_current_scanline();
+	if (y < VDC_YRES) {
+		for (int x=0; x<VDC_XRES; x++) {
+			system->host->video_viewer_framebuffer[(y * VDC_XRES) + x] = LIME_COLOR_01;
+		}
+		system->host->video_viewer_framebuffer[
+			(system->core->vdc->get_cycles_run()*VDC_XRES/CPU_CYCLES_PER_SCANLINE) + (y * VDC_XRES)
+		] = LIME_COLOR_03;
 	}
 
-	// draw status2 tiles
-	for (int y = 0; y < (status2->height << 3); y++) {
-		uint8_t y_in_char = y % 8;
-		for (int x = 0; x < (status2->width << 2); x++) {
-			uint8_t symbol = status2->tiles[((y>>3) * status2->width) + (x >> 2)];
-			uint8_t x_in_char = x % 4;
-			system->host->video_framebuffer[((y + 124) * SCREEN_WIDTH) + x + 368] =
-				(debugger_font.data[(symbol << 3) + y_in_char] & (0b1 << (3 - x_in_char))) ?
-				status2->fg_colors[((y>>3) * status2->width) + (x >> 2)] :
-				status2->bg_colors[((y>>3) * status2->width) + (x >> 2)] ;
-		}
-	}
+	// if (false) {
+	// 	// draw arrows / dot
+	// 	if (system->core->vdc->get_current_scanline() < VDC_YRES) {
+	// 		for (int i=0; i<9; i++) {
+	// 			system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + 239 + arrows[i][0]] = LIME_COLOR_02;
+	// 			system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + 0 + (SCREEN_WIDTH-arrows[i][0])] = LIME_COLOR_02;
+	// 		}
+	// 		system->host->video_framebuffer[
+	// 			((system->core->vdc->get_cycles_run()*VDC_XRES/CPU_CYCLES_PER_SCANLINE)+240) +
+	// 			((8+system->core->vdc->get_current_scanline()) * SCREEN_WIDTH)
+	// 		] = LIME_COLOR_02;
+	// 	}
 
-	const int16_t arrows[9][2] = {
-		{1,-2},
-		{1,-1},{2,-1},
-		{1, 0},{2, 0},{3,0},
-		{1, 1},{2, 1},
-		{1, 2}
-	};
-
-	if (false) {
-		// copy vdc buffer contents into video framebuffer (no need for scanline stuff)
-		// for (int y = 0; y < VDC_YRES; y++) {
-		// 	for (int x = 0; x < VDC_XRES; x++) {
-		// 		system->host->video_framebuffer[((y + 8) * SCREEN_WIDTH) + x + 240] =
-		// 			system->core->vdc->buffer[(y * VDC_XRES) + x];
-		// 	}
-		// }
-
-		// draw arrows / dot
-		if (system->core->vdc->get_current_scanline() < VDC_YRES) {
-			for (int i=0; i<9; i++) {
-				system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + 239 + arrows[i][0]] = LIME_COLOR_02;
-				system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + 0 + (SCREEN_WIDTH-arrows[i][0])] = LIME_COLOR_02;
-			}
-			system->host->video_framebuffer[
-				((system->core->vdc->get_cycles_run()*VDC_XRES/CPU_CYCLES_PER_SCANLINE)+240) +
-				((8+system->core->vdc->get_current_scanline()) * SCREEN_WIDTH)
-			] = LIME_COLOR_02;
-		}
-
-		// progress bar for cycles done for scanline
-		for (int x=240; x<(240+VDC_XRES); x++) {
-			if (x < ((system->core->vdc->get_cycles_run()*VDC_XRES)/CPU_CYCLES_PER_SCANLINE)+240) {
-				system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_02;
-				//system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_02;
-			} else {
-				system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_00;
-				//system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_00;
-			}
-		}
-	}
+	// 	// progress bar for cycles done for scanline
+	// 	for (int x=240; x<(240+VDC_XRES); x++) {
+	// 		if (x < ((system->core->vdc->get_cycles_run()*VDC_XRES)/CPU_CYCLES_PER_SCANLINE)+240) {
+	// 			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_02;
+	// 			//system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_02;
+	// 		} else {
+	// 			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_00;
+	// 			//system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_00;
+	// 		}
+	// 	}
+	// }
 }
 
 void debugger_t::prompt()

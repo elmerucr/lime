@@ -164,6 +164,7 @@ public:
     void video_update_screen();
 
     uint32_t *video_framebuffer;	// used for scanline effect
+	uint32_t *video_viewer_framebuffer;
 
 	inline bool vsync_enabled() { return vsync; }
 	inline bool vsync_disabled() { return !vsync; }

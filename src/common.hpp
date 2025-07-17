@@ -13,7 +13,7 @@
 // ---------------------------------------------------------------------
 #define LIME_MAJOR_VERSION		0
 #define LIME_MINOR_VERSION		8
-#define LIME_BUILD				20250716
+#define LIME_BUILD				20250717
 #define LIME_YEAR				2025
 
 // ---------------------------------------------------------------------
@@ -41,7 +41,7 @@
 // ---------------------------------------------------------------------
 // cpu
 // ---------------------------------------------------------------------
-#define CPU_CYCLES_PER_PIXEL	1
+#define CPU_CYCLES_PER_PIXEL	2
 #define CPU_CYCLES_PER_SCANLINE	(CPU_CYCLES_PER_PIXEL*VDC_XRES)
 #define CPU_CYCLES_PER_FRAME	(CPU_CYCLES_PER_SCANLINE*VDC_SCANLINES)
 #define CPU_CLOCK_SPEED			(CPU_CYCLES_PER_FRAME*FPS)

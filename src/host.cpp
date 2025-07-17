@@ -19,6 +19,8 @@ host_t::host_t(system_t *s)
     video_framebuffer = new uint32_t[SCREEN_WIDTH * (SCREEN_HEIGHT + 1)];
 	for (int i=0; i<SCREEN_WIDTH * (SCREEN_HEIGHT + 1); i++) video_framebuffer[i] = 0;
 
+	video_viewer_framebuffer = new uint32_t[VDC_XRES * VDC_YRES];
+
     system = s;
 
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -60,6 +62,7 @@ host_t::host_t(system_t *s)
 host_t::~host_t()
 {
 	delete osd;
+	delete [] video_viewer_framebuffer;
     delete [] video_framebuffer;
 
 	video_stop();
@@ -236,7 +239,7 @@ void host_t::video_update_screen()
 	SDL_RenderCopy(video_renderer, video_texture, nullptr, &video_placement);
 
 	if (system->current_mode == DEBUG_MODE) {
-		SDL_UpdateTexture(viewer_texture, nullptr, (void *)system->core->vdc->buffer, VDC_XRES*sizeof(uint32_t));
+		SDL_UpdateTexture(viewer_texture, nullptr, (void *)video_viewer_framebuffer, VDC_XRES*sizeof(uint32_t));
 		SDL_RenderCopy(video_renderer, viewer_texture, nullptr, &viewer_placement);
 	}
 
@@ -263,64 +266,7 @@ void host_t::events_wait_until_key_released(SDL_KeyCode key)
 void host_t::video_toggle_fullscreen()
 {
 	video_fullscreen = !video_fullscreen;
-	if (video_fullscreen) {
-		SDL_SetWindowFullscreen(video_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-		SDL_GetWindowSize(video_window, &video_window_width, &video_window_height);
-		SDL_RenderSetLogicalSize(video_renderer, video_window_width, video_window_height);
-		if (video_fullscreen_stretched) {
-			video_placement = {
-				.x = (video_window_width - (3 * video_window_height) / 2) / 2,
-				.y = 0,
-				.w = (3 * video_window_height) / 2,
-				.h = video_window_height
-			};
-			viewer_placement = {
-				.x = ((8 * 43 * video_window_height) / SCREEN_HEIGHT) + (video_window_width - (3 * video_window_height) / 2) / 2,
-				.y = (8 * 28 * video_window_height) / SCREEN_HEIGHT,
-				.w = 15 * 8 * (video_window_height) / SCREEN_HEIGHT,
-				.h = 10 * 8 * video_window_height / SCREEN_HEIGHT
-			};
-		} else {
-			// not stretched
-			video_placement = {
-				.x = (video_window_width - (video_scaling * SCREEN_WIDTH)) / 2,
-				.y = (video_window_height - (video_scaling * SCREEN_HEIGHT)) / 2,
-				.w = video_scaling * SCREEN_WIDTH,
-				.h = video_scaling * SCREEN_HEIGHT
-			};
-			viewer_placement = {
-				.x = ((video_window_width - (video_scaling * SCREEN_WIDTH)) / 2) + (8 * 43 * video_scaling),
-				.y = ((video_window_height - (video_scaling * SCREEN_HEIGHT)) / 2) + (8 * 28 * video_scaling),
-				.w = 15 * 8 * video_scaling,
-				.h = 10 * 8 * video_scaling
-			};
-		}
-		printf("[SDL] Fullscreen size: %i x %i\n", video_window_width, video_window_height);
-	} else {
-		SDL_SetWindowFullscreen(video_window, SDL_WINDOW_RESIZABLE);
-		SDL_GetWindowSize(video_window, &video_window_width, &video_window_height);
-		SDL_RenderSetLogicalSize(video_renderer, video_window_width, video_window_height);
-		video_placement = {
-			.x = 0,
-			.y = 0,
-			.w = video_window_width,
-			.h = video_window_height
-		};
-		viewer_placement = {
-			.x = 43 * 8 * video_scaling,
-			.y = 28 * 8 * video_scaling,
-			.w = 15 * 8 * video_scaling,
-			.h = 10 * 8 * video_scaling
-		};
-		printf("[SDL] Window size: %i x %i\n", video_window_width, video_window_height);
-	}
-
-	osd_placement = {
-		.x = (video_window_width - (video_scaling * osd->width * 8)) / 2,
-		.y = (video_window_height - (video_scaling * osd->height * 8)),
-		.w = video_scaling * osd->width * 8,
-		.h = video_scaling * osd->height * 8
-	};
+	video_set_dimensions();
 }
 
 void host_t::video_init()
@@ -364,12 +310,6 @@ void host_t::video_init()
 	printf("[SDL] Display window dimension: %u x %u pixels\n", video_window_width, video_window_height);
 
 	osd = new osd_t(system);
-	osd_placement = {
-		.x = (video_window_width - (video_scaling * osd->width * 8)) / 2,
-		.y = (video_window_height - (video_scaling * osd->height * 8)),
-		.w = video_scaling * osd->width * 8,
-		.h = video_scaling * osd->height * 8
-	};
 
 	// create renderer and link it to window
 	printf("[SDL] Display refresh rate of current display is %iHz\n", video_displaymode.refresh_rate);
@@ -403,23 +343,11 @@ void host_t::video_init()
 	osd_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, osd->width*8, osd->height*8);
     SDL_SetTextureBlendMode(osd_texture, SDL_BLENDMODE_BLEND);
 
-	SDL_RenderSetLogicalSize(video_renderer, video_window_width, video_window_height);
-	video_placement = {
-		.x = 0,
-		.y = 0,
-		.w = video_window_width,
-		.h = video_window_height
-	};
-
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");	// bilinear filtering hint
 	viewer_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VDC_XRES, VDC_YRES);
-	// hack
-	viewer_placement = {
-		.x = 43 * 8 * video_scaling,
-		.y = 28 * 8 * video_scaling,
-		.w = 15 * 8 * video_scaling,
-		.h = 10 * 8 * video_scaling
-	};
+    SDL_SetTextureBlendMode(viewer_texture, SDL_BLENDMODE_BLEND);
+
+	video_set_dimensions();
 
     SDL_ShowCursor(SDL_DISABLE);	// make sure cursor isn't visible
 }
@@ -457,35 +385,7 @@ void host_t::video_toggle_fullscreen_stretched()
 {
 	if (video_fullscreen) {
 		video_fullscreen_stretched = !video_fullscreen_stretched;
-
-		if (video_fullscreen_stretched) {
-			video_placement = {
-				.x = (video_window_width - (3 * video_window_height) / 2) / 2,
-				.y = 0,
-				.w = (3 * video_window_height) / 2,
-				.h = video_window_height
-			};
-			viewer_placement = {
-				.x = ((8 * 43 * video_window_height) / SCREEN_HEIGHT) + (video_window_width - (3 * video_window_height) / 2) / 2,
-				.y = (8 * 28 * video_window_height) / SCREEN_HEIGHT,
-				.w = 15 * 8 * (video_window_height) / SCREEN_HEIGHT,
-				.h = 10 * 8 * video_window_height / SCREEN_HEIGHT
-			};
-
-		} else {
-			video_placement = {
-				.x = (video_window_width - (video_scaling * SCREEN_WIDTH)) / 2,
-				.y = (video_window_height - (video_scaling * SCREEN_HEIGHT)) / 2,
-				.w = video_scaling * SCREEN_WIDTH,
-				.h = video_scaling * SCREEN_HEIGHT
-			};
-			viewer_placement = {
-				.x = ((video_window_width - (video_scaling * SCREEN_WIDTH)) / 2) + (8 * 43 * video_scaling),
-				.y = ((video_window_height - (video_scaling * SCREEN_HEIGHT)) / 2) + (8 * 28 * video_scaling),
-				.w = 15 * 8 * video_scaling,
-				.h = 10 * 8 * video_scaling
-			};
-		}
+		video_set_dimensions();
 	}
 }
 
@@ -573,4 +473,67 @@ void host_t::audio_stop()
 		SDL_PauseAudioDevice(audio_device, 1);
 		audio_running = false;
 	}
+}
+
+
+void host_t::video_set_dimensions()
+{
+	if (video_fullscreen) {
+		SDL_SetWindowFullscreen(video_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+		SDL_GetWindowSize(video_window, &video_window_width, &video_window_height);
+		SDL_RenderSetLogicalSize(video_renderer, video_window_width, video_window_height);
+		if (video_fullscreen_stretched) {
+			video_placement = {
+				.x = (video_window_width - (3 * video_window_height) / 2) / 2,
+				.y = 0,
+				.w = (3 * video_window_height) / 2,
+				.h = video_window_height
+			};
+			viewer_placement = {
+				.x = ((8 * 43 * video_window_height) / SCREEN_HEIGHT) + (video_window_width - (3 * video_window_height) / 2) / 2,
+				.y = (8 * 28 * video_window_height) / SCREEN_HEIGHT,
+				.w = 15 * 8 * (video_window_height) / SCREEN_HEIGHT,
+				.h = 10 * 8 * video_window_height / SCREEN_HEIGHT
+			};
+		} else {
+			// not stretched
+			video_placement = {
+				.x = (video_window_width - (video_scaling * SCREEN_WIDTH)) / 2,
+				.y = (video_window_height - (video_scaling * SCREEN_HEIGHT)) / 2,
+				.w = video_scaling * SCREEN_WIDTH,
+				.h = video_scaling * SCREEN_HEIGHT
+			};
+			viewer_placement = {
+				.x = ((video_window_width - (video_scaling * SCREEN_WIDTH)) / 2) + (8 * 43 * video_scaling),
+				.y = ((video_window_height - (video_scaling * SCREEN_HEIGHT)) / 2) + (8 * 28 * video_scaling),
+				.w = 15 * 8 * video_scaling,
+				.h = 10 * 8 * video_scaling
+			};
+		}
+		printf("[SDL] Fullscreen size: %i x %i\n", video_window_width, video_window_height);
+	} else {
+		SDL_SetWindowFullscreen(video_window, SDL_WINDOW_RESIZABLE);
+		SDL_GetWindowSize(video_window, &video_window_width, &video_window_height);
+		SDL_RenderSetLogicalSize(video_renderer, video_window_width, video_window_height);
+		video_placement = {
+			.x = 0,
+			.y = 0,
+			.w = video_window_width,
+			.h = video_window_height
+		};
+		viewer_placement = {
+			.x = 43 * 8 * video_scaling,
+			.y = 28 * 8 * video_scaling,
+			.w = 15 * 8 * video_scaling,
+			.h = 10 * 8 * video_scaling
+		};
+		printf("[SDL] Window size: %i x %i\n", video_window_width, video_window_height);
+	}
+
+	osd_placement = {
+		.x = (video_window_width - (video_scaling * osd->width * 8)) / 2,
+		.y = (video_window_height - (video_scaling * osd->height * 8)),
+		.w = video_scaling * osd->width * 8,
+		.h = video_scaling * osd->height * 8
+	};
 }
