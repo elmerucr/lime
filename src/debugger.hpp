@@ -10,17 +10,13 @@
 
 #include <cstdint>
 #include "common.hpp"
-#include "font_4x8.hpp"
 #include "font_cbm_8x8.hpp"
-#include "rca.hpp"
 #include "terminal.hpp"
 #include "system.hpp"
 
 class debugger_t {
 private:
-	font_4x8_t debugger_font;
 	font_cbm_8x8_t debugger_cbm_font;
-	rca_t rca;
 	terminal_t *status1;
 	terminal_t *status2;
 	system_t *system;

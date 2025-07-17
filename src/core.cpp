@@ -43,7 +43,7 @@ core_t::core_t(system_t *s)
 	irq_number = exceptions->connect_device("core");
 	printf("[core] Connecting to exceptions getting irq %i\n", irq_number);
 
-	m68k_active = false;
+	m68k_active = true;
 }
 
 core_t::~core_t()

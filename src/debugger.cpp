@@ -185,15 +185,6 @@ void debugger_t::redraw()
 			}
 			pc = new_pc;
 		}
-
-		status1->printf(
-			"\n--timer----------------------"
-		);
-		for (int i=0; i<8; i++) {
-			status1->printf(
-				"\n   %1x", i
-			);
-		}
 	} else {
 		uint16_t ssp = system->core->cpu_mc6809->get_sp() & 0xffff;
 		uint16_t usp = system->core->cpu_mc6809->get_us() & 0xffff;
@@ -214,11 +205,12 @@ void debugger_t::redraw()
 		);
 		status1->printf("\n\n------------------------disassembler------------------------");
 		uint16_t pc = system->core->cpu_mc6809->get_pc();
-		for (int i=0; i<7; i++) {
+		for (int i=0; i<8; i++) {
 			status1->putchar(',');
 			pc += disassemble_instruction_status1(pc);
 			status1->putchar('\n');
 		}
+	}
 
 		status1->printf("\n-t-----s--bpm---cycles--");
 		for (int i=0; i<8; i++) {
@@ -230,7 +222,6 @@ void debugger_t::redraw()
 				system->core->timer->get_timer_clock_interval(i) - system->core->timer->get_timer_counter(i)
 			);
 		}
-	}
 
 	status2->clear();
 
@@ -246,7 +237,7 @@ void debugger_t::redraw()
 	// copy status2 into status1
 	for (int y = 0; y < status2->height; y++) {
 		for (int x = 0; x < status2->width; x++) {
-			status1->tiles[((16 + y) * status1->width) + 40 + x] =
+			status1->tiles[((17 + y) * status1->width) + 40 + x] =
 				status2->tiles[(y * status2->width) + x];
 		}
 	}
@@ -264,27 +255,6 @@ void debugger_t::redraw()
 		}
 	}
 
-	// // draw status2 tiles
-	// for (int y = 0; y < (status2->height << 3); y++) {
-	// 	uint8_t y_in_char = y % 8;
-	// 	for (int x = 0; x < (status2->width << 2); x++) {
-	// 		uint8_t symbol = status2->tiles[((y>>3) * status2->width) + (x >> 2)];
-	// 		uint8_t x_in_char = x % 4;
-	// 		system->host->video_framebuffer[((y + 124) * SCREEN_WIDTH) + x + 368] =
-	// 			(debugger_font.data[(symbol << 3) + y_in_char] & (0b1 << (3 - x_in_char))) ?
-	// 			status2->fg_colors[((y>>3) * status2->width) + (x >> 2)] :
-	// 			status2->bg_colors[((y>>3) * status2->width) + (x >> 2)] ;
-	// 	}
-	// }
-
-	// const int16_t arrows[9][2] = {
-	// 	{1,-2},
-	// 	{1,-1},{2,-1},
-	// 	{1, 0},{2, 0},{3,0},
-	// 	{1, 1},{2, 1},
-	// 	{1, 2}
-	// };
-
 	for (int i=0; i<(VDC_XRES*VDC_YRES); i++) {
 		system->host->video_viewer_framebuffer[i] = system->core->vdc->buffer[i];
 	}
@@ -298,31 +268,6 @@ void debugger_t::redraw()
 			(system->core->vdc->get_cycles_run()*VDC_XRES/CPU_CYCLES_PER_SCANLINE) + (y * VDC_XRES)
 		] = LIME_COLOR_03;
 	}
-
-	// if (false) {
-	// 	// draw arrows / dot
-	// 	if (system->core->vdc->get_current_scanline() < VDC_YRES) {
-	// 		for (int i=0; i<9; i++) {
-	// 			system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + 239 + arrows[i][0]] = LIME_COLOR_02;
-	// 			system->host->video_framebuffer[((8+system->core->vdc->get_current_scanline()+arrows[i][1])*SCREEN_WIDTH) + 0 + (SCREEN_WIDTH-arrows[i][0])] = LIME_COLOR_02;
-	// 		}
-	// 		system->host->video_framebuffer[
-	// 			((system->core->vdc->get_cycles_run()*VDC_XRES/CPU_CYCLES_PER_SCANLINE)+240) +
-	// 			((8+system->core->vdc->get_current_scanline()) * SCREEN_WIDTH)
-	// 		] = LIME_COLOR_02;
-	// 	}
-
-	// 	// progress bar for cycles done for scanline
-	// 	for (int x=240; x<(240+VDC_XRES); x++) {
-	// 		if (x < ((system->core->vdc->get_cycles_run()*VDC_XRES)/CPU_CYCLES_PER_SCANLINE)+240) {
-	// 			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_02;
-	// 			//system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_02;
-	// 		} else {
-	// 			system->host->video_framebuffer[(3*SCREEN_WIDTH) + x] = LIME_COLOR_00;
-	// 			//system->host->video_framebuffer[(4*SCREEN_WIDTH) + x] = LIME_COLOR_00;
-	// 		}
-	// 	}
-	// }
 }
 
 void debugger_t::prompt()
