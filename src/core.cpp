@@ -18,15 +18,14 @@ core_t::core_t(system_t *s)
 	rom_MC6809 = new rom_MC6809_t();
 
 	exceptions = new exceptions_ic();
+	TTL74LS148 = new TTL74LS148_t(system);
 
-	vdc = new vdc_t(exceptions);
+	vdc = new vdc_t(exceptions, TTL74LS148);
 
 	cpu_mc6809 = new cpu_mc6809_t(system);
 
 	cpu_mc6809->assign_nmi_line(&exceptions->nmi_output_pin);
 	cpu_mc6809->assign_irq_line(&exceptions->irq_output_pin);
-
-	TTL74LS148 = new TTL74LS148_t(system);
 
 	cpu_m68k = new cpu_m68k_t(system);
 	cpu_m68k->setModel(moira::Model::M68000 , moira::Model::M68000);

@@ -74,7 +74,7 @@ debugger_t::debugger_t(system_t *s)
 	terminal->activate_cursor();
 
 	status1 = new terminal_t(system, 60, 26, LIME_COLOR_02, LIME_COLOR_00);
-	status2 = new terminal_t(system, 17, 10, LIME_COLOR_02, 0xff000000);
+	status2 = new terminal_t(system, 18, 11, LIME_COLOR_02, 0xff000000);
 }
 
 debugger_t::~debugger_t()
@@ -118,7 +118,7 @@ void debugger_t::redraw()
 			"  D1:%08x   D5:%08x     A1:%08x   A5:%08x\n"
 			"  D2:%08x   D6:%08x     A2:%08x   A6:%08x\n"
 			"  D3:%08x   D7:%08x     A3:%08x   A7:%08x\n\n"
-			"        PC: %08x    SR: %04x (%s)\n\n"
+			"    PC:%08x   SR:%04x (%s)   IPL:%c%c%c\n\n"
 			"   SSP: %08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n"
 			"   USP: %08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n",
 
@@ -145,6 +145,9 @@ void debugger_t::redraw()
 			system->core->cpu_m68k->getPC(),
 			system->core->cpu_m68k->getSR(),
 			text_buffer,
+			system->core->cpu_m68k->getIPL() & 0b100 ? '1' : '0',
+			system->core->cpu_m68k->getIPL() & 0b010 ? '1' : '0',
+			system->core->cpu_m68k->getIPL() & 0b001 ? '1' : '0',
 
 			isp,
 			system->core->read8(isp+0), system->core->read8(isp+1),
@@ -225,7 +228,11 @@ void debugger_t::redraw()
 
 	status2->clear();
 
-	system->core->exceptions->status(text_buffer, 2048);
+	if (system->core->m68k_active) {
+		system->core->TTL74LS148->status(text_buffer, 2048);
+	} else {
+		system->core->exceptions->status(text_buffer, 2048);
+	}
 	status2->printf("%s", text_buffer);
 
 	status2->printf("\n ----vdc---------");
@@ -234,10 +241,13 @@ void debugger_t::redraw()
 	if (system->core->vdc->get_generate_interrupts()) {
 		status2->printf("\n   irq %i", system->core->vdc->get_irq_scanline());
 	}
+
+	status2->printf("\nTTL IPL %i", system->core->TTL74LS148->get_ipl_level());
+
 	// copy status2 into status1
 	for (int y = 0; y < status2->height; y++) {
 		for (int x = 0; x < status2->width; x++) {
-			status1->tiles[((17 + y) * status1->width) + 40 + x] =
+			status1->tiles[((14 + y) * status1->width) + 40 + x] =
 				status2->tiles[(y * status2->width) + x];
 		}
 	}

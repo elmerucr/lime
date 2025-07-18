@@ -73,10 +73,11 @@ public:
 
 	vdc_t *vdc;
 
-	exceptions_ic *exceptions;
+	exceptions_ic *exceptions;	// for MC6809
+	TTL74LS148_t *TTL74LS148;	// for M68K
+
 	cpu_mc6809_t *cpu_mc6809;
 
-	TTL74LS148_t *TTL74LS148;
 	cpu_m68k_t *cpu_m68k;
 
 	clocks *cpu2sid;

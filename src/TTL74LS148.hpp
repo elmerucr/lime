@@ -15,17 +15,22 @@
 #include "system.hpp"
 
 #include <cstdint>
+#include <string>
 
 class TTL74LS148_t {
 private:
     system_t *system;
+
+	std::string empty_name = "unassigned";
+
 	struct device {
 		bool state;
 		int level;
+		std::string dev_name;
 	};
 	struct device devices[256];
 	uint8_t number_of_devices;
-	int output_level;
+	unsigned int level;
 public:
 	TTL74LS148_t(system_t *s);
 
@@ -39,7 +44,15 @@ public:
 	 * When connecting a device, both a pointer to a pin and an interrupt
 	 * level (1-6) must be supplied. Returns a unique interrupt_device_no
 	 */
-	uint8_t connect_device(int level);
+	uint8_t connect_device(int level, std::string n);
+
+	/*
+	 * Last calculated level
+	 */
+	unsigned int get_ipl_level() { return level; }
+
+	void status(char *b, int buffer_length);
+	// void status(char *b, int buffer_length, uint8_t device);
 };
 
 #endif

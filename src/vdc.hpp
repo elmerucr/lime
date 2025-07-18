@@ -36,6 +36,7 @@
 #include <cstdint>
 #include "common.hpp"
 #include "exceptions.hpp"
+#include "TTL74LS148.hpp"
 #include "font_cbm_8x8.hpp"
 
 struct layer_t {
@@ -132,16 +133,18 @@ private:
 	void draw_sprite(sprite_t *s, uint8_t sl, layer_t *t);
 
 	exceptions_ic *exceptions;
+	TTL74LS148_t *TTL74LS148;
 
 	bool irq_line;
 	bool generate_interrupts;
 	uint16_t irq_scanline;
 
 public:
-	vdc_t(exceptions_ic *e);
+	vdc_t(exceptions_ic *e, TTL74LS148_t *t);
 	~vdc_t();
 
-	uint8_t irq_number;
+	uint8_t irq_number_exceptions;
+	uint8_t irq_number_TTL74LS148;
 
 	uint8_t *ram;
 
