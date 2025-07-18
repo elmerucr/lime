@@ -2,13 +2,14 @@
 
 ![icon](./docs/icon_80x80.png)
 
-Lime is a virtual computer system that draws inspiration from computing platforms such as the Commodore 64 and the Nintendo Gameboy. Notable features include:
+Lime is a virtual computer system that draws inspiration from computing platforms such as the Commodore 64, the Atari ST and the Nintendo Gameboy. Notable features include:
 
+* M68000 CPU using the [Moira](https://github.com/dirkwhoffmann/Moira) library
 * MC6809 CPU using the [MC6809](https://github.com/elmerucr/MC6809) library
-* 64k RAM
+* 16mb RAM (of which lowest 64k accessible by mc6809)
 * Screen resolution of 240x160 pixels, refresh rate of 60Hz
-* VDC for graphics processing
-* Programmable using MC6809 assembly
+* VDC for graphics processing, all data in lowest 64k
+* Programmable using M68000 or MC6809 assembly
 
 ## Screenshots
 
@@ -18,7 +19,13 @@ Lime is a virtual computer system that draws inspiration from computing platform
 
 ### Debug screen
 
-![icon](./docs/20250202_screenshot_debug.png)
+#### m68k mode
+
+![icon](./docs/20250718_screenshot_debug_m68k.png)
+
+#### MC6809 mode
+
+![icon](./docs/20250718_screenshot_debug_mc6809.png)
 
 ## Memory Map
 

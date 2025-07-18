@@ -53,7 +53,6 @@ void exceptions_ic::status(char *b, int buffer_length)
 	}
 }
 
-
 void exceptions_ic::status(char *b, int buffer_length, uint8_t device)
 {
 	if (device < next_available_device) {

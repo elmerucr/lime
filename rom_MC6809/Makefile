@@ -10,4 +10,4 @@ mk_rom: mk_rom.c
 	gcc -o mk_rom mk_rom.c
 
 clean:
-	rm mk_rom rom.bin rom.hpp rom.list rom.symbols
+	rm mk_rom rom.bin rom_MC6809.hpp rom.list rom.symbols

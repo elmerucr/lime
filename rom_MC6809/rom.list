@@ -6,7 +6,6 @@
                       ;-----------------------------------------------------------------------
                       
                       ; rom 0.9 20250603
-                      ;
                       ; adding rnd routine
                       
                       ; rom 0.8 20250420
@@ -132,8 +131,8 @@ FE00                  ROM_START               equ     $fe00
                       
 FE00                                  org     $fe00
                       
-FE00 726F6D20302E3920                 fcn     "rom 0.9 20250603"
-     3230323530363033
+FE00 726F6D20302E3920                 fcn     "rom 0.9 20250718"
+     3230323530373138
      00
 FE11 10CE0200         reset           lds     #$0200          ; sets system stackpointer + enables nmi
 FE15 CEFE00                           ldu     #$fe00          ; sets user stackpointer

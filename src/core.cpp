@@ -15,7 +15,7 @@ core_t::core_t(system_t *s)
 {
 	system = s;
 
-	rom = new rom_t();
+	rom_MC6809 = new rom_MC6809_t();
 
 	exceptions = new exceptions_ic();
 
@@ -25,6 +25,8 @@ core_t::core_t(system_t *s)
 
 	cpu_mc6809->assign_nmi_line(&exceptions->nmi_output_pin);
 	cpu_mc6809->assign_irq_line(&exceptions->irq_output_pin);
+
+	TTL74LS148 = new TTL74LS148_t(system);
 
 	cpu_m68k = new cpu_m68k_t(system);
 	cpu_m68k->setModel(moira::Model::M68000 , moira::Model::M68000);
@@ -53,10 +55,11 @@ core_t::~core_t()
 	delete sound;
 	delete timer;
 	delete cpu_m68k;
+	delete TTL74LS148;
 	delete cpu_mc6809;
 	delete vdc;
 	delete exceptions;
-	delete rom;
+	delete rom_MC6809;
 }
 
 enum output_states core_t::run(bool debug)
@@ -149,7 +152,7 @@ uint8_t core_t::read8(uint32_t address)
 		case SYSTEM_ROM_PAGE:
 		case SYSTEM_ROM_PAGE+1:
 			if (system_rom_visible) {
-				return rom->data[address & 0x1ff];
+				return rom_MC6809->data[address & 0x1ff];
 			} else {
 				return vdc->ram[address];
 			}

@@ -29,7 +29,7 @@ rndx		equ	$ff
 
 		org	$fe00
 
-		fcn	"rom 0.9 20250603"
+		fcn	"rom 0.9 20250718"
 reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldu	#$fe00		; sets user stackpointer
 
