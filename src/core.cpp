@@ -18,9 +18,9 @@ core_t::core_t(system_t *s)
 	rom_MC6809 = new rom_MC6809_t();
 
 	exceptions = new exceptions_ic();
-	TTL74LS148 = new TTL74LS148_t(system);
+	ttl74ls148 = new ttl74ls148_t(system);
 
-	vdc = new vdc_t(exceptions, TTL74LS148);
+	vdc = new vdc_t(exceptions, ttl74ls148);
 
 	cpu_mc6809 = new cpu_mc6809_t(system);
 
@@ -54,7 +54,7 @@ core_t::~core_t()
 	delete sound;
 	delete timer;
 	delete cpu_m68k;
-	delete TTL74LS148;
+	delete ttl74ls148;
 	delete cpu_mc6809;
 	delete vdc;
 	delete exceptions;

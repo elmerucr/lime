@@ -1,15 +1,15 @@
 // ---------------------------------------------------------------------
-// TTL74LS148.cpp
+// ttl74ls148.cpp
 // lime
 //
 // Copyright © 2019-2025 elmerucr. All rights reserved.
 // ---------------------------------------------------------------------
 
-#include "TTL74LS148.hpp"
+#include "ttl74ls148.hpp"
 #include "common.hpp"
 #include "core.hpp"
 
-TTL74LS148_t::TTL74LS148_t(system_t *s)
+ttl74ls148_t::ttl74ls148_t(system_t *s)
 {
 	system = s;
 
@@ -22,7 +22,7 @@ TTL74LS148_t::TTL74LS148_t(system_t *s)
 	level = 0;
 }
 
-uint8_t TTL74LS148_t::connect_device(int level, std::string n)
+uint8_t ttl74ls148_t::connect_device(int level, std::string n)
 {
 	devices[number_of_devices].level = level;
 	devices[number_of_devices].dev_name = n;
@@ -30,19 +30,19 @@ uint8_t TTL74LS148_t::connect_device(int level, std::string n)
 	return (number_of_devices - 1);
 }
 
-void TTL74LS148_t::pull_line(uint8_t handler)
+void ttl74ls148_t::pull_line(uint8_t handler)
 {
 	devices[handler].state = false;
 	update_interrupt_level();
 }
 
-void TTL74LS148_t::release_line(uint8_t handler)
+void ttl74ls148_t::release_line(uint8_t handler)
 {
 	devices[handler].state = true;
 	update_interrupt_level();
 }
 
-void TTL74LS148_t::update_interrupt_level()
+void ttl74ls148_t::update_interrupt_level()
 {
 	level = 0;
 
@@ -54,13 +54,14 @@ void TTL74LS148_t::update_interrupt_level()
 	system->core->cpu_m68k->setIPL(level);
 }
 
-void TTL74LS148_t::status(char *b, int buffer_length)
+void ttl74ls148_t::status(char *b, int buffer_length)
 {
-	b += snprintf(b, buffer_length, "---TTL74LS148----");
-	b += snprintf(b, buffer_length, "\ndev lvl line name");
+	b += snprintf(b, buffer_length, "----ttl74ls148----");
+	b += snprintf(b, buffer_length, "\n dev ipl lin name");
 	for (int i=0; i<number_of_devices; i++) {
-		b += snprintf(b, buffer_length, "\n %1i   %1i   %c   %s", i, devices[i].level, devices[i].state ? '1' : '0', devices[i].dev_name.c_str());
+		b += snprintf(b, buffer_length, "\n  %1i   %1i   %c  %s", i, devices[i].level, devices[i].state ? '1' : '0', devices[i].dev_name.c_str());
 	}
+	b += snprintf(b, buffer_length, "\n\n     output:%i", level);
 }
 
 // void TTL74LS148_t::status(char *b, int buffer_length, uint8_t device)

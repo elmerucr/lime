@@ -21,7 +21,7 @@
 #include "cpu_mc6809.hpp"
 #include "exceptions.hpp"
 #include "cpu_m68k.hpp"
-#include "TTL74LS148.hpp"
+#include "ttl74ls148.hpp"
 #include "rom_MC6809.hpp"
 #include "font_cbm_8x8.hpp"
 #include "timer.hpp"
@@ -74,7 +74,7 @@ public:
 	vdc_t *vdc;
 
 	exceptions_ic *exceptions;	// for MC6809
-	TTL74LS148_t *TTL74LS148;	// for M68K
+	ttl74ls148_t *ttl74ls148;	// for M68K
 
 	cpu_mc6809_t *cpu_mc6809;
 

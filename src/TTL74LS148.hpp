@@ -17,7 +17,7 @@
 #include <cstdint>
 #include <string>
 
-class TTL74LS148_t {
+class ttl74ls148_t {
 private:
     system_t *system;
 
@@ -32,7 +32,7 @@ private:
 	uint8_t number_of_devices;
 	unsigned int level;
 public:
-	TTL74LS148_t(system_t *s);
+	ttl74ls148_t(system_t *s);
 
 	void pull_line(uint8_t handler);
 	void release_line(uint8_t handler);
