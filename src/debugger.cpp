@@ -273,6 +273,16 @@ void debugger_t::redraw()
 		system->host->video_viewer_framebuffer[
 			(system->core->vdc->get_cycles_run()*VDC_XRES/CPU_CYCLES_PER_SCANLINE) + (y * VDC_XRES)
 		] = LIME_COLOR_03;
+		if (y > 0) {
+			system->host->video_viewer_framebuffer[
+				(system->core->vdc->get_cycles_run()*VDC_XRES/CPU_CYCLES_PER_SCANLINE) + ((y - 1) * VDC_XRES)
+			] = LIME_COLOR_03;
+		}
+		if (y < (VDC_YRES - 1)) {
+			system->host->video_viewer_framebuffer[
+				(system->core->vdc->get_cycles_run()*VDC_XRES/CPU_CYCLES_PER_SCANLINE) + ((y + 1) * VDC_XRES)
+			] = LIME_COLOR_03;
+		}
 	}
 }
 

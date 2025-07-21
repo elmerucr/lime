@@ -1,0 +1,20 @@
+Sections:
+00: "seg10000" (10000-10012)
+
+
+Source: "rom.s"
+                            	     1: 	org	$00010000
+                            	     2:
+00:00010000 0000C000        	     3: 	dc.l	$0000c000	; initial ssp
+00:00010004 00010008        	     4: 	dc.l	_start		; reset vector
+                            	     5:
+00:00010008 1F3C0012        	     6: _start	move.b	#$12,-(A7)
+00:0001000C 4EF900010008    	     7: 	jmp	_start
+                            	     8:
+
+
+Symbols by name:
+_start                           A:00010008
+
+Symbols by value:
+00010008 _start
