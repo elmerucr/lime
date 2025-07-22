@@ -74,7 +74,7 @@ debugger_t::debugger_t(system_t *s)
 	terminal->activate_cursor();
 
 	status1 = new terminal_t(system, 60, 26, LIME_COLOR_02, LIME_COLOR_00);
-	status2 = new terminal_t(system, 24, 11, LIME_COLOR_02, 0xff000000);
+	status2 = new terminal_t(system, 32, 9, LIME_COLOR_02, 0xff000000);
 }
 
 debugger_t::~debugger_t()
@@ -233,17 +233,17 @@ void debugger_t::redraw()
 	}
 	status2->printf("%s", text_buffer);
 
-	status2->printf("\n\n----vdc----------");
-	status2->printf("\n cycle %i/%i", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
-	status2->printf("\n scanl %i/%i", system->core->vdc->get_current_scanline(), VDC_SCANLINES - 1);
+	status2->printf("\n\nvdc");
+	status2->printf(" %3i/%3i c ", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
+	status2->printf("%3i/%3i s", system->core->vdc->get_current_scanline(), VDC_SCANLINES - 1);
 	if (system->core->vdc->get_generate_interrupts()) {
-		status2->printf("\n   irq %i", system->core->vdc->get_irq_scanline());
+		status2->printf(" irq %i", system->core->vdc->get_irq_scanline());
 	}
 
 	// copy status2 into status1
 	for (int y = 0; y < status2->height; y++) {
 		for (int x = 0; x < status2->width; x++) {
-			status1->tiles[((14 + y) * status1->width) + 30 + x] =
+			status1->tiles[((17 + y) * status1->width) + 25 + x] =
 				status2->tiles[(y * status2->width) + x];
 		}
 	}

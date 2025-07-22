@@ -9,11 +9,15 @@
 #include "common.hpp"
 #include <cstdio>
 
-timer_ic::timer_ic(exceptions_ic *unit)
+timer_ic::timer_ic(exceptions_ic *e, ttl74ls148_t *t)
 {
-	exceptions = unit;
-	irq_number = exceptions->connect_device("timer");
-	printf("[timer] Connecting to exceptions getting irq %i\n", irq_number);
+	exceptions = e;
+	dev_number_exceptions = exceptions->connect_device("timer");
+	printf("[timer] Connecting to exceptions getting dev %i\n", dev_number_exceptions);
+
+	ttl74ls148 = t;
+	dev_number_ttl74ls148 = ttl74ls148->connect_device(4, "timer");
+	printf("[timer] Connecting to ttl74ls148 at ipl 4 getting dev %i\n", dev_number_ttl74ls148);
 }
 
 void timer_ic::reset()
@@ -30,7 +34,8 @@ void timer_ic::reset()
 		timers[i].counter = 0;
 	}
 
-	exceptions->release(irq_number);
+	exceptions->release(dev_number_exceptions);
+	ttl74ls148->release_line(dev_number_ttl74ls148);
 }
 
 void timer_ic::run(uint32_t number_of_cycles)
@@ -40,7 +45,8 @@ void timer_ic::run(uint32_t number_of_cycles)
 		if ((timers[i].counter >= timers[i].clock_interval) && (control_register & (0b1 << i))) {
 			while (timers[i].counter >= timers[i].clock_interval)
 				timers[i].counter -= timers[i].clock_interval;
-			exceptions->pull(irq_number);
+			exceptions->pull(dev_number_exceptions);
+			ttl74ls148->pull_line(dev_number_ttl74ls148);
 			status_register |= (0b1 << i);
 		}
 	}
@@ -114,7 +120,8 @@ void timer_ic::io_write_byte(uint8_t address, uint8_t byte)
 			status_register = (~byte) & status_register;
 			if ((status_register & 0xff) == 0) {
 				// no timers left causing interrupts
-				exceptions->release(irq_number);
+				exceptions->release(dev_number_exceptions);
+				ttl74ls148->release_line(dev_number_ttl74ls148);
 			}
 			break;
 		case 0x01:

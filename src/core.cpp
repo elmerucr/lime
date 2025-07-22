@@ -32,7 +32,7 @@ core_t::core_t(system_t *s)
 	cpu_m68k->setDasmSyntax(moira::Syntax::MOIRA);
 	cpu_m68k->setDasmIndentation(8);
 
-	timer = new timer_ic(exceptions);
+	timer = new timer_ic(exceptions, ttl74ls148);
 
 	sound = new sound_ic(system);
 
@@ -41,8 +41,11 @@ core_t::core_t(system_t *s)
 	font = new font_cbm_8x8_t();
 
 	// register core as an interrupt device
-	irq_number = exceptions->connect_device("core");
-	printf("[core] Connecting to exceptions getting irq %i\n", irq_number);
+	dev_number_exceptions = exceptions->connect_device("core");
+	printf("[core] Connecting to exceptions getting dev %i\n", dev_number_exceptions);
+
+	dev_number_ttl74ls148 = ttl74ls148->connect_device(2, "core");
+	printf("[core] Connecting to ttl74ls148 at ipl 2 getting dev %i\n", dev_number_ttl74ls148);
 
 	m68k_active = true;
 }
@@ -176,7 +179,7 @@ void core_t::write8(uint32_t address, uint8_t value)
 					switch (address & 0x3f) {
 						case 0x00:
 							if ((value & 0b1) && !irq_line) {
-								exceptions->release(irq_number);
+								exceptions->release(dev_number_exceptions);
 								irq_line = true;
 							}
 							break;
@@ -185,7 +188,7 @@ void core_t::write8(uint32_t address, uint8_t value)
 								generate_interrupts = true;
 								if (bin_attached == true) {
 									bin_attached = false;
-									exceptions->pull(irq_number);
+									exceptions->pull(dev_number_exceptions);
 									irq_line = false;
 								}
 							} else {
@@ -274,7 +277,7 @@ void core_t::attach_bin(char *path)
 			printf("[core] Attaching file\n");
 			bin_attached = true;
 			if (generate_interrupts) {
-				exceptions->pull(irq_number);
+				exceptions->pull(dev_number_exceptions);
 				irq_line = false;
 				bin_attached = false;
 			}

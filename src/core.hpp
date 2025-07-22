@@ -57,7 +57,8 @@ private:
 	bool character_rom_visible;	// bit 1
 
 	// irq related
-	uint8_t irq_number;		// unique number assigned by exception unit
+	uint8_t dev_number_exceptions;		// unique number assigned by exception unit
+	uint8_t dev_number_ttl74ls148;
 	bool irq_line;
 	bool generate_interrupts;
 	bool bin_attached;
