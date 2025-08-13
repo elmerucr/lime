@@ -6,9 +6,9 @@ Lime is a virtual computer system that draws inspiration from computing platform
 
 * M68000 CPU using the [Moira](https://github.com/dirkwhoffmann/Moira) library
 * MC6809 CPU using the [MC6809](https://github.com/elmerucr/MC6809) library
-* 16mb RAM (of which lowest 64k accessible by mc6809)
+* 16mb RAM (of which only lowest 64k accessible by mc6809)
 * Screen resolution of 240x160 pixels, refresh rate of 60Hz
-* VDC for graphics processing, all data in lowest 64k
+* VDC for graphics processing, memory access to lowest 64k
 * Programmable using M68000 or MC6809 assembly
 
 ## Screenshots
@@ -98,7 +98,7 @@ Run with:
 * [vbcc](http://www.compilers.de/vbcc.html) - vbcc is a highly optimizing portable and retargetable ISO C compiler by Volker Barthelmann.
 * [vlink](http://www.compilers.de/vlink.html) - A versatile linker by Frank Wille.
 
-### Emulators and Fantasy Consoles
+### Emulators
 
 * [Commander X16](https://www.commanderx16.com) - The Commander X16 is a modern 8-bit computer currently in active development. It is the brainchild of David "the 8 Bit Guy" Murray.
 * [Commander X16 emulator](https://github.com/x16community/x16-emulator) - Software version of Commander X16.
@@ -108,9 +108,7 @@ Run with:
 * [MC6809](https://github.com/elmerucr/mC6809) - MC6809 cpu emulator written in C++ by elmerucr.
 * [Moira](https://github.com/dirkwhoffmann/Moira) - Motorola 68000 cpu emulator written in C++ by Dirk W. Hoffmann.
 * [Peddle](https://dirkwhoffmann.github.io/Peddle/) - Peddle is a MOS Technology 6502, 6507, and 6510 emulator with high emulation accuracy by Dirk W. Hoffmann.
-* [PICO-8](https://www.lexaloffle.com/pico-8.php) - PICO-8 is a fantasy console for making, sharing and playing tiny games and other computer programs by lexaloffle.
 * [reSID](http://www.zimmers.net/anonftp/pub/cbm/crossplatform/emulators/resid/index.html) - ReSID is a Commodore 6581 and 8580 Sound Interface Device emulator by Dag Lem.
-* [TIC-80](https://tic80.com) - TIC-80 is a free and open source fantasy computer for making, playing and sharing tiny games.
 * [vAmiga](https://dirkwhoffmann.github.io/vAmiga/) - An Amiga 500, 1000, or 2000 on your Apple Macintosh by Dirk W. Hoffmann.
 * [VICE](http://vice-emu.sourceforge.net) - The Versatile Commodore Emulator.
 * [VirtualC64](https://dirkwhoffmann.github.io/virtualc64/) - A Commodore 64 on your Apple Macintosh by Dirk W. Hoffmann.
@@ -118,12 +116,15 @@ Run with:
 ### Other
 
 * [freeverb](https://github.com/sinshu/freeverb/) - Free, studio-quality reverb SOURCE CODE in the public domain
+* [PICO-8](https://www.lexaloffle.com/pico-8.php) - PICO-8 is a fantasy console for making, sharing and playing tiny games and other computer programs by lexaloffle.
 * [SDL Simple DirectMedia Layer](https://www.libsdl.org) - A cross-platform development library by Sam Lantinga designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware.
 * [stb](https://github.com/nothings/stb) - single-file public domain (or MIT licensed) libraries for C/C++
-
+* [TIC-80](https://tic80.com) - TIC-80 is a free and open source fantasy computer for making, playing and sharing tiny games.
 * [visual6502](http://www.visual6502.org) - Visual Transistor-level Simulation of the 6502 CPU and other chips.
 
 ## References
+
+Kane, Hawkins and Leventhal. 1981. 68000 ASSEMBLY LANGUAGE PROGRAMMING. OSBORNE/McGraw-Hill.
 
 Leventhal, Lance A. 1981. 6809 ASSEMBLY LANGUAGE PROGRAMMING. OSBORNE/McGraw-Hill.
 
