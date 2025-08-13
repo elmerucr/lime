@@ -61,14 +61,5 @@ void ttl74ls148_t::status(char *b, int buffer_length)
 	for (int i=0; i<number_of_devices; i++) {
 		b += snprintf(b, buffer_length, "\n  %1i   %1i   %c  \"%s\"", i, devices[i].level, devices[i].state ? '1' : '0', devices[i].dev_name.c_str());
 	}
-	b += snprintf(b, buffer_length, "\n\n     output:%i", level);
+	b += snprintf(b, buffer_length, "\n\n   output level:%i", level);
 }
-
-// void TTL74LS148_t::status(char *b, int buffer_length, uint8_t device)
-// {
-// 	if (device < next_available_device) {
-// 		snprintf(b, buffer_length, "%1i  %c \"%s\"", device, irq_input_pins[device] ? '1' : '0', dev_name[device]);
-// 	} else {
-// 		b[0] = '\0';
-// 	}
-// }

@@ -52,7 +52,6 @@ public:
 	unsigned int get_ipl_level() { return level; }
 
 	void status(char *b, int buffer_length);
-	// void status(char *b, int buffer_length, uint8_t device);
 };
 
 #endif
