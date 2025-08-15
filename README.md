@@ -8,7 +8,7 @@ Lime is a virtual computer system that draws inspiration from computing platform
 * MC6809 CPU using the [MC6809](https://github.com/elmerucr/MC6809) library
 * 16mb RAM (of which only lowest 64k accessible by mc6809)
 * Screen resolution of 240x160 pixels, refresh rate of 60Hz
-* VDC for graphics processing, memory access to lowest 64k
+* Video Display Controller (VDC) for graphics processing, memory access to lowest 64k
 * Programmable using M68000 or MC6809 assembly
 
 ## Screenshots
@@ -19,7 +19,7 @@ Lime is a virtual computer system that draws inspiration from computing platform
 
 ### Debug screen
 
-#### m68k mode
+#### MC68000 mode
 
 ![icon](./docs/20250718_screenshot_debug_m68k.png)
 
@@ -92,6 +92,7 @@ Run with:
 ### Assemblers and Compilers
 
 * [asm6809](https://www.6809.org.uk/asm6809/) - A portable cross assembler targeting the Motorola 6809 and Hitachi 6309 by Ciaran Anscomb.
+* [asmx](http://xi6.com/projects/asmx/) - A multi-CPU macro assembler by Bruce Tomlin for many major 8-bit and 16-bit CPUs, which can assemble code for multiple CPUs in the same source file.
 * [CMOC](https://freshcode.club/projects/cmoc) - CMOC is a 6809-generating cross-compiler for a large subset of the C language by sarrazip.
 * [LWTOOLS](http://www.lwtools.ca) - LWTOOLS is a set of cross-development tools for the Motorola 6809 and Hitachi 6309 microprocessors by Willam 'Lost Wizard' Astle.
 * [vasm](http://sun.hasenbraten.de/vasm/) - A portable and retargetable assembler by Volker Barthelmann.
@@ -124,7 +125,9 @@ Run with:
 
 ## References
 
-Kane, Hawkins and Leventhal. 1981. 68000 ASSEMBLY LANGUAGE PROGRAMMING. OSBORNE/McGraw-Hill.
+Clements, Alan. 1994. 68000 Family Assembly Language. PWS Publishing Company.
+
+Leventhal, Hawkins, Kane and Cramer. 1986. 68000 ASSEMBLY LANGUAGE PROGRAMMING SECOND EDITION. OSBORNE/McGraw-Hill.
 
 Leventhal, Lance A. 1981. 6809 ASSEMBLY LANGUAGE PROGRAMMING. OSBORNE/McGraw-Hill.
 
@@ -133,6 +136,8 @@ Motorola. 1981. MC6809-MC6809E 8-BIT Microprocessor Programming Manual. Motorola
 Motorola Semiconductors. 1983. MC6809 Datasheet.
 
 Osborne, Adam. 1976. An introduction to microcomputers - Volume I Basic Concepts. SYBEX.
+
+Skinner, Thomas P. Assembly Language Programming for the 68000 Family. John Wiley & Sons.
 
 Zaks, Rodnay and William Labiak. 1982. Programming the 6809. SYBEX.
 

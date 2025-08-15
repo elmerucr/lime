@@ -233,11 +233,15 @@ void debugger_t::redraw()
 	}
 	status2->printf("%s", text_buffer);
 
-	status2->printf("\n\n");
-	status2->printf(" %i/%i cycles done in scanline", system->core->vdc->get_cycles_run(), CPU_CYCLES_PER_SCANLINE);
-	status2->printf(" %i", system->core->vdc->get_current_scanline());
+	status2->printf("\n\n------------vdc-----------------");
+	status2->printf(" %3i/%3i cycles in scanline %3i",
+		system->core->vdc->get_cycles_run(),
+		CPU_CYCLES_PER_SCANLINE,
+		system->core->vdc->get_current_scanline()
+	);
+
 	if (system->core->vdc->get_generate_interrupts()) {
-		status2->printf(" irq %i", system->core->vdc->get_irq_scanline());
+		status2->printf("\n next interrupt in scanline %3i", system->core->vdc->get_irq_scanline());
 	}
 
 	// copy status2 into status1
