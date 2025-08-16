@@ -47,7 +47,7 @@ core_t::core_t(system_t *s)
 	dev_number_ttl74ls148 = ttl74ls148->connect_device(2, "core");
 	printf("[core] Connecting to ttl74ls148 at ipl 2 getting dev %i\n", dev_number_ttl74ls148);
 
-	m68k_active = true;
+	m68k_active = false;
 }
 
 core_t::~core_t()
@@ -234,7 +234,7 @@ void core_t::reset()
 	vdc->reset();	// vdc before cpu, as vdc also inits ram
 	cpu_mc6809->reset();
 
-	// hack for 68000
+	// temp hack for 68000
 	write8(0, 0x00);
 	write8(1, 0x00);
 	write8(2, 0xc0);
