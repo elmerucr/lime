@@ -153,8 +153,10 @@ uint8_t core_t::read8(uint32_t address)
 			return sound->io_read_byte(address);
 		case SYSTEM_ROM_PAGE:
 		case SYSTEM_ROM_PAGE+1:
+		case SYSTEM_ROM_PAGE+2:
+		case SYSTEM_ROM_PAGE+3:
 			if (system_rom_visible) {
-				return rom_MC6809->data[address & 0x1ff];
+				return rom_MC6809->data[address & 0x3ff];
 			} else {
 				return vdc->ram[address];
 			}
@@ -232,6 +234,7 @@ void core_t::reset()
 	vdc->reset();	// vdc before cpu, as vdc also inits ram
 	cpu_mc6809->reset();
 
+	// hack for 68000
 	write8(0, 0x00);
 	write8(1, 0x00);
 	write8(2, 0xc0);
@@ -240,7 +243,6 @@ void core_t::reset()
 	write8(5, 0x00);
 	write8(6, 0xd0);
 	write8(7, 0x00);
-
 	write8(0xd000, 0x1e);
 	write8(0xd001, 0x3c);
 	write8(0xd002, 0x00);

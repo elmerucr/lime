@@ -36,7 +36,7 @@
 #define		TIMER_SUB_PAGE	0x40
 #define		CORE_SUB_PAGE	0x80
 #define	SOUND_PAGE			0x05
-#define SYSTEM_ROM_PAGE		0xfe
+#define SYSTEM_ROM_PAGE		0xfc
 
 enum output_states {
 	NORMAL,

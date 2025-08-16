@@ -241,7 +241,7 @@ void debugger_t::redraw()
 	);
 
 	if (system->core->vdc->get_generate_interrupts()) {
-		status2->printf("\n next interrupt in scanline %3i", system->core->vdc->get_irq_scanline());
+		status2->printf("\n next interrupt at scanline %3i", system->core->vdc->get_irq_scanline());
 	}
 
 	// copy status2 into status1

@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
 	time_t t;
 	time(&t);
 
-	uint8_t romdata[512];
+	uint8_t romdata[1024];
 
 	// read
 	FILE *f;
@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 	long pos = ftell(f);
 
 	printf("[mk_rom] rom.bin size: %lu bytes\n", pos);
-	if (pos > 512L) {
+	if (pos > 1024L) {
 		printf("[mk_rom] too large, exiting...\n");
 		fclose(f);
 		return 1;
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 	fread(romdata, pos, 1, f);
 
 	// fill up the rest of the final rom with zeroes
-	for (int i=pos; i < 512; i++) {
+	for (int i=pos; i < 1024; i++) {
 		romdata[i] = 0x00;
 	}
 
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	fclose(f);
 
 	// write 8k output to cpp file
-	printf("[mk_rom] writing 512b image 'rom.bin' and 'rom_MC6809.hpp' for inclusion in punch\n");
+	printf("[mk_rom] writing 1024b image 'rom.bin' and 'rom_MC6809.hpp' for inclusion in punch\n");
 	f = fopen("rom_MC6809.hpp","w");
 
 	fprintf(f, "// ---------------------------------------------------------------------\n");
@@ -55,14 +55,14 @@ int main(int argc, char *argv[])
 
 	fprintf(f, "class rom_MC6809_t {\n");
 	fprintf(f, "public:\n");
-	fprintf(f, "\tconst uint8_t data[512] = {");
+	fprintf(f, "\tconst uint8_t data[1024] = {");
 
-	for(int i = 0; i < 511; i++) {
+	for(int i = 0; i < 1023; i++) {
 		if(i%8 == 0) fprintf(f, "\n\t\t");
 		fprintf(f, "0x%02x,", romdata[i]);
 	}
 
-	fprintf(f, "0x%02x\n\t};\n", romdata[(512)-1]);
+	fprintf(f, "0x%02x\n\t};\n", romdata[(1024)-1]);
 
 	fprintf(f, "};\n");
 

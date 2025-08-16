@@ -27,9 +27,9 @@ rndx		equ	$ff
 		setdp	$00		; assembler now assumes dp = $00 and
 					; uses dp addressing when appropriate
 
-		org	$fe00
+		org	$fc00
 
-		fcn	"rom 0.9 20250718"
+		fcn	"rom 0.10 20250816"
 reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldu	#$fe00		; sets user stackpointer
 
@@ -250,6 +250,23 @@ rnd_impl	inc	rndx
 		rts
 
 1		jmp	[VECTOR_IRQ_INDIRECT]
+
+logo_chars	fcb	%00000000,%00000000,%00000001,%00000000	; tile 1 (icon upper left)
+		fcb	%00000111,%10000000,%00000111,%10100000
+		fcb	%00011110,%11111000,%00011110,%10101111
+		fcb	%00011110,%10101010,%00011110,%10101111
+		fcb	%00000000,%00000000,%00000000,%00000000	; tile 2 (icon upper right)
+		fcb	%00000000,%00000000,%00000000,%00000000
+		fcb	%00000000,%00000000,%00000000,%00000000
+		fcb	%11000000,%00000000,%10110000,%00000000
+		fcb	%00011110,%11111010,%00000111,%10101010	; tile 3 (icon bottom left)
+		fcb	%00000111,%10101011,%00000001,%11101011
+		fcb	%00000000,%01111110,%00000000,%00010111
+		fcb	%00000000,%00000001,%00000000,%00000000
+		fcb	%11101100,%00000000,%11101110,%00000000	; tile 4 (icon bottom right)
+		fcb	%10101011,%10000000,%10101011,%10100000
+		fcb	%10101010,%11110100,%11111111,%01010000
+		fcb	%01010101,%00000000,%00000000,%00000000
 
 		org	$fff0 - (vectors - rnd)
 
