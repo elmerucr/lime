@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------
-// rom_MC6809.hpp
+// rom_mc6809.hpp
 // lime
 //
 // Copyright (C)2025 elmerucr. All rights reserved.
-// Sat Aug 16 23:23:15 2025
+// Sat Aug 16 23:35:43 2025
 // ---------------------------------------------------------------------
 
 #ifndef ROM_MC6809_HPP
@@ -11,7 +11,7 @@
 
 #include <cstdint>
 
-class rom_MC6809_t {
+class rom_mc6809_t {
 public:
 	const uint8_t data[1024] = {
 		0x72,0x6f,0x6d,0x20,0x30,0x2e,0x31,0x30,

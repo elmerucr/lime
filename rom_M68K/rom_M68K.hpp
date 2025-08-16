@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------
-// rom_M68K.hpp
+// rom_m68k.hpp
 // lime
 //
 // Copyright (C)2025 elmerucr. All rights reserved.

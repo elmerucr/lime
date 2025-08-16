@@ -15,7 +15,7 @@ core_t::core_t(system_t *s)
 {
 	system = s;
 
-	rom_MC6809 = new rom_MC6809_t();
+	rom_mc6809 = new rom_mc6809_t();
 
 	exceptions = new exceptions_ic();
 	ttl74ls148 = new ttl74ls148_t(system);
@@ -61,7 +61,7 @@ core_t::~core_t()
 	delete cpu_mc6809;
 	delete vdc;
 	delete exceptions;
-	delete rom_MC6809;
+	delete rom_mc6809;
 }
 
 enum output_states core_t::run(bool debug)
@@ -156,7 +156,7 @@ uint8_t core_t::read8(uint32_t address)
 		case SYSTEM_ROM_PAGE+2:
 		case SYSTEM_ROM_PAGE+3:
 			if (system_rom_visible) {
-				return rom_MC6809->data[address & 0x3ff];
+				return rom_mc6809->data[address & 0x3ff];
 			} else {
 				return vdc->ram[address];
 			}
