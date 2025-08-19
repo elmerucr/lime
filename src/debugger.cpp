@@ -74,7 +74,7 @@ debugger_t::debugger_t(system_t *s)
 	terminal->activate_cursor();
 
 	status1 = new terminal_t(system, 60, 26, LIME_COLOR_02, LIME_COLOR_00);
-	status2 = new terminal_t(system, 32, 9, LIME_COLOR_02, 0xff000000);
+	status2 = new terminal_t(system, 33, 9, LIME_COLOR_02, 0xff000000);
 }
 
 debugger_t::~debugger_t()
@@ -113,14 +113,14 @@ void debugger_t::redraw()
 		uint32_t isp = system->core->cpu_m68k->getISP();
 		uint32_t usp = system->core->cpu_m68k->getUSP();
 		status1->printf(
-			"----------------------------cpu-----------------------------"
-			"  D0:%08x   D4:%08x     A0:%08x   A4:%08x\n"
-			"  D1:%08x   D5:%08x     A1:%08x   A5:%08x\n"
-			"  D2:%08x   D6:%08x     A2:%08x   A6:%08x\n"
-			"  D3:%08x   D7:%08x     A3:%08x   A7:%08x\n\n"
-			"    PC:%08x    SR:%04x (%s)    IPL:%i\n\n"
-			"   SSP: %08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n"
-			"   USP: %08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n",
+			"__________________________cpu_m68k__________________________"
+			"   D0:%08x   D4:%08x    A0:%08x   A4:%08x\n"
+			"   D1:%08x   D5:%08x    A1:%08x   A5:%08x\n"
+			"   D2:%08x   D6:%08x    A2:%08x   A6:%08x\n"
+			"   D3:%08x   D7:%08x    A3:%08x   A7:%08x\n\n"
+			"     PC:%08x    SR:%04x (%s)    IPL:%i\n\n"
+			"    SSP:%08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n"
+			"    USP:%08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n",
 
 			system->core->cpu_m68k->getD(0),
 			system->core->cpu_m68k->getD(4),
@@ -169,20 +169,20 @@ void debugger_t::redraw()
 		);
 
 		status1->printf(
-			"\n------------------------disassembler------------------------"
+			"________________________disassembler________________________"
 		);
 		uint32_t pc = system->core->cpu_m68k->getPC();
 		uint32_t new_pc;
-		for (int i=0; i<4; i++) {
+		for (int i=0; i<6; i++) {
 			new_pc = pc + system->core->cpu_m68k->disassemble(text_buffer, pc);
+			if(i) status1->putchar('\n');
 			if (m68k_disassembly) {
-				status1->printf(",%08x %s\n", pc, text_buffer);
+				status1->printf(",%08x %s", pc, text_buffer);
 			} else {
 				status1->printf(",%08x ", pc);
 				for (int i=pc; i < new_pc; i++) {
 					status1->printf("%02x", system->core->read8(i));
 				}
-				status1->printf("\n");
 			}
 			pc = new_pc;
 		}
@@ -191,7 +191,7 @@ void debugger_t::redraw()
 		uint16_t usp = system->core->cpu_mc6809->get_us() & 0xffff;
 
 		system->core->cpu_mc6809->status(text_buffer, 1024);
-		status1->printf("---------------------------cpu------------------------------%s", text_buffer);
+		status1->printf("_________________________cpu_mc6809_________________________%s", text_buffer);
 		status1->printf(
 			"\n\n      system stack: %04x %02x %02x %02x %02x %02x %02x %02x %02x",
 			ssp, system->core->read8(ssp), system->core->read8(ssp+1), system->core->read8(ssp+2),
@@ -204,7 +204,7 @@ void debugger_t::redraw()
 			system->core->read8(usp+3), system->core->read8(usp+4), system->core->read8(usp+5),
 			system->core->read8(usp+6), system->core->read8(usp+7)
 		);
-		status1->printf("\n\n------------------------disassembler------------------------");
+		status1->printf("\n\n________________________disassembler________________________");
 		uint16_t pc = system->core->cpu_mc6809->get_pc();
 		for (int i=0; i<8; i++) {
 			status1->putchar(',');
@@ -213,7 +213,7 @@ void debugger_t::redraw()
 		}
 	}
 
-		status1->printf("\n-t-----s--bpm---cycles--");
+		status1->printf("\n_t_____s__bpm___cycles__");
 		for (int i=0; i<8; i++) {
 			status1->printf("\n %1x %s %s %05u %08x",
 				i,
@@ -233,15 +233,15 @@ void debugger_t::redraw()
 	}
 	status2->printf("%s", text_buffer);
 
-	status2->printf("\n\n------------vdc-----------------");
-	status2->printf(" %3i/%3i cycles in scanline %3i",
+	status2->printf("\n\n ______________vdc_______________");
+	status2->printf("  %3i/%3i cycles in scanline %3i",
 		system->core->vdc->get_cycles_run(),
 		CPU_CYCLES_PER_SCANLINE,
 		system->core->vdc->get_current_scanline()
 	);
 
 	if (system->core->vdc->get_generate_interrupts()) {
-		status2->printf("\n next interrupt at scanline %3i", system->core->vdc->get_irq_scanline());
+		status2->printf("\n  next interrupt at scanline %3i", system->core->vdc->get_irq_scanline());
 	}
 
 	// copy status2 into status1
@@ -462,6 +462,13 @@ void debugger_t::process_command(char *c)
 					temp_pc = (temp_pc + 8) & 0xfffffe;
 				}
 			}
+		}
+	} else if (strcmp(token0, "mode") == 0) {
+		system->core->m68k_active = !system->core->m68k_active;
+		if (system->core->m68k_active) {
+			terminal->printf("\nm68k mode");
+		} else {
+			terminal->printf("\nmc6809 mode");
 		}
 	} else if (strcmp(token0, "g") == 0) {
 		have_prompt = false;

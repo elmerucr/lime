@@ -56,9 +56,9 @@ void ttl74ls148_t::update_interrupt_level()
 
 void ttl74ls148_t::status(char *b, int buffer_length)
 {
-	b += snprintf(b, buffer_length, "----ttl74ls148(%i)----", level);
-	b += snprintf(b, buffer_length, "\n dev ipl lin name");
+	b += snprintf(b, buffer_length, "      ______sn74ls148______");
+	b += snprintf(b, buffer_length, "\n       dev ipl lin name");
 	for (int i=0; i<number_of_devices; i++) {
-		b += snprintf(b, buffer_length, "\n  %1i   %1i   %c  \"%s\"", i, devices[i].level, devices[i].state ? '1' : '0', devices[i].dev_name.c_str());
+		b += snprintf(b, buffer_length, "\n        %1i   %1i   %c  \"%s\"", i, devices[i].level, devices[i].state ? '1' : '0', devices[i].dev_name.c_str());
 	}
 }
