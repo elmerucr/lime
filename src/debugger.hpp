@@ -18,7 +18,8 @@ class debugger_t {
 private:
 	font_cbm_8x8_t debugger_cbm_font;
 	terminal_t *status1;
-	terminal_t *status2;
+	terminal_t *exception_status;
+	terminal_t *vdc_status;
 	system_t *system;
 
 	bool have_prompt;
@@ -28,6 +29,7 @@ private:
 		0b00, 0b01, 0b10, 0b11
 	};
 
+	bool timers_4_7 = false;
 	bool m68k_disassembly = true;
 
 public:

@@ -74,12 +74,14 @@ debugger_t::debugger_t(system_t *s)
 	terminal->activate_cursor();
 
 	status1 = new terminal_t(system, 60, 26, LIME_COLOR_02, LIME_COLOR_00);
-	status2 = new terminal_t(system, 33, 9, LIME_COLOR_02, 0xff000000);
+	exception_status = new terminal_t(system, 21, 5, LIME_COLOR_02, 0xff000000);
+	vdc_status = new terminal_t(system, 13, 5, LIME_COLOR_02, 0xff000000);
 }
 
 debugger_t::~debugger_t()
 {
-	delete status2;
+	delete vdc_status;
+	delete exception_status;
 	delete status1;
 	delete terminal;
 }
@@ -113,7 +115,7 @@ void debugger_t::redraw()
 		uint32_t isp = system->core->cpu_m68k->getISP();
 		uint32_t usp = system->core->cpu_m68k->getUSP();
 		status1->printf(
-			"__________________________cpu_m68k__________________________"
+			"--------------------------cpu-m68k--------------------------"
 			"   D0:%08x   D4:%08x    A0:%08x   A4:%08x\n"
 			"   D1:%08x   D5:%08x    A1:%08x   A5:%08x\n"
 			"   D2:%08x   D6:%08x    A2:%08x   A6:%08x\n"
@@ -169,20 +171,20 @@ void debugger_t::redraw()
 		);
 
 		status1->printf(
-			"________________________disassembler________________________"
+			"\n------------------------disassembler------------------------"
 		);
 		uint32_t pc = system->core->cpu_m68k->getPC();
 		uint32_t new_pc;
-		for (int i=0; i<6; i++) {
+		for (int i=0; i<7; i++) {
 			new_pc = pc + system->core->cpu_m68k->disassemble(text_buffer, pc);
-			if(i) status1->putchar('\n');
 			if (m68k_disassembly) {
-				status1->printf(",%08x %s", pc, text_buffer);
+				status1->printf(",%08x %s\n", pc, text_buffer);
 			} else {
 				status1->printf(",%08x ", pc);
 				for (int i=pc; i < new_pc; i++) {
 					status1->printf("%02x", system->core->read8(i));
 				}
+				status1->printf("\n");
 			}
 			pc = new_pc;
 		}
@@ -191,7 +193,7 @@ void debugger_t::redraw()
 		uint16_t usp = system->core->cpu_mc6809->get_us() & 0xffff;
 
 		system->core->cpu_mc6809->status(text_buffer, 1024);
-		status1->printf("_________________________cpu_mc6809_________________________%s", text_buffer);
+		status1->printf("-------------------------cpu-mc6809-------------------------%s", text_buffer);
 		status1->printf(
 			"\n\n      system stack: %04x %02x %02x %02x %02x %02x %02x %02x %02x",
 			ssp, system->core->read8(ssp), system->core->read8(ssp+1), system->core->read8(ssp+2),
@@ -204,55 +206,63 @@ void debugger_t::redraw()
 			system->core->read8(usp+3), system->core->read8(usp+4), system->core->read8(usp+5),
 			system->core->read8(usp+6), system->core->read8(usp+7)
 		);
-		status1->printf("\n\n________________________disassembler________________________");
+		status1->printf("\n\n------------------------disassembler------------------------");
 		uint16_t pc = system->core->cpu_mc6809->get_pc();
-		for (int i=0; i<8; i++) {
+		for (int i=0; i<11; i++) {
 			status1->putchar(',');
 			pc += disassemble_instruction_status1(pc);
 			status1->putchar('\n');
 		}
 	}
 
-		status1->printf("\n_t_____s__bpm___cycles__");
-		for (int i=0; i<8; i++) {
+		status1->printf("\n---------timers---------\n t     s  bpm   cycles  ");
+		for (int i=0; i<4; i++) {
+			int j = i + (timers_4_7 ? 4 : 0);
 			status1->printf("\n %1x %s %s %05u %08x",
-				i,
-				system->core->timer->io_read_byte(0x01) & (1 << i) ? " on" : "off",
-				system->core->timer->io_read_byte(0x00) & (1 << i) ? "*" : "-",
-				system->core->timer->get_timer_bpm(i),
-				system->core->timer->get_timer_clock_interval(i) - system->core->timer->get_timer_counter(i)
+				j,
+				system->core->timer->io_read_byte(0x01) & (1 << j) ? " on" : "off",
+				system->core->timer->io_read_byte(0x00) & (1 << j) ? "*" : "-",
+				system->core->timer->get_timer_bpm(j),
+				system->core->timer->get_timer_clock_interval(j) - system->core->timer->get_timer_counter(j)
 			);
 		}
 
-	status2->clear();
+	exception_status->clear();
 
 	if (system->core->m68k_active) {
 		system->core->ttl74ls148->status(text_buffer, 2048);
 	} else {
 		system->core->exceptions->status(text_buffer, 2048);
 	}
-	status2->printf("%s", text_buffer);
+	exception_status->printf("%s", text_buffer);
 
-	status2->printf("\n\n ______________vdc_______________");
-	status2->printf("  %3i/%3i cycles in scanline %3i",
+	// copy exception_status into status1
+	for (int y = 0; y < exception_status->height; y++) {
+		for (int x = 0; x < exception_status->width; x++) {
+			status1->tiles[((20 + y) * status1->width) + 25 + x] =
+				exception_status->tiles[(y * exception_status->width) + x];
+		}
+	}
+
+	vdc_status->clear();
+	vdc_status->printf("-----vdc-----");
+	vdc_status->printf("%3i/%3i cycl%3i",
 		system->core->vdc->get_cycles_run(),
 		CPU_CYCLES_PER_SCANLINE,
 		system->core->vdc->get_current_scanline()
 	);
-
 	if (system->core->vdc->get_generate_interrupts()) {
-		status2->printf("\n  next interrupt at scanline %3i", system->core->vdc->get_irq_scanline());
+		vdc_status->printf("\nnias %3i", system->core->vdc->get_irq_scanline());
 	}
-
-	// copy status2 into status1
-	for (int y = 0; y < status2->height; y++) {
-		for (int x = 0; x < status2->width; x++) {
-			status1->tiles[((17 + y) * status1->width) + 25 + x] =
-				status2->tiles[(y * status2->width) + x];
+	// copy vdc_status into status1
+	for (int y = 0; y < vdc_status->height; y++) {
+		for (int x = 0; x < vdc_status->width; x++) {
+			status1->tiles[((20 + y) * status1->width) + 47 + x] =
+				vdc_status->tiles[(y * vdc_status->width) + x];
 		}
 	}
 
-	// draw status1 (including chars of status2)
+	// draw status1 (including chars of exception_status)
 	for (int y = 0; y < (status1->height << 3); y++) {
 		uint8_t y_in_char = y % 8;
 		for (int x = 0; x < (status1->width << 3); x++) {
@@ -314,6 +324,9 @@ void debugger_t::run()
 				} while (!system->core->vdc->started_new_scanline());
 				break;
 			case ASCII_F3:
+				timers_4_7 = !timers_4_7;
+				break;
+			case ASCII_F4:
 				m68k_disassembly = !m68k_disassembly;
 				break;
 			case ASCII_CURSOR_LEFT:
