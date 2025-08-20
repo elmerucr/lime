@@ -298,7 +298,7 @@ void host_t::video_init()
 	snprintf(title, 64, "lime  %i.%i.%i", LIME_MAJOR_VERSION, LIME_MINOR_VERSION, LIME_BUILD);
 
     video_window = SDL_CreateWindow(
-        title,
+        nullptr,
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
         video_scaling * SCREEN_WIDTH,
@@ -359,6 +359,11 @@ void host_t::video_stop()
     SDL_DestroyTexture(video_texture);
     SDL_DestroyRenderer(video_renderer);
     SDL_DestroyWindow(video_window);
+}
+
+void host_t::video_set_window_title(const char *t)
+{
+	SDL_SetWindowTitle(video_window, t);
 }
 
 bool host_t::events_yes_no()

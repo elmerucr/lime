@@ -13,7 +13,7 @@ add_library(system STATIC
 	system.cpp
 	terminal.cpp
 	timer.cpp
-	ttl74ls148.cpp
+	sn74ls148.cpp
 	vdc.cpp
 )
 

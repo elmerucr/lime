@@ -18,9 +18,9 @@ core_t::core_t(system_t *s)
 	rom_mc6809 = new rom_mc6809_t();
 
 	exceptions = new exceptions_ic();
-	ttl74ls148 = new ttl74ls148_t(system);
+	sn74ls148 = new sn74ls148_t(system);
 
-	vdc = new vdc_t(exceptions, ttl74ls148);
+	vdc = new vdc_t(exceptions, sn74ls148);
 
 	cpu_mc6809 = new cpu_mc6809_t(system);
 
@@ -32,7 +32,7 @@ core_t::core_t(system_t *s)
 	cpu_m68k->setDasmSyntax(moira::Syntax::MOIRA);
 	cpu_m68k->setDasmIndentation(8);
 
-	timer = new timer_ic(exceptions, ttl74ls148);
+	timer = new timer_ic(exceptions, sn74ls148);
 
 	sound = new sound_ic(system);
 
@@ -44,8 +44,8 @@ core_t::core_t(system_t *s)
 	dev_number_exceptions = exceptions->connect_device("core");
 	printf("[core] Connecting to exceptions getting dev %i\n", dev_number_exceptions);
 
-	dev_number_ttl74ls148 = ttl74ls148->connect_device(2, "core");
-	printf("[core] Connecting to ttl74ls148 at ipl 2 getting dev %i\n", dev_number_ttl74ls148);
+	dev_number_sn74ls148 = sn74ls148->connect_device(2, "core");
+	printf("[core] Connecting to sn74ls148 at ipl 2 getting dev %i\n", dev_number_sn74ls148);
 
 	m68k_active = false;
 }
@@ -57,7 +57,7 @@ core_t::~core_t()
 	delete sound;
 	delete timer;
 	delete cpu_m68k;
-	delete ttl74ls148;
+	delete sn74ls148;
 	delete cpu_mc6809;
 	delete vdc;
 	delete exceptions;

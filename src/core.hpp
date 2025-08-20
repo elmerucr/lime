@@ -21,7 +21,7 @@
 #include "cpu_mc6809.hpp"
 #include "exceptions.hpp"
 #include "cpu_m68k.hpp"
-#include "ttl74ls148.hpp"
+#include "sn74ls148.hpp"
 #include "rom_mc6809.hpp"
 #include "font_cbm_8x8.hpp"
 #include "timer.hpp"
@@ -58,7 +58,7 @@ private:
 
 	// irq related
 	uint8_t dev_number_exceptions;		// unique number assigned by exception unit
-	uint8_t dev_number_ttl74ls148;
+	uint8_t dev_number_sn74ls148;
 	bool irq_line;
 	bool generate_interrupts;
 	bool bin_attached;
@@ -75,7 +75,7 @@ public:
 	vdc_t *vdc;
 
 	exceptions_ic *exceptions;	// for MC6809
-	ttl74ls148_t *ttl74ls148;	// for M68K
+	sn74ls148_t *sn74ls148;	// for M68K
 
 	cpu_mc6809_t *cpu_mc6809;
 

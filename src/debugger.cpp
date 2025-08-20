@@ -230,7 +230,7 @@ void debugger_t::redraw()
 	exception_status->clear();
 
 	if (system->core->m68k_active) {
-		system->core->ttl74ls148->status(text_buffer, 2048);
+		system->core->sn74ls148->status(text_buffer, 2048);
 	} else {
 		system->core->exceptions->status(text_buffer, 2048);
 	}
@@ -246,7 +246,7 @@ void debugger_t::redraw()
 
 	vdc_status->clear();
 	vdc_status->printf("-----vdc-----");
-	vdc_status->printf("%3i/%3i cycl%3i",
+	vdc_status->printf("cycle %3i/%3i\n%3i",
 		system->core->vdc->get_cycles_run(),
 		CPU_CYCLES_PER_SCANLINE,
 		system->core->vdc->get_current_scanline()
@@ -413,6 +413,13 @@ void debugger_t::process_command(char *c)
 		}
 	} else if (strcmp(token0, "cls") == 0) {
 		terminal->clear();
+	} else if (strcmp(token0, "cpu") == 0) {
+		system->core->m68k_active = !system->core->m68k_active;
+		if (system->core->m68k_active) {
+			terminal->printf("\nm68k mode");
+		} else {
+			terminal->printf("\nmc6809 mode");
+		}
 	} else if (strcmp(token0, "d") == 0) {
 	 	have_prompt = false;
 	 	token1 = strtok(NULL, " ");
@@ -475,13 +482,6 @@ void debugger_t::process_command(char *c)
 					temp_pc = (temp_pc + 8) & 0xfffffe;
 				}
 			}
-		}
-	} else if (strcmp(token0, "mode") == 0) {
-		system->core->m68k_active = !system->core->m68k_active;
-		if (system->core->m68k_active) {
-			terminal->printf("\nm68k mode");
-		} else {
-			terminal->printf("\nmc6809 mode");
 		}
 	} else if (strcmp(token0, "g") == 0) {
 		have_prompt = false;
@@ -560,8 +560,8 @@ void debugger_t::process_command(char *c)
 		}
 	} else if (strcmp(token0, "run") == 0) {
 		have_prompt = false;
-		system->switch_to_run_mode();
 		system->host->events_wait_until_key_released(SDLK_RETURN);
+		system->switch_to_run_mode();
 	} else if (strcmp(token0, "timer") == 0) {
 		for (int i=0; i<8; i++) {
 			system->core->timer->status(text_buffer, i);

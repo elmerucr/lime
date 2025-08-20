@@ -139,6 +139,7 @@ void system_t::run()
 
 void system_t::switch_to_debug_mode()
 {
+	host->video_set_window_title("lime debug mode");
 	debugger->prompt();
 	debugger->terminal->activate_cursor();
 	current_mode = DEBUG_MODE;
@@ -146,6 +147,7 @@ void system_t::switch_to_debug_mode()
 
 void system_t::switch_to_run_mode()
 {
+	host->video_set_window_title("lime");
 	debugger->terminal->deactivate_cursor();
 	current_mode = RUN_MODE;
 }

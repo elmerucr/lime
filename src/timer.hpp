@@ -54,7 +54,7 @@
 
 #include <cstdint>
 #include "exceptions.hpp"
-#include "ttl74ls148.hpp"
+#include "sn74ls148.hpp"
 
 struct timer_unit {
 	uint16_t bpm;
@@ -74,13 +74,13 @@ private:
 	uint32_t bpm_to_clock_interval(uint16_t bpm);
 
 	exceptions_ic *exceptions;
-	ttl74ls148_t *ttl74ls148;
+	sn74ls148_t *sn74ls148;
 public:
-	timer_ic(exceptions_ic *e, ttl74ls148_t *t);
+	timer_ic(exceptions_ic *e, sn74ls148_t *t);
 	void reset();
 
 	uint8_t dev_number_exceptions;
-	uint8_t dev_number_ttl74ls148;
+	uint8_t dev_number_sn74ls148;
 
 	// register access functions
 	uint8_t io_read_byte(uint8_t address);

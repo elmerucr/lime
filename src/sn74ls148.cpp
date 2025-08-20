@@ -1,15 +1,15 @@
 // ---------------------------------------------------------------------
-// ttl74ls148.cpp
+// sn74ls148.cpp
 // lime
 //
 // Copyright © 2019-2025 elmerucr. All rights reserved.
 // ---------------------------------------------------------------------
 
-#include "ttl74ls148.hpp"
+#include "sn74ls148.hpp"
 #include "common.hpp"
 #include "core.hpp"
 
-ttl74ls148_t::ttl74ls148_t(system_t *s)
+sn74ls148_t::sn74ls148_t(system_t *s)
 {
 	system = s;
 
@@ -22,7 +22,7 @@ ttl74ls148_t::ttl74ls148_t(system_t *s)
 	level = 0;
 }
 
-uint8_t ttl74ls148_t::connect_device(int level, std::string n)
+uint8_t sn74ls148_t::connect_device(int level, std::string n)
 {
 	devices[number_of_devices].level = level;
 	devices[number_of_devices].dev_name = n;
@@ -30,19 +30,19 @@ uint8_t ttl74ls148_t::connect_device(int level, std::string n)
 	return (number_of_devices - 1);
 }
 
-void ttl74ls148_t::pull_line(uint8_t handler)
+void sn74ls148_t::pull_line(uint8_t handler)
 {
 	devices[handler].state = false;
 	update_interrupt_level();
 }
 
-void ttl74ls148_t::release_line(uint8_t handler)
+void sn74ls148_t::release_line(uint8_t handler)
 {
 	devices[handler].state = true;
 	update_interrupt_level();
 }
 
-void ttl74ls148_t::update_interrupt_level()
+void sn74ls148_t::update_interrupt_level()
 {
 	level = 0;
 
@@ -54,7 +54,7 @@ void ttl74ls148_t::update_interrupt_level()
 	system->core->cpu_m68k->setIPL(level);
 }
 
-void ttl74ls148_t::status(char *b, int buffer_length)
+void sn74ls148_t::status(char *b, int buffer_length)
 {
 	b += snprintf(b, buffer_length, "------sn74ls148------");
 	b += snprintf(b, buffer_length, " dev ipl lin name");

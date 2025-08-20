@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------
-// TTL74LS148.hpp
+// sn74ls148.hpp
 // lime
 //
 // Copyright © 2019-2025 elmerucr. All rights reserved.
@@ -9,15 +9,15 @@
 // 8 input lines, 3 bit output
 // ---------------------------------------------------------------------
 
-#ifndef TTL74LS148_HPP
-#define TTL74LS148_HPP
+#ifndef SN74LS148_HPP
+#define SN74LS148_HPP
 
 #include "system.hpp"
 
 #include <cstdint>
 #include <string>
 
-class ttl74ls148_t {
+class sn74ls148_t {
 private:
     system_t *system;
 
@@ -32,7 +32,7 @@ private:
 	uint8_t number_of_devices;
 	unsigned int level;
 public:
-	ttl74ls148_t(system_t *s);
+	sn74ls148_t(system_t *s);
 
 	void pull_line(uint8_t handler);
 	void release_line(uint8_t handler);
