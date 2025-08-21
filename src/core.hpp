@@ -22,6 +22,7 @@
 #include "exceptions.hpp"
 #include "cpu_m68k.hpp"
 #include "sn74ls148.hpp"
+#include "rom_m68k.hpp"
 #include "rom_mc6809.hpp"
 #include "font_cbm_8x8.hpp"
 #include "timer.hpp"
@@ -50,10 +51,11 @@ private:
 	//bool irq_line_frame_done{true};
 
 	system_t *system;
+	rom_m68k_t *rom_m68k;
 	rom_mc6809_t *rom_mc6809;
 
-	// memory configuration address $00
-	bool system_rom_visible;	// bit 0
+	// memory configuration address $02 in core bank
+	bool mc6809_rom_visible;	// bit 0
 	bool character_rom_visible;	// bit 1
 
 	// irq related

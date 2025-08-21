@@ -74,8 +74,8 @@ debugger_t::debugger_t(system_t *s)
 	terminal->activate_cursor();
 
 	status1 = new terminal_t(system, 60, 26, LIME_COLOR_02, LIME_COLOR_00);
-	exception_status = new terminal_t(system, 21, 5, LIME_COLOR_02, 0xff000000);
-	vdc_status = new terminal_t(system, 13, 5, LIME_COLOR_02, 0xff000000);
+	exception_status = new terminal_t(system, 20, 5, LIME_COLOR_02, 0xff000000);
+	vdc_status = new terminal_t(system, 15, 5, LIME_COLOR_02, 0xff000000);
 }
 
 debugger_t::~debugger_t()
@@ -245,19 +245,19 @@ void debugger_t::redraw()
 	}
 
 	vdc_status->clear();
-	vdc_status->printf("-----vdc-----");
-	vdc_status->printf("cycle %3i/%3i\n%3i",
+	vdc_status->printf("------vdc------");
+	vdc_status->printf(" cycle %3i/%3i\nscanln %3i/255",
 		system->core->vdc->get_cycles_run(),
 		CPU_CYCLES_PER_SCANLINE,
 		system->core->vdc->get_current_scanline()
 	);
 	if (system->core->vdc->get_generate_interrupts()) {
-		vdc_status->printf("\nnias %3i", system->core->vdc->get_irq_scanline());
+		vdc_status->printf("\nirq at %3i", system->core->vdc->get_irq_scanline());
 	}
 	// copy vdc_status into status1
 	for (int y = 0; y < vdc_status->height; y++) {
 		for (int x = 0; x < vdc_status->width; x++) {
-			status1->tiles[((20 + y) * status1->width) + 47 + x] =
+			status1->tiles[((20 + y) * status1->width) + 45 + x] =
 				vdc_status->tiles[(y * vdc_status->width) + x];
 		}
 	}

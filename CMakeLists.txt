@@ -15,6 +15,7 @@ include_directories(
 	src/MC6809
 	src/Moira
     src/resid-0.16/
+	rom_m68k/
 	rom_mc6809/
 )
 

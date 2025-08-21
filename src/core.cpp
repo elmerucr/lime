@@ -15,6 +15,7 @@ core_t::core_t(system_t *s)
 {
 	system = s;
 
+	rom_m68k = new rom_m68k_t();
 	rom_mc6809 = new rom_mc6809_t();
 
 	exceptions = new exceptions_ic();
@@ -62,6 +63,7 @@ core_t::~core_t()
 	delete vdc;
 	delete exceptions;
 	delete rom_mc6809;
+	delete rom_m68k;
 }
 
 enum output_states core_t::run(bool debug)
@@ -128,7 +130,7 @@ uint8_t core_t::read8(uint32_t address)
 						case 0x02:
 							// core roms
 							return
-								(system_rom_visible    ? 0b00000001 : 0b00000000) |
+								(mc6809_rom_visible    ? 0b00000001 : 0b00000000) |
 								(character_rom_visible ? 0b00000010 : 0b00000000) ;
 						case 0x04:
 							return file_data[file_pointer++];
@@ -155,7 +157,7 @@ uint8_t core_t::read8(uint32_t address)
 		case SYSTEM_ROM_PAGE+1:
 		case SYSTEM_ROM_PAGE+2:
 		case SYSTEM_ROM_PAGE+3:
-			if (system_rom_visible) {
+			if (mc6809_rom_visible) {
 				return rom_mc6809->data[address & 0x3ff];
 			} else {
 				return vdc->ram[address];
@@ -198,7 +200,7 @@ void core_t::write8(uint32_t address, uint8_t value)
 							}
 							break;
 						case 0x02:
-							system_rom_visible    = (value & 0b00000001) ? true : false;
+							mc6809_rom_visible    = (value & 0b00000001) ? true : false;
 							character_rom_visible = (value & 0b00000010) ? true : false;
 							break;
 						default:
@@ -226,7 +228,7 @@ void core_t::reset()
 	generate_interrupts = false;
 	bin_attached = false;
 
-	system_rom_visible = true;
+	mc6809_rom_visible = true;
 	character_rom_visible = false;
 
 	sound->reset();
@@ -243,16 +245,18 @@ void core_t::reset()
 	write8(5, 0x00);
 	write8(6, 0xd0);
 	write8(7, 0x00);
-	write8(0xd000, 0x1e);
-	write8(0xd001, 0x3c);
+	write8(0xd000, 0x52);
+	write8(0xd001, 0x39);
 	write8(0xd002, 0x00);
-	write8(0xd003, 0xbe);
-	write8(0xd004, 0x1f);
-	write8(0xd005, 0x3c);
-	write8(0xd006, 0x00);
-	write8(0xd007, 0xba);
-	write8(0xd008, 0x10);
-	write8(0xd009, 0x1f);
+	write8(0xd003, 0x00);
+	write8(0xd004, 0x04);
+	write8(0xd005, 0x04);
+	write8(0xd006, 0x4e);
+	write8(0xd007, 0xf9);
+	write8(0xd008, 0x00);
+	write8(0xd009, 0x00);
+	write8(0xd00a, 0xd0);
+	write8(0xd00b, 0x00);
 
 	cpu_m68k->reset();
 }

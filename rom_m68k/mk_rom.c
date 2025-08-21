@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
 	time_t t;
 	time(&t);
 
-	uint8_t romdata[1024];
+	uint8_t romdata[65536];
 
 	// read
 	FILE *f;
@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 	long pos = ftell(f);
 
 	printf("[mk_rom] rom.bin size: %lu bytes\n", pos);
-	if (pos > 1024L) {
+	if (pos > 65536L) {
 		printf("[mk_rom] too large, exiting...\n");
 		fclose(f);
 		return 1;
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 	fread(romdata, pos, 1, f);
 
 	// fill up the rest of the final rom with zeroes
-	for (int i=pos; i < 1024; i++) {
+	for (int i=pos; i < 65536; i++) {
 		romdata[i] = 0x00;
 	}
 
@@ -37,11 +37,11 @@ int main(int argc, char *argv[])
 	fclose(f);
 
 	// write 8k output to cpp file
-	printf("[mk_rom] writing 1024b image 'rom.bin' and 'rom_MC6809.hpp' for inclusion in punch\n");
-	f = fopen("rom_M68K.hpp","w");
+	printf("[mk_rom] writing 64kb image 'rom.bin' and 'rom_m68k.hpp' for inclusion in punch\n");
+	f = fopen("rom_m68k.hpp","w");
 
 	fprintf(f, "// ---------------------------------------------------------------------\n");
-	fprintf(f, "// rom_M68K.hpp\n");
+	fprintf(f, "// rom_m68k.hpp\n");
 	fprintf(f, "// lime\n");
 	fprintf(f, "//\n");
 	fprintf(f, "// Copyright (C)2025 elmerucr. All rights reserved.\n");
@@ -53,16 +53,16 @@ int main(int argc, char *argv[])
 
 	fprintf(f, "#include <cstdint>\n\n");
 
-	fprintf(f, "class rom_M68K_t {\n");
+	fprintf(f, "class rom_m68k_t {\n");
 	fprintf(f, "public:\n");
-	fprintf(f, "\tconst uint8_t data[1024] = {");
+	fprintf(f, "\tconst uint8_t data[65536] = {");
 
-	for(int i = 0; i < 1023; i++) {
-		if(i%8 == 0) fprintf(f, "\n\t\t");
+	for(int i = 0; i < 65535; i++) {
+		if(i%16 == 0) fprintf(f, "\n\t\t");
 		fprintf(f, "0x%02x,", romdata[i]);
 	}
 
-	fprintf(f, "0x%02x\n\t};\n", romdata[(1024)-1]);
+	fprintf(f, "0x%02x\n\t};\n", romdata[(65536)-1]);
 
 	fprintf(f, "};\n");
 
