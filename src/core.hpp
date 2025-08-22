@@ -31,13 +31,14 @@
 
 #include <cstdio>
 
-#define CBM_FONT_PAGE		0x10
-#define COMBINED_PAGE		0x04
-#define		VDC_SUB_PAGE	0x00
-#define		TIMER_SUB_PAGE	0x40
-#define		CORE_SUB_PAGE	0x80
-#define	SOUND_PAGE			0x05
-#define SYSTEM_ROM_PAGE		0xfc
+#define COMBINED_PAGE       0x0004
+#define     VDC_SUB_PAGE      0x00
+#define     TIMER_SUB_PAGE    0x40
+#define     CORE_SUB_PAGE     0x80
+#define	SOUND_PAGE          0x0005
+#define CBM_FONT_PAGE       0x0010
+#define MC6809_ROM_PAGE     0x00fc
+#define M68K_ROM_PAGE       0x0100
 
 enum output_states {
 	NORMAL,
@@ -56,7 +57,8 @@ private:
 
 	// memory configuration address $02 in core bank
 	bool mc6809_rom_visible;	// bit 0
-	bool character_rom_visible;	// bit 1
+	bool m68k_rom_visible;		// bit 1
+	bool character_rom_visible;	// bit 2
 
 	// irq related
 	uint8_t dev_number_exceptions;		// unique number assigned by exception unit

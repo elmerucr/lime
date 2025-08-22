@@ -90,81 +90,155 @@ enum output_states core_t::run(bool debug)
 uint8_t core_t::read8(uint32_t address)
 {
 	address &= VDC_RAM_MASK;
-	uint8_t r;
-	switch (address >> 8) {
-		case CBM_FONT_PAGE + 0x0:
-		case CBM_FONT_PAGE + 0x1:
-		case CBM_FONT_PAGE + 0x2:
-		case CBM_FONT_PAGE + 0x3:
-		case CBM_FONT_PAGE + 0x4:
-		case CBM_FONT_PAGE + 0x5:
-		case CBM_FONT_PAGE + 0x6:
-		case CBM_FONT_PAGE + 0x7:
-		case CBM_FONT_PAGE + 0x8:
-		case CBM_FONT_PAGE + 0x9:
-		case CBM_FONT_PAGE + 0xa:
-		case CBM_FONT_PAGE + 0xb:
-		case CBM_FONT_PAGE + 0xc:
-		case CBM_FONT_PAGE + 0xd:
-		case CBM_FONT_PAGE + 0xe:
-		case CBM_FONT_PAGE + 0xf:
-			if (character_rom_visible) {
-				return font->io_read8(address);
-			} else {
-				return vdc->ram[address];
-			}
-		case COMBINED_PAGE:
-			switch (address & 0x00c0) {
-				case VDC_SUB_PAGE:
-					return vdc->io_read8(address);
-				case TIMER_SUB_PAGE:
-					return timer->io_read_byte(address);
-				case CORE_SUB_PAGE:
-					switch (address & 0x3f) {
-						case 0x00:
-							// status register
-							return irq_line ? 0b0 : 0b1;
-						case 0x01:
-							return
-								(generate_interrupts   ? 0b00000001 : 0b00000000) ;
-						case 0x02:
-							// core roms
-							return
-								(mc6809_rom_visible    ? 0b00000001 : 0b00000000) |
-								(character_rom_visible ? 0b00000010 : 0b00000000) ;
-						case 0x04:
-							return file_data[file_pointer++];
-						case 0x08:
-							// Controller is NES style
-							return
-								((system->host->keyboard_state[SCANCODE_UP]     & 0b1) ? 0b00000001 : 0) |	// up
-								((system->host->keyboard_state[SCANCODE_DOWN]   & 0b1) ? 0b00000010 : 0) |	// down
-								((system->host->keyboard_state[SCANCODE_LEFT]   & 0b1) ? 0b00000100 : 0) |	// left
-								((system->host->keyboard_state[SCANCODE_RIGHT]  & 0b1) ? 0b00001000 : 0) |	// right
-								((system->host->keyboard_state[SCANCODE_Z]      & 0b1) ? 0b00010000 : 0) |	// A
-								((system->host->keyboard_state[SCANCODE_X]      & 0b1) ? 0b00100000 : 0) |	// B
-								((system->host->keyboard_state[SCANCODE_RSHIFT] & 0b1) ? 0b01000000 : 0) |	// Select
-								((system->host->keyboard_state[SCANCODE_RETURN] & 0b1) ? 0b10000000 : 0) ;	// Start
-						default:
-							return 0x00;
-					}
-				default:
-					return 0x00;
-			}
-		case SOUND_PAGE:
-			return sound->io_read_byte(address);
-		case SYSTEM_ROM_PAGE:
-		case SYSTEM_ROM_PAGE+1:
-		case SYSTEM_ROM_PAGE+2:
-		case SYSTEM_ROM_PAGE+3:
-			if (mc6809_rom_visible) {
-				return rom_mc6809->data[address & 0x3ff];
-			} else {
-				return vdc->ram[address];
-			}
-		default:
+
+	if (m68k_active & !(address & 0xfffff8)) {
+		// make sure m68k vectors are read, if needed
+		return rom_m68k->data[address];
+	} else if ((address & 0xffff00) == 0x000400) {
+		// combined io page
+		switch (address & 0x00c0) {
+			case VDC_SUB_PAGE:
+				return vdc->io_read8(address);
+			case TIMER_SUB_PAGE:
+				return timer->io_read_byte(address);
+			case CORE_SUB_PAGE:
+				switch (address & 0x3f) {
+					case 0x00:
+						// status register
+						return irq_line ? 0b0 : 0b1;
+					case 0x01:
+						return
+							(generate_interrupts   ? 0b00000001 : 0b00000000) ;
+					case 0x02:
+						// core roms
+						return
+							(mc6809_rom_visible    ? 0b00000001 : 0b00000000) |
+							(m68k_rom_visible      ? 0b00000010 : 0b00000000) |
+							(character_rom_visible ? 0b00000100 : 0b00000000) ;
+					case 0x04:
+						return file_data[file_pointer++];
+					case 0x08:
+						// Controller is NES style
+						return
+							((system->host->keyboard_state[SCANCODE_UP]     & 0b1) ? 0b00000001 : 0) |	// up
+							((system->host->keyboard_state[SCANCODE_DOWN]   & 0b1) ? 0b00000010 : 0) |	// down
+							((system->host->keyboard_state[SCANCODE_LEFT]   & 0b1) ? 0b00000100 : 0) |	// left
+							((system->host->keyboard_state[SCANCODE_RIGHT]  & 0b1) ? 0b00001000 : 0) |	// right
+							((system->host->keyboard_state[SCANCODE_Z]      & 0b1) ? 0b00010000 : 0) |	// A
+							((system->host->keyboard_state[SCANCODE_X]      & 0b1) ? 0b00100000 : 0) |	// B
+							((system->host->keyboard_state[SCANCODE_RSHIFT] & 0b1) ? 0b01000000 : 0) |	// Select
+							((system->host->keyboard_state[SCANCODE_RETURN] & 0b1) ? 0b10000000 : 0) ;	// Start
+					default:
+						return 0x00;
+				}
+			default:
+				return 0x00;
+		}
+	} else if ((address & 0xffff00) == 0x000500) {
+		// sound io page
+		return sound->io_read_byte(address);
+	} else if ((address & 0xfff000) == 0x001000) {
+		// character rom
+		if (character_rom_visible) {
+			return font->io_read8(address);
+		} else {
 			return vdc->ram[address];
+		}
+	} else if ((address & 0xfffc00) == 0x00fc00) {
+		// mc6809 rom
+		if (mc6809_rom_visible) {
+			return rom_mc6809->data[address & 0x3ff];
+		} else {
+			return vdc->ram[address];
+		}
+	} else if ((address & 0xff0000) == 0x010000) {
+		// m68k rom
+		if (m68k_rom_visible) {
+			return rom_m68k->data[address & 0xffff];
+		} else {
+			return vdc->ram[address];
+		}
+	} else {
+		// it's vdc ram
+		return vdc->ram[address];
 	}
+
+
+	// switch (address >> 8) {
+	// 	case CBM_FONT_PAGE + 0x0:
+	// 	case CBM_FONT_PAGE + 0x1:
+	// 	case CBM_FONT_PAGE + 0x2:
+	// 	case CBM_FONT_PAGE + 0x3:
+	// 	case CBM_FONT_PAGE + 0x4:
+	// 	case CBM_FONT_PAGE + 0x5:
+	// 	case CBM_FONT_PAGE + 0x6:
+	// 	case CBM_FONT_PAGE + 0x7:
+	// 	case CBM_FONT_PAGE + 0x8:
+	// 	case CBM_FONT_PAGE + 0x9:
+	// 	case CBM_FONT_PAGE + 0xa:
+	// 	case CBM_FONT_PAGE + 0xb:
+	// 	case CBM_FONT_PAGE + 0xc:
+	// 	case CBM_FONT_PAGE + 0xd:
+	// 	case CBM_FONT_PAGE + 0xe:
+	// 	case CBM_FONT_PAGE + 0xf:
+	// 		if (character_rom_visible) {
+	// 			return font->io_read8(address);
+	// 		} else {
+	// 			return vdc->ram[address];
+	// 		}
+	// 	case COMBINED_PAGE:
+	// 		switch (address & 0x00c0) {
+	// 			case VDC_SUB_PAGE:
+	// 				return vdc->io_read8(address);
+	// 			case TIMER_SUB_PAGE:
+	// 				return timer->io_read_byte(address);
+	// 			case CORE_SUB_PAGE:
+	// 				switch (address & 0x3f) {
+	// 					case 0x00:
+	// 						// status register
+	// 						return irq_line ? 0b0 : 0b1;
+	// 					case 0x01:
+	// 						return
+	// 							(generate_interrupts   ? 0b00000001 : 0b00000000) ;
+	// 					case 0x02:
+	// 						// core roms
+	// 						return
+	// 							(mc6809_rom_visible    ? 0b00000001 : 0b00000000) |
+	// 							(m68k_rom_visible      ? 0b00000010 : 0b00000000) |
+	// 							(character_rom_visible ? 0b00000100 : 0b00000000) ;
+	// 					case 0x04:
+	// 						return file_data[file_pointer++];
+	// 					case 0x08:
+	// 						// Controller is NES style
+	// 						return
+	// 							((system->host->keyboard_state[SCANCODE_UP]     & 0b1) ? 0b00000001 : 0) |	// up
+	// 							((system->host->keyboard_state[SCANCODE_DOWN]   & 0b1) ? 0b00000010 : 0) |	// down
+	// 							((system->host->keyboard_state[SCANCODE_LEFT]   & 0b1) ? 0b00000100 : 0) |	// left
+	// 							((system->host->keyboard_state[SCANCODE_RIGHT]  & 0b1) ? 0b00001000 : 0) |	// right
+	// 							((system->host->keyboard_state[SCANCODE_Z]      & 0b1) ? 0b00010000 : 0) |	// A
+	// 							((system->host->keyboard_state[SCANCODE_X]      & 0b1) ? 0b00100000 : 0) |	// B
+	// 							((system->host->keyboard_state[SCANCODE_RSHIFT] & 0b1) ? 0b01000000 : 0) |	// Select
+	// 							((system->host->keyboard_state[SCANCODE_RETURN] & 0b1) ? 0b10000000 : 0) ;	// Start
+	// 					default:
+	// 						return 0x00;
+	// 				}
+	// 			default:
+	// 				return 0x00;
+	// 		}
+	// 	case SOUND_PAGE:
+	// 		return sound->io_read_byte(address);
+	// 	case MC6809_ROM_PAGE:
+	// 	case MC6809_ROM_PAGE+1:
+	// 	case MC6809_ROM_PAGE+2:
+	// 	case MC6809_ROM_PAGE+3:
+	// 		if (mc6809_rom_visible) {
+	// 			return rom_mc6809->data[address & 0x3ff];
+	// 		} else {
+	// 			return vdc->ram[address];
+	// 		}
+	// 	default:
+	// 		return vdc->ram[address];
+	// }
 }
 
 void core_t::write8(uint32_t address, uint8_t value)
@@ -201,7 +275,8 @@ void core_t::write8(uint32_t address, uint8_t value)
 							break;
 						case 0x02:
 							mc6809_rom_visible    = (value & 0b00000001) ? true : false;
-							character_rom_visible = (value & 0b00000010) ? true : false;
+							m68k_rom_visible      = (value & 0b00000010) ? true : false;
+							character_rom_visible = (value & 0b00000100) ? true : false;
 							break;
 						default:
 							//
@@ -229,6 +304,7 @@ void core_t::reset()
 	bin_attached = false;
 
 	mc6809_rom_visible = true;
+	m68k_rom_visible = true;
 	character_rom_visible = false;
 
 	sound->reset();

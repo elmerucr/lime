@@ -34,7 +34,7 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldu	#$fe00		; sets user stackpointer
 
 		lda	CORE_ROMS	; make font visible to cpu
-		ora	#%00000010
+		ora	#%00000100
 		sta	CORE_ROMS
 
 		ldx	#VDC_TILESET1	; copy font from rom to ram
@@ -44,7 +44,7 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		bne	1b
 
 		lda	CORE_ROMS		; turn off font rom
-		anda	#%11111101
+		anda	#%11111011
 		sta	CORE_ROMS
 
 		ldx	#logo_chars

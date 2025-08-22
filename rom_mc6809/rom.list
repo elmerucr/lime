@@ -138,7 +138,7 @@ FC12 10CE0200         reset           lds     #$0200          ; sets system stac
 FC16 CEFE00                           ldu     #$fe00          ; sets user stackpointer
                       
 FC19 B60482                           lda     CORE_ROMS       ; make font visible to cpu
-FC1C 8A02                             ora     #%00000010
+FC1C 8A04                             ora     #%00000100
 FC1E B70482                           sta     CORE_ROMS
                       
 FC21 8E1000                           ldx     #VDC_TILESET1   ; copy font from rom to ram
@@ -148,7 +148,7 @@ FC28 8C2000                           cmpx    #VDC_TILESET1+$1000
 FC2B 26F7                             bne     1b
                       
 FC2D B60482                           lda     CORE_ROMS               ; turn off font rom
-FC30 84FD                             anda    #%11111101
+FC30 84FB                             anda    #%11111011
 FC32 B70482                           sta     CORE_ROMS
                       
 FC35 8EFDCC                           ldx     #logo_chars
