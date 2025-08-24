@@ -1,5 +1,5 @@
 /*
- * mc6809.cpp  -  part of MC6809
+ * mc6809.cpp  -  part of mc6809
  *
  * (C)2021-2025 elmerucr
  */

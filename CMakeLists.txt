@@ -12,7 +12,7 @@ find_package(SDL2 REQUIRED)
 include_directories(
     ${SDL2_INCLUDE_DIRS}
     src/
-	src/MC6809
+	src/mc6809
 	src/Moira
     src/resid-0.16/
 	rom_m68k/

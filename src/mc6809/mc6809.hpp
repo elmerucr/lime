@@ -1,10 +1,10 @@
 /*
- * mc6809.hpp  -  part of MC6809
+ * mc6809.hpp  -  part of mc6809
  *
  * (C)2021-2025 elmerucr
  */
 
-  /*
+/*
  * MC6809 version 0.17 - 20250519
  *
  * Status compacter
