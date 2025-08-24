@@ -7,10 +7,11 @@
 
 	org	$00010000
 
-	dc.l	$0000c000	; initial ssp
+	dc.l	$01000000	; initial ssp
 	dc.l	_start		; reset vector
 
 	dc.b	"rom m68000 0.1 20250824"
 
-_start	addq.b	#$1,$404.w
-	jmp	_start
+_start	move.l	#$deadbeef,-(SP)
+.1	addq.b	#$1,$404.w
+	jmp	.1

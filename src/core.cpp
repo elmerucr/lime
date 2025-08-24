@@ -91,7 +91,7 @@ uint8_t core_t::read8(uint32_t address)
 {
 	address &= VDC_RAM_MASK;
 
-	if (m68000_active & !(address & 0xfffff8)) {
+	if (m68000_active && !(address & 0xfffff8)) {
 		// make sure m68000 vectors are read, if needed
 		return rom_m68000->data[address];
 	} else if ((address & 0xffff00) == COMBINED_IO_PAGE) {
@@ -111,9 +111,8 @@ uint8_t core_t::read8(uint32_t address)
 					case 0x02:
 						// core roms
 						return
-							(mc6809_rom_visible    ? 0b00000001 : 0b00000000) |
-							(m68000_rom_visible    ? 0b00000010 : 0b00000000) |
-							(character_rom_visible ? 0b00000100 : 0b00000000) ;
+							(system_rom_visible    ? 0b00000001 : 0b00000000) |
+							(character_rom_visible ? 0b00000010 : 0b00000000) ;
 					case 0x04:
 						return file_data[file_pointer++];
 					case 0x08:
@@ -141,14 +140,14 @@ uint8_t core_t::read8(uint32_t address)
 		} else {
 			return vdc->ram[address];
 		}
-	} else if ((address & 0xfffc00) == MC6809_ROM_ADDRESS) {
-		if (mc6809_rom_visible) {
+	} else if (!m68000_active && ((address & 0xfffc00) == MC6809_ROM_ADDRESS)) {
+		if (system_rom_visible) {
 			return rom_mc6809->data[address & 0x3ff];
 		} else {
 			return vdc->ram[address];
 		}
-	} else if ((address & 0xff0000) == M68000_ROM_ADDRESS) {
-		if (m68000_rom_visible) {
+	} else if (m68000_active && (address & 0xff0000) == M68000_ROM_ADDRESS) {
+		if (system_rom_visible) {
 			return rom_m68000->data[address & 0xffff];
 		} else {
 			return vdc->ram[address];
@@ -193,9 +192,8 @@ void core_t::write8(uint32_t address, uint8_t value)
 						}
 						break;
 					case 0x02:
-						mc6809_rom_visible    = (value & 0b00000001) ? true : false;
-						m68000_rom_visible    = (value & 0b00000010) ? true : false;
-						character_rom_visible = (value & 0b00000100) ? true : false;
+						system_rom_visible    = (value & 0b00000001) ? true : false;
+						character_rom_visible = (value & 0b00000010) ? true : false;
 						break;
 					default:
 						//
@@ -220,8 +218,7 @@ void core_t::reset()
 	generate_interrupts = false;
 	bin_attached = false;
 
-	mc6809_rom_visible = true;
-	m68000_rom_visible = true;
+	system_rom_visible = true;
 	character_rom_visible = false;
 
 	sound->reset();

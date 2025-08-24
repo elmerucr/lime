@@ -131,7 +131,7 @@ FE00                  ROM_START               equ     $fe00
                       
 FC00                                  org     $fc00
                       
-FC00 726F6D5F6D633638                 fcn     "rom_mc6809 0.10 20250816"
+FC00 726F6D206D633638                 fcn     "rom mc6809 0.10 20250816"
      303920302E313020
      3230323530383136
      00
@@ -139,7 +139,7 @@ FC19 10CE0200         reset           lds     #$0200          ; sets system stac
 FC1D CEFE00                           ldu     #$fe00          ; sets user stackpointer
                       
 FC20 B60482                           lda     CORE_ROMS       ; make font visible to cpu
-FC23 8A04                             ora     #%00000100
+FC23 8A02                             ora     #%00000010
 FC25 B70482                           sta     CORE_ROMS
                       
 FC28 8E1000                           ldx     #VDC_TILESET1   ; copy font from rom to ram
@@ -149,7 +149,7 @@ FC2F 8C2000                           cmpx    #VDC_TILESET1+$1000
 FC32 26F7                             bne     1b
                       
 FC34 B60482                           lda     CORE_ROMS               ; turn off font rom
-FC37 84FB                             anda    #%11111011
+FC37 84FD                             anda    #%11111101
 FC39 B70482                           sta     CORE_ROMS
                       
 FC3C 8EFDD3                           ldx     #logo_chars

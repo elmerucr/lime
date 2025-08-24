@@ -4,7 +4,7 @@
 
 Lime is a virtual computer system that draws inspiration from computing platforms such as the Commodore 64, the Atari ST and the Nintendo Gameboy. Notable features include:
 
-* mc6809 cpu using the [mc6809](https://github.com/elmerucr/MC6809) library
+* mc6809 cpu using the [mc6809](https://github.com/elmerucr/mc6809) library
 * m68000 cpu using the [Moira](https://github.com/dirkwhoffmann/Moira) library
 * 16mb ram (of which only lowest 64k accessible by mc6809)
 * Screen resolution of 240x160 pixels, refresh rate of 60Hz
@@ -29,9 +29,51 @@ Lime is a virtual computer system that draws inspiration from computing platform
 
 ## Memory Map
 
-### Address space
+### Motorola 6809 mode
 
-*work in progress*
+### Motorola 68000 mode
+
+```0x000000 - 0x000007``` initial ssp / reset vector (8b)
+
+```0x000008 - 0x0003ff``` vector table (1016b)
+
+```0x000400 - 0x00043f``` io vdc (64b)
+
+```0x000440 - 0x00047f``` io timer (64b)
+
+```0x000480 - 0x0004bf``` io core (64b)
+
+```0x0004c0 - 0x0004ff``` unused / reserved (64b)
+
+```0x000500 - 0x00051f``` io sound / sid0 (32b)
+
+```0x000520 - 0x00053f``` io sound / sid1 (32b)
+
+```0x000540 - 0x00055f``` io sound / analog0 (32b)
+
+```0x000560 - 0x00057f``` io sound / analog1 (32b)
+
+```0x000580 - 0x0005ff``` io sound / mixer (128b)
+
+```0x000600 - 0x0007ff``` unused / reserved (512b)
+
+```0x000800 - 0x0017ff``` tileset bank 0 (2kb)
+
+```0x001000 - 0x001fff``` overlapping tileset bank 1 / tileset rom (2kb)
+
+```0x002000 - 0x0023ff``` layer 0 (1kb)
+
+```0x002400 - 0x0027ff``` layer 1 (1kb)
+
+```0x002800 - 0x002bff``` layer 2 (1kb)
+
+```0x002c00 - 0x002fff``` layer 3 (1kb)
+
+```0x003000 - 0x00ffff``` available ram (52kb)
+
+```0x010000 - 0x01ffff``` system rom (64kb)
+
+```0x020000 - 0xffffff``` available ram (16256kb)
 
 ## Building
 
@@ -106,7 +148,7 @@ Run with:
 * [Commander X16 rom](https://github.com/X16Community/x16-rom) - The Commander X16 ROM containing BASIC, KERNAL, and DOS. BASIC and KERNAL are derived from the Commodore 64 versions.
 * [Hatari](https://hatari.tuxfamily.org) - Hatari is an Atari ST/STE/TT/Falcon emulator.
 * [lib65ce02](https://github.com/elmerucr/lib65ce02) - CSG65CE02 cpu emulator written in C by elmerucr.
-* [MC6809](https://github.com/elmerucr/mC6809) - MC6809 cpu emulator written in C++ by elmerucr.
+* [mc6809](https://github.com/elmerucr/mc6809) -  Motorola 6809 cpu emulator written in C++ by elmerucr.
 * [Moira](https://github.com/dirkwhoffmann/Moira) - Motorola 68000 cpu emulator written in C++ by Dirk W. Hoffmann.
 * [Peddle](https://dirkwhoffmann.github.io/Peddle/) - Peddle is a MOS Technology 6502, 6507, and 6510 emulator with high emulation accuracy by Dirk W. Hoffmann.
 * [reSID](http://www.zimmers.net/anonftp/pub/cbm/crossplatform/emulators/resid/index.html) - ReSID is a Commodore 6581 and 8580 Sound Interface Device emulator by Dag Lem.
@@ -116,7 +158,6 @@ Run with:
 
 ### Other
 
-* [freeverb](https://github.com/sinshu/freeverb/) - Free, studio-quality reverb SOURCE CODE in the public domain
 * [PICO-8](https://www.lexaloffle.com/pico-8.php) - PICO-8 is a fantasy console for making, sharing and playing tiny games and other computer programs by lexaloffle.
 * [SDL Simple DirectMedia Layer](https://www.libsdl.org) - A cross-platform development library by Sam Lantinga designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware.
 * [stb](https://github.com/nothings/stb) - single-file public domain (or MIT licensed) libraries for C/C++

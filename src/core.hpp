@@ -56,9 +56,8 @@ private:
 	rom_mc6809_t *rom_mc6809;
 
 	// memory configuration address $02 in core bank
-	bool mc6809_rom_visible;	// bit 0
-	bool m68000_rom_visible;	// bit 1
-	bool character_rom_visible;	// bit 2
+	bool system_rom_visible;	// bit 0
+	bool character_rom_visible;	// bit 1
 
 	// irq related
 	uint8_t dev_number_exceptions;		// unique number assigned by exception unit
