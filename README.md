@@ -19,11 +19,11 @@ Lime is a virtual computer system that draws inspiration from computing platform
 
 ### Debug screen
 
-#### MC68000 mode
+#### m68000 mode
 
-![icon](./docs/20250718_screenshot_debug_m68k.png)
+![icon](./docs/20250824_screenshot_debug_m68000.png)
 
-#### MC6809 mode
+#### mc6809 mode
 
 ![icon](./docs/20250718_screenshot_debug_mc6809.png)
 

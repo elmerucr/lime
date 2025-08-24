@@ -31,14 +31,14 @@
 
 #include <cstdio>
 
-#define COMBINED_PAGE       0x0004
+#define COMBINED_IO_PAGE    0x000400
 #define     VDC_SUB_PAGE      0x00
 #define     TIMER_SUB_PAGE    0x40
 #define     CORE_SUB_PAGE     0x80
-#define	SOUND_PAGE          0x0005
-#define CBM_FONT_PAGE       0x0010
-#define MC6809_ROM_PAGE     0x00fc
-#define M68K_ROM_PAGE       0x0100
+#define	SOUND_IO_PAGE       0x000500
+#define CBM_FONT_PAGE       0x001000
+#define MC6809_ROM_ADDRESS  0x00fc00
+#define M68000_ROM_ADDRESS  0x010000
 
 enum output_states {
 	NORMAL,
@@ -57,7 +57,7 @@ private:
 
 	// memory configuration address $02 in core bank
 	bool mc6809_rom_visible;	// bit 0
-	bool m68k_rom_visible;		// bit 1
+	bool m68000_rom_visible;	// bit 1
 	bool character_rom_visible;	// bit 2
 
 	// irq related
@@ -74,7 +74,7 @@ public:
 	core_t(system_t *s);
 	~core_t();
 
-	bool m68k_active;
+	bool m68000_active;
 
 	vdc_t *vdc;
 

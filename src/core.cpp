@@ -48,7 +48,7 @@ core_t::core_t(system_t *s)
 	dev_number_sn74ls148 = sn74ls148->connect_device(2, "core");
 	printf("[core] Connecting to sn74ls148 at ipl 2 getting dev %i\n", dev_number_sn74ls148);
 
-	m68k_active = false;
+	m68000_active = false;
 }
 
 core_t::~core_t()
@@ -91,11 +91,10 @@ uint8_t core_t::read8(uint32_t address)
 {
 	address &= VDC_RAM_MASK;
 
-	if (m68k_active & !(address & 0xfffff8)) {
-		// make sure m68k vectors are read, if needed
+	if (m68000_active & !(address & 0xfffff8)) {
+		// make sure m68000 vectors are read, if needed
 		return rom_m68000->data[address];
-	} else if ((address & 0xffff00) == 0x000400) {
-		// combined io page
+	} else if ((address & 0xffff00) == COMBINED_IO_PAGE) {
 		switch (address & 0x00c0) {
 			case VDC_SUB_PAGE:
 				return vdc->io_read8(address);
@@ -113,7 +112,7 @@ uint8_t core_t::read8(uint32_t address)
 						// core roms
 						return
 							(mc6809_rom_visible    ? 0b00000001 : 0b00000000) |
-							(m68k_rom_visible      ? 0b00000010 : 0b00000000) |
+							(m68000_rom_visible    ? 0b00000010 : 0b00000000) |
 							(character_rom_visible ? 0b00000100 : 0b00000000) ;
 					case 0x04:
 						return file_data[file_pointer++];
@@ -134,26 +133,22 @@ uint8_t core_t::read8(uint32_t address)
 			default:
 				return 0x00;
 		}
-	} else if ((address & 0xffff00) == 0x000500) {
-		// sound io page
+	} else if ((address & 0xffff00) == SOUND_IO_PAGE) {
 		return sound->io_read_byte(address);
-	} else if ((address & 0xfff000) == 0x001000) {
-		// character rom
+	} else if ((address & 0xfff000) == CBM_FONT_PAGE) {
 		if (character_rom_visible) {
 			return font->io_read8(address);
 		} else {
 			return vdc->ram[address];
 		}
-	} else if ((address & 0xfffc00) == 0x00fc00) {
-		// mc6809 rom
+	} else if ((address & 0xfffc00) == MC6809_ROM_ADDRESS) {
 		if (mc6809_rom_visible) {
 			return rom_mc6809->data[address & 0x3ff];
 		} else {
 			return vdc->ram[address];
 		}
-	} else if ((address & 0xff0000) == 0x010000) {
-		// m68k rom
-		if (m68k_rom_visible) {
+	} else if ((address & 0xff0000) == M68000_ROM_ADDRESS) {
+		if (m68000_rom_visible) {
 			return rom_m68000->data[address & 0xffff];
 		} else {
 			return vdc->ram[address];
@@ -162,138 +157,60 @@ uint8_t core_t::read8(uint32_t address)
 		// it's vdc ram
 		return vdc->ram[address];
 	}
-
-
-	// switch (address >> 8) {
-	// 	case CBM_FONT_PAGE + 0x0:
-	// 	case CBM_FONT_PAGE + 0x1:
-	// 	case CBM_FONT_PAGE + 0x2:
-	// 	case CBM_FONT_PAGE + 0x3:
-	// 	case CBM_FONT_PAGE + 0x4:
-	// 	case CBM_FONT_PAGE + 0x5:
-	// 	case CBM_FONT_PAGE + 0x6:
-	// 	case CBM_FONT_PAGE + 0x7:
-	// 	case CBM_FONT_PAGE + 0x8:
-	// 	case CBM_FONT_PAGE + 0x9:
-	// 	case CBM_FONT_PAGE + 0xa:
-	// 	case CBM_FONT_PAGE + 0xb:
-	// 	case CBM_FONT_PAGE + 0xc:
-	// 	case CBM_FONT_PAGE + 0xd:
-	// 	case CBM_FONT_PAGE + 0xe:
-	// 	case CBM_FONT_PAGE + 0xf:
-	// 		if (character_rom_visible) {
-	// 			return font->io_read8(address);
-	// 		} else {
-	// 			return vdc->ram[address];
-	// 		}
-	// 	case COMBINED_PAGE:
-	// 		switch (address & 0x00c0) {
-	// 			case VDC_SUB_PAGE:
-	// 				return vdc->io_read8(address);
-	// 			case TIMER_SUB_PAGE:
-	// 				return timer->io_read_byte(address);
-	// 			case CORE_SUB_PAGE:
-	// 				switch (address & 0x3f) {
-	// 					case 0x00:
-	// 						// status register
-	// 						return irq_line ? 0b0 : 0b1;
-	// 					case 0x01:
-	// 						return
-	// 							(generate_interrupts   ? 0b00000001 : 0b00000000) ;
-	// 					case 0x02:
-	// 						// core roms
-	// 						return
-	// 							(mc6809_rom_visible    ? 0b00000001 : 0b00000000) |
-	// 							(m68k_rom_visible      ? 0b00000010 : 0b00000000) |
-	// 							(character_rom_visible ? 0b00000100 : 0b00000000) ;
-	// 					case 0x04:
-	// 						return file_data[file_pointer++];
-	// 					case 0x08:
-	// 						// Controller is NES style
-	// 						return
-	// 							((system->host->keyboard_state[SCANCODE_UP]     & 0b1) ? 0b00000001 : 0) |	// up
-	// 							((system->host->keyboard_state[SCANCODE_DOWN]   & 0b1) ? 0b00000010 : 0) |	// down
-	// 							((system->host->keyboard_state[SCANCODE_LEFT]   & 0b1) ? 0b00000100 : 0) |	// left
-	// 							((system->host->keyboard_state[SCANCODE_RIGHT]  & 0b1) ? 0b00001000 : 0) |	// right
-	// 							((system->host->keyboard_state[SCANCODE_Z]      & 0b1) ? 0b00010000 : 0) |	// A
-	// 							((system->host->keyboard_state[SCANCODE_X]      & 0b1) ? 0b00100000 : 0) |	// B
-	// 							((system->host->keyboard_state[SCANCODE_RSHIFT] & 0b1) ? 0b01000000 : 0) |	// Select
-	// 							((system->host->keyboard_state[SCANCODE_RETURN] & 0b1) ? 0b10000000 : 0) ;	// Start
-	// 					default:
-	// 						return 0x00;
-	// 				}
-	// 			default:
-	// 				return 0x00;
-	// 		}
-	// 	case SOUND_PAGE:
-	// 		return sound->io_read_byte(address);
-	// 	case MC6809_ROM_PAGE:
-	// 	case MC6809_ROM_PAGE+1:
-	// 	case MC6809_ROM_PAGE+2:
-	// 	case MC6809_ROM_PAGE+3:
-	// 		if (mc6809_rom_visible) {
-	// 			return rom_mc6809->data[address & 0x3ff];
-	// 		} else {
-	// 			return vdc->ram[address];
-	// 		}
-	// 	default:
-	// 		return vdc->ram[address];
-	// }
 }
 
 void core_t::write8(uint32_t address, uint8_t value)
 {
 	address &= VDC_RAM_MASK;
-	switch (address >> 8) {
-		case COMBINED_PAGE:
-			switch (address & 0x00c0) {
-				case VDC_SUB_PAGE:
-					vdc->io_write8(address, value);
-					break;
-				case TIMER_SUB_PAGE:
-					timer->io_write_byte(address, value);
-					break;
-				case CORE_SUB_PAGE:
-					switch (address & 0x3f) {
-						case 0x00:
-							if ((value & 0b1) && !irq_line) {
-								exceptions->release(dev_number_exceptions);
-								irq_line = true;
+
+	if ((address & 0xffff00) == COMBINED_IO_PAGE) {
+		// combined page
+		switch (address & 0xc0) {
+			case VDC_SUB_PAGE:
+				vdc->io_write8(address, value);
+				break;
+			case TIMER_SUB_PAGE:
+				timer->io_write_byte(address, value);
+				break;
+			case CORE_SUB_PAGE:
+				switch (address & 0x3f) {
+					case 0x00:
+						if ((value & 0b1) && !irq_line) {
+							exceptions->release(dev_number_exceptions);
+							irq_line = true;
+						}
+						break;
+					case 0x01:
+						if (value & 0b00000001) {
+							generate_interrupts = true;
+							if (bin_attached == true) {
+								bin_attached = false;
+								exceptions->pull(dev_number_exceptions);
+								irq_line = false;
 							}
-							break;
-						case 0x01:
-							if (value & 0b00000001) {
-								generate_interrupts = true;
-								if (bin_attached == true) {
-									bin_attached = false;
-									exceptions->pull(dev_number_exceptions);
-									irq_line = false;
-								}
-							} else {
-								generate_interrupts = false;
-							}
-							break;
-						case 0x02:
-							mc6809_rom_visible    = (value & 0b00000001) ? true : false;
-							m68k_rom_visible      = (value & 0b00000010) ? true : false;
-							character_rom_visible = (value & 0b00000100) ? true : false;
-							break;
-						default:
-							//
-							break;
+						} else {
+							generate_interrupts = false;
+						}
+						break;
+					case 0x02:
+						mc6809_rom_visible    = (value & 0b00000001) ? true : false;
+						m68000_rom_visible    = (value & 0b00000010) ? true : false;
+						character_rom_visible = (value & 0b00000100) ? true : false;
+						break;
+					default:
+						//
+						break;
 					}
 					break;
-				default:
-					//
-					break;
-			}
-			break;
-		case SOUND_PAGE:
-			sound->io_write_byte(address, value);
-			break;
-		default:
-			vdc->ram[address] = value;
-			break;
+			default:
+				//
+				break;
+		}
+	} else if ((address & 0xffff00) == SOUND_IO_PAGE) {
+		// sound page
+		sound->io_write_byte(address, value);
+	} else {
+		vdc->ram[address] = value;
 	}
 }
 
@@ -304,7 +221,7 @@ void core_t::reset()
 	bin_attached = false;
 
 	mc6809_rom_visible = true;
-	m68k_rom_visible = true;
+	m68000_rom_visible = true;
 	character_rom_visible = false;
 
 	sound->reset();

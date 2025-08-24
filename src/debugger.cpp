@@ -110,7 +110,7 @@ void debugger_t::redraw()
 
 	// update status text
 	status1->clear();
-	if (system->core->m68k_active) {
+	if (system->core->m68000_active) {
 		system->core->cpu_m68000->disassembleSR(text_buffer);
 		uint32_t isp = system->core->cpu_m68000->getISP();
 		uint32_t usp = system->core->cpu_m68000->getUSP();
@@ -229,7 +229,7 @@ void debugger_t::redraw()
 
 	exception_status->clear();
 
-	if (system->core->m68k_active) {
+	if (system->core->m68000_active) {
 		system->core->sn74ls148->status(text_buffer, 2048);
 	} else {
 		system->core->exceptions->status(text_buffer, 2048);
@@ -414,8 +414,8 @@ void debugger_t::process_command(char *c)
 	} else if (strcmp(token0, "cls") == 0) {
 		terminal->clear();
 	} else if (strcmp(token0, "cpu") == 0) {
-		system->core->m68k_active = !system->core->m68k_active;
-		if (system->core->m68k_active) {
+		system->core->m68000_active = !system->core->m68000_active;
+		if (system->core->m68000_active) {
 			terminal->printf("\nm68000 mode");
 		} else {
 			terminal->printf("\nmc6809 mode");
