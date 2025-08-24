@@ -29,7 +29,7 @@ rndx		equ	$ff
 
 		org	$fc00
 
-		fcn	"rom_mc6809 0.10 20250816"
+		fcn	"rom mc6809 0.10 20250816"
 reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldu	#$fe00		; sets user stackpointer
 

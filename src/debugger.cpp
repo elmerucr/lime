@@ -111,11 +111,11 @@ void debugger_t::redraw()
 	// update status text
 	status1->clear();
 	if (system->core->m68k_active) {
-		system->core->cpu_m68k->disassembleSR(text_buffer);
-		uint32_t isp = system->core->cpu_m68k->getISP();
-		uint32_t usp = system->core->cpu_m68k->getUSP();
+		system->core->cpu_m68000->disassembleSR(text_buffer);
+		uint32_t isp = system->core->cpu_m68000->getISP();
+		uint32_t usp = system->core->cpu_m68000->getUSP();
 		status1->printf(
-			"--------------------------cpu-m68k--------------------------"
+			"-------------------------cpu m68000-------------------------"
 			"   D0:%08x   D4:%08x    A0:%08x   A4:%08x\n"
 			"   D1:%08x   D5:%08x    A1:%08x   A5:%08x\n"
 			"   D2:%08x   D6:%08x    A2:%08x   A6:%08x\n"
@@ -124,30 +124,30 @@ void debugger_t::redraw()
 			"    SSP:%08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n"
 			"    USP:%08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n",
 
-			system->core->cpu_m68k->getD(0),
-			system->core->cpu_m68k->getD(4),
-			system->core->cpu_m68k->getA(0),
-			system->core->cpu_m68k->getA(4),
+			system->core->cpu_m68000->getD(0),
+			system->core->cpu_m68000->getD(4),
+			system->core->cpu_m68000->getA(0),
+			system->core->cpu_m68000->getA(4),
 
-			system->core->cpu_m68k->getD(1),
-			system->core->cpu_m68k->getD(5),
-			system->core->cpu_m68k->getA(1),
-			system->core->cpu_m68k->getA(5),
+			system->core->cpu_m68000->getD(1),
+			system->core->cpu_m68000->getD(5),
+			system->core->cpu_m68000->getA(1),
+			system->core->cpu_m68000->getA(5),
 
-			system->core->cpu_m68k->getD(2),
-			system->core->cpu_m68k->getD(6),
-			system->core->cpu_m68k->getA(2),
-			system->core->cpu_m68k->getA(6),
+			system->core->cpu_m68000->getD(2),
+			system->core->cpu_m68000->getD(6),
+			system->core->cpu_m68000->getA(2),
+			system->core->cpu_m68000->getA(6),
 
-			system->core->cpu_m68k->getD(3),
-			system->core->cpu_m68k->getD(7),
-			system->core->cpu_m68k->getA(3),
-			system->core->cpu_m68k->getA(7),
+			system->core->cpu_m68000->getD(3),
+			system->core->cpu_m68000->getD(7),
+			system->core->cpu_m68000->getA(3),
+			system->core->cpu_m68000->getA(7),
 
-			system->core->cpu_m68k->getPC(),
-			system->core->cpu_m68k->getSR(),
+			system->core->cpu_m68000->getPC(),
+			system->core->cpu_m68000->getSR(),
 			text_buffer,
-			system->core->cpu_m68k->getIPL(),
+			system->core->cpu_m68000->getIPL(),
 
 			isp,
 			system->core->read8(isp+0), system->core->read8(isp+1),
@@ -173,10 +173,10 @@ void debugger_t::redraw()
 		status1->printf(
 			"\n------------------------disassembler------------------------"
 		);
-		uint32_t pc = system->core->cpu_m68k->getPC();
+		uint32_t pc = system->core->cpu_m68000->getPC();
 		uint32_t new_pc;
 		for (int i=0; i<7; i++) {
-			new_pc = pc + system->core->cpu_m68k->disassemble(text_buffer, pc);
+			new_pc = pc + system->core->cpu_m68000->disassemble(text_buffer, pc);
 			if (m68k_disassembly) {
 				status1->printf(",%08x %s\n", pc, text_buffer);
 			} else {
@@ -193,7 +193,7 @@ void debugger_t::redraw()
 		uint16_t usp = system->core->cpu_mc6809->get_us() & 0xffff;
 
 		system->core->cpu_mc6809->status(text_buffer, 1024);
-		status1->printf("-------------------------cpu-mc6809-------------------------%s", text_buffer);
+		status1->printf("-------------------------cpu mc6809-------------------------%s", text_buffer);
 		status1->printf(
 			"\n\n      system stack: %04x %02x %02x %02x %02x %02x %02x %02x %02x",
 			ssp, system->core->read8(ssp), system->core->read8(ssp+1), system->core->read8(ssp+2),
@@ -416,7 +416,7 @@ void debugger_t::process_command(char *c)
 	} else if (strcmp(token0, "cpu") == 0) {
 		system->core->m68k_active = !system->core->m68k_active;
 		if (system->core->m68k_active) {
-			terminal->printf("\nm68k mode");
+			terminal->printf("\nm68000 mode");
 		} else {
 			terminal->printf("\nmc6809 mode");
 		}
@@ -514,7 +514,7 @@ void debugger_t::process_command(char *c)
 		have_prompt = false;
 		enter_dgc_line(c);
 	} else if (strcmp(token0, "n") == 0) {
-		system->core->cpu_m68k->execute();
+		system->core->cpu_m68000->execute();
 	} else if (strcmp(token0, "pal") == 0) {
 		token1 = strtok(NULL, " ");
 

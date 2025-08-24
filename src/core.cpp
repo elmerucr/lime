@@ -15,8 +15,8 @@ core_t::core_t(system_t *s)
 {
 	system = s;
 
-	rom_m68k = new rom_m68k_t();
 	rom_mc6809 = new rom_mc6809_t();
+	rom_m68000 = new rom_m68000_t();
 
 	exceptions = new exceptions_ic();
 	sn74ls148 = new sn74ls148_t(system);
@@ -28,10 +28,10 @@ core_t::core_t(system_t *s)
 	cpu_mc6809->assign_nmi_line(&exceptions->nmi_output_pin);
 	cpu_mc6809->assign_irq_line(&exceptions->irq_output_pin);
 
-	cpu_m68k = new cpu_m68k_t(system);
-	cpu_m68k->setModel(moira::Model::M68000 , moira::Model::M68000);
-	cpu_m68k->setDasmSyntax(moira::Syntax::MOIRA);
-	cpu_m68k->setDasmIndentation(8);
+	cpu_m68000 = new cpu_m68000_t(system);
+	cpu_m68000->setModel(moira::Model::M68000 , moira::Model::M68000);
+	cpu_m68000->setDasmSyntax(moira::Syntax::MOIRA);
+	cpu_m68000->setDasmIndentation(8);
 
 	timer = new timer_ic(exceptions, sn74ls148);
 
@@ -57,13 +57,13 @@ core_t::~core_t()
 	delete cpu2sid;
 	delete sound;
 	delete timer;
-	delete cpu_m68k;
+	delete cpu_m68000;
 	delete sn74ls148;
 	delete cpu_mc6809;
 	delete vdc;
 	delete exceptions;
+	delete rom_m68000;
 	delete rom_mc6809;
-	delete rom_m68k;
 }
 
 enum output_states core_t::run(bool debug)
@@ -93,7 +93,7 @@ uint8_t core_t::read8(uint32_t address)
 
 	if (m68k_active & !(address & 0xfffff8)) {
 		// make sure m68k vectors are read, if needed
-		return rom_m68k->data[address];
+		return rom_m68000->data[address];
 	} else if ((address & 0xffff00) == 0x000400) {
 		// combined io page
 		switch (address & 0x00c0) {
@@ -154,7 +154,7 @@ uint8_t core_t::read8(uint32_t address)
 	} else if ((address & 0xff0000) == 0x010000) {
 		// m68k rom
 		if (m68k_rom_visible) {
-			return rom_m68k->data[address & 0xffff];
+			return rom_m68000->data[address & 0xffff];
 		} else {
 			return vdc->ram[address];
 		}
@@ -311,30 +311,7 @@ void core_t::reset()
 	timer->reset();
 	vdc->reset();	// vdc before cpu, as vdc also inits ram
 	cpu_mc6809->reset();
-
-	// temp hack for 68000
-	write8(0, 0x00);
-	write8(1, 0x00);
-	write8(2, 0xc0);
-	write8(3, 0x00);
-	write8(4, 0x00);
-	write8(5, 0x00);
-	write8(6, 0xd0);
-	write8(7, 0x00);
-	write8(0xd000, 0x52);
-	write8(0xd001, 0x39);
-	write8(0xd002, 0x00);
-	write8(0xd003, 0x00);
-	write8(0xd004, 0x04);
-	write8(0xd005, 0x04);
-	write8(0xd006, 0x4e);
-	write8(0xd007, 0xf9);
-	write8(0xd008, 0x00);
-	write8(0xd009, 0x00);
-	write8(0xd00a, 0xd0);
-	write8(0xd00b, 0x00);
-
-	cpu_m68k->reset();
+	cpu_m68000->reset();
 }
 
 void core_t::attach_bin(char *path)

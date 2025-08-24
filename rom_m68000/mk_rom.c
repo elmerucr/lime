@@ -37,23 +37,23 @@ int main(int argc, char *argv[])
 	fclose(f);
 
 	// write 8k output to cpp file
-	printf("[mk_rom] writing 64kb image 'rom.bin' and 'rom_m68k.hpp' for inclusion in punch\n");
-	f = fopen("rom_m68k.hpp","w");
+	printf("[mk_rom] writing 64kb image 'rom.bin' and 'rom_m68000.hpp' for inclusion in lime\n");
+	f = fopen("rom_m68000.hpp","w");
 
 	fprintf(f, "// ---------------------------------------------------------------------\n");
-	fprintf(f, "// rom_m68k.hpp\n");
+	fprintf(f, "// rom_m68000.hpp\n");
 	fprintf(f, "// lime\n");
 	fprintf(f, "//\n");
 	fprintf(f, "// Copyright (C)2025 elmerucr. All rights reserved.\n");
 	fprintf(f, "// %s",ctime(&t));
 	fprintf(f, "// ---------------------------------------------------------------------\n\n");
 
-	fprintf(f, "#ifndef ROM_M68K_HPP\n");
-	fprintf(f, "#define ROM_M68K_HPP\n\n");
+	fprintf(f, "#ifndef ROM_M68000_HPP\n");
+	fprintf(f, "#define ROM_M68000_HPP\n\n");
 
 	fprintf(f, "#include <cstdint>\n\n");
 
-	fprintf(f, "class rom_m68k_t {\n");
+	fprintf(f, "class rom_m68000_t {\n");
 	fprintf(f, "public:\n");
 	fprintf(f, "\tconst uint8_t data[65536] = {");
 
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 
 	fclose(f);
 
-	// write 512b output to bin file
+	// write 64kb output to bin file
 	f = fopen("rom.bin","wb");
 	fwrite(romdata, sizeof(romdata), 1, f);
 	fclose(f);

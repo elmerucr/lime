@@ -20,9 +20,9 @@
 #include "vdc.hpp"
 #include "cpu_mc6809.hpp"
 #include "exceptions.hpp"
-#include "cpu_m68k.hpp"
+#include "cpu_m68000.hpp"
 #include "sn74ls148.hpp"
-#include "rom_m68k.hpp"
+#include "rom_m68000.hpp"
 #include "rom_mc6809.hpp"
 #include "font_cbm_8x8.hpp"
 #include "timer.hpp"
@@ -52,7 +52,7 @@ private:
 	//bool irq_line_frame_done{true};
 
 	system_t *system;
-	rom_m68k_t *rom_m68k;
+	rom_m68000_t *rom_m68000;
 	rom_mc6809_t *rom_mc6809;
 
 	// memory configuration address $02 in core bank
@@ -78,12 +78,12 @@ public:
 
 	vdc_t *vdc;
 
-	exceptions_ic *exceptions;	// for MC6809
-	sn74ls148_t *sn74ls148;	// for M68K
+	exceptions_ic *exceptions;	// for mc6809
+	sn74ls148_t *sn74ls148;	// for m68k
 
 	cpu_mc6809_t *cpu_mc6809;
 
-	cpu_m68k_t *cpu_m68k;
+	cpu_m68000_t *cpu_m68000;
 
 	clocks *cpu2sid;
 	font_cbm_8x8_t *font;

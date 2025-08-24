@@ -1,6 +1,6 @@
 .vscode
 .DS_Store
-rom_m68k/mk_rom
+rom_m68000/mk_rom
 rom_mc6809/mk_rom
 build/
 Debug/

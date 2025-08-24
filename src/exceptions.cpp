@@ -52,12 +52,3 @@ void exceptions_ic::status(char *b, int buffer_length)
 		b += snprintf(b, buffer_length, "\n %1i     %c    \"%s\"", i, irq_input_pins[i] ? '1' : '0', dev_name[i]);
 	}
 }
-
-// void exceptions_ic::status(char *b, int buffer_length, uint8_t device)
-// {
-// 	if (device < next_available_device) {
-// 		snprintf(b, buffer_length, "%1i  %c \"%s\"", device, irq_input_pins[device] ? '1' : '0', dev_name[device]);
-// 	} else {
-// 		b[0] = '\0';
-// 	}
-// }
