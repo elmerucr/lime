@@ -33,3 +33,8 @@ void cpu_m68000_t::write16(u32 addr, u16 val) const
 	system->core->write8(addr, (val & 0xff00) >> 8);
 	system->core->write8(addr + 1, val & 0x00ff);
 }
+
+void cpu_m68000_t::didReachBreakpoint(u32 addr)
+{
+	breakpoint_reached = true;
+}

@@ -177,6 +177,9 @@ void debugger_t::redraw()
 		uint32_t new_pc;
 		for (int i=0; i<7; i++) {
 			new_pc = pc + system->core->cpu_m68000->disassemble(text_buffer, pc);
+			if (system->core->cpu_m68000->debugger.breakpoints.isSetAt(pc)) {
+				status1->fg_color = 0xffe04040;	// orange
+			}
 			if (m68k_disassembly) {
 				status1->printf(",%08x %s\n", pc, text_buffer);
 			} else {
@@ -186,6 +189,7 @@ void debugger_t::redraw()
 				}
 				status1->printf("\n");
 			}
+			status1->fg_color = LIME_COLOR_02;
 			pc = new_pc;
 		}
 	} else {
@@ -209,7 +213,6 @@ void debugger_t::redraw()
 		status1->printf("\n\n------------------------disassembler------------------------");
 		uint16_t pc = system->core->cpu_mc6809->get_pc();
 		for (int i=0; i<11; i++) {
-			status1->putchar(',');
 			pc += disassemble_instruction_status1(pc);
 			status1->putchar('\n');
 		}
@@ -390,25 +393,47 @@ void debugger_t::process_command(char *c)
 		token1 = strtok(NULL, " ");
 		if (token1 == NULL) {
 			terminal->printf("\nbreakpoints:");
-			for (int i=0; i<65536; i++) {
-				if (system->core->cpu_mc6809->breakpoint_array[i]) {
-					breakpoints_present = true;
-					terminal->printf("\n$%04x", i);
+			if (system->core->m68000_active) {
+				for (uint32_t i=0x000000; i<0x1000000; i++) {
+					if (system->core->cpu_m68000->debugger.breakpoints.isSetAt(i)) {
+						breakpoints_present = true;
+						terminal->printf("\n$%06x", i);
+					}
+				}
+			} else {
+				for (int i=0; i<65536; i++) {
+					if (system->core->cpu_mc6809->breakpoint_array[i]) {
+						breakpoints_present = true;
+						terminal->printf("\n$%04x", i);
+					}
 				}
 			}
-			if (!breakpoints_present) terminal->printf("\nnone");
+			if (!breakpoints_present) {
+				terminal->printf("\nnone");
+			}
 		} else {
 			uint32_t address;
 			if (!hex_string_to_int(token1, &address)) {
 				terminal->printf("\nerror: '%s' is not a hex number", token1);
 			} else {
-				address &= 0xffff;
-				system->core->cpu_mc6809->toggle_breakpoint(address);
-				if (system->core->cpu_mc6809->breakpoint_array[address]) {
-					terminal->printf("\nbreakpoint set at $%04x", address);
+				if (system->core->m68000_active) {
+					address &= 0xffffff;
+					if (system->core->cpu_m68000->debugger.breakpoints.isSetAt(address)) {
+						system->core->cpu_m68000->debugger.breakpoints.removeAt(address);
+						terminal->printf("\nbreakpoint removed at $%06x", address);
+					} else {
+						system->core->cpu_m68000->debugger.breakpoints.setAt(address);
+						terminal->printf("\nbreakpoint set at $%06x", address);
+					}
 				} else {
-					terminal->printf("\nbreakpoint removed at $%04x", address);
-				}
+					address &= 0xffff;
+					system->core->cpu_mc6809->toggle_breakpoint(address);
+					if (system->core->cpu_mc6809->breakpoint_array[address]) {
+						terminal->printf("\nbreakpoint set at $%04x", address);
+					} else {
+						terminal->printf("\nbreakpoint removed at $%04x", address);
+					}
+			}
 			}
 		}
 	} else if (strcmp(token0, "cls") == 0) {
@@ -821,7 +846,7 @@ uint32_t debugger_t::disassemble_instruction_status1(uint16_t address)
 		status1->fg_color = 0xffe04040;	// orange
 	}
 	cycles = system->core->cpu_mc6809->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
-	status1->printf("%s", text_buffer);
+	status1->printf(",%s", text_buffer);
 	status1->fg_color = LIME_COLOR_02;
 
 	return cycles;

@@ -71,18 +71,37 @@ enum output_states core_t::run(bool debug)
 	enum output_states output_state = NORMAL;
 	bool frame_done;
 
-	do {
+	if (m68000_active) {
+		do {
 
-		uint16_t cpu_cycles = cpu_mc6809->execute();
-		frame_done = vdc->run(cpu_cycles);
-		timer->run(cpu_cycles);
-		uint16_t sound_cycles = cpu2sid->clock(cpu_cycles);
-		sound->run(sound_cycles);
-		sound_cycle_saldo += sound_cycles;
+			int64_t cpu_cycles = cpu_m68000->getClock();
+			cpu_m68000->execute();
+			cpu_cycles = cpu_m68000->getClock() - cpu_cycles;
+			frame_done = vdc->run(cpu_cycles);
+			timer->run(cpu_cycles);
+			uint16_t sound_cycles = cpu2sid->clock(cpu_cycles);
+			sound->run(sound_cycles);
+			sound_cycle_saldo += sound_cycles;
 
-	} while ((!cpu_mc6809->breakpoint()) && (!frame_done) && (!debug));
+		} while((!cpu_m68000->reached_breakpoint()) && (!frame_done) && (!debug));
 
-	if (cpu_mc6809->breakpoint()) output_state = BREAKPOINT;
+		// FIXME!
+
+		// TODO!!
+	} else {
+		do {
+
+			uint16_t cpu_cycles = cpu_mc6809->execute();
+			frame_done = vdc->run(cpu_cycles);
+			timer->run(cpu_cycles);
+			uint16_t sound_cycles = cpu2sid->clock(cpu_cycles);
+			sound->run(sound_cycles);
+			sound_cycle_saldo += sound_cycles;
+
+		} while ((!cpu_mc6809->breakpoint()) && (!frame_done) && (!debug));
+
+		if (cpu_mc6809->breakpoint()) output_state = BREAKPOINT;
+	}
 
 	return output_state;
 }
