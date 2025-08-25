@@ -48,7 +48,7 @@ core_t::core_t(system_t *s)
 	dev_number_sn74ls148 = sn74ls148->connect_device(2, "core");
 	printf("[core] Connecting to sn74ls148 at ipl 2 getting dev %i\n", dev_number_sn74ls148);
 
-	m68000_active = false;
+	m68000_active = true;
 }
 
 core_t::~core_t()
@@ -74,20 +74,22 @@ enum output_states core_t::run(bool debug)
 	if (m68000_active) {
 		do {
 
-			int64_t cpu_cycles = cpu_m68000->getClock();
 			cpu_m68000->execute();
-			cpu_cycles = cpu_m68000->getClock() - cpu_cycles;
+			uint16_t cpu_cycles = cpu_m68000->getClock() - cpu_m68000->old_clock;
+			cpu_m68000->old_clock += cpu_cycles;
 			frame_done = vdc->run(cpu_cycles);
 			timer->run(cpu_cycles);
 			uint16_t sound_cycles = cpu2sid->clock(cpu_cycles);
 			sound->run(sound_cycles);
 			sound_cycle_saldo += sound_cycles;
 
-		} while((!cpu_m68000->reached_breakpoint()) && (!frame_done) && (!debug));
+		} while((!cpu_m68000->breakpoint_reached) && (!frame_done) && (!debug));
 
-		// FIXME!
+		if (cpu_m68000->breakpoint_reached) {
+			cpu_m68000->breakpoint_reached = false;
+			output_state = BREAKPOINT;
+		}
 
-		// TODO!!
 	} else {
 		do {
 
@@ -101,6 +103,7 @@ enum output_states core_t::run(bool debug)
 		} while ((!cpu_mc6809->breakpoint()) && (!frame_done) && (!debug));
 
 		if (cpu_mc6809->breakpoint()) output_state = BREAKPOINT;
+
 	}
 
 	return output_state;
@@ -244,7 +247,10 @@ void core_t::reset()
 	timer->reset();
 	vdc->reset();	// vdc before cpu, as vdc also inits ram
 	cpu_mc6809->reset();
+
 	cpu_m68000->reset();
+	cpu_m68000->old_clock = 0;
+	cpu_m68000->setClock(0);
 }
 
 void core_t::attach_bin(char *path)
