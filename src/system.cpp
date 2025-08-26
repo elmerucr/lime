@@ -157,7 +157,11 @@ void system_t::switch_mode()
 	keyboard->purge();
 
 	if (current_mode == RUN_MODE) {
-		debugger->terminal->printf("\nbreak at $%04x", core->cpu_mc6809->get_pc());
+		if (core->m68000_active) {
+			debugger->terminal->printf("\nbreakpoint at %06x", core->cpu_m68000->getPC());
+		} else {
+			debugger->terminal->printf("\nbreakpoint at $%04x", core->cpu_mc6809->get_pc());
+		}
 		switch_to_debug_mode();
 	} else {
 		switch_to_run_mode();

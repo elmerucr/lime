@@ -539,7 +539,7 @@ void debugger_t::process_command(char *c)
 		have_prompt = false;
 		enter_dgc_line(c);
 	} else if (strcmp(token0, "n") == 0) {
-		system->core->cpu_m68000->execute();
+		system->core->run(true);
 	} else if (strcmp(token0, "pal") == 0) {
 		token1 = strtok(NULL, " ");
 

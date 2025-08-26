@@ -65,7 +65,11 @@ void stats_t::process_parameters()
 		/*
 		 * cpu speed
 		 */
-		cpu_ticks = system->core->cpu_mc6809->clock_ticks();
+		if (system->core->m68000_active) {
+			cpu_ticks = system->core->cpu_m68000->getClock();
+		} else {
+			cpu_ticks = system->core->cpu_mc6809->clock_ticks();
+		}
 		cpu_mhz = (double)(cpu_ticks - old_cpu_ticks) / total_time;
 		smoothed_cpu_mhz =
 			(alpha_cpu * smoothed_cpu_mhz) +
