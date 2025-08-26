@@ -134,7 +134,8 @@ uint8_t core_t::read8(uint32_t address)
 						// core roms
 						return
 							(system_rom_visible    ? 0b00000001 : 0b00000000) |
-							(character_rom_visible ? 0b00000010 : 0b00000000) ;
+							(character_rom_visible ? 0b00000010 : 0b00000000) |
+							(system->host->video_scanlines ? 0b00000100 : 0b00000000);
 					case 0x04:
 						return file_data[file_pointer++];
 					case 0x08:
@@ -216,6 +217,7 @@ void core_t::write8(uint32_t address, uint8_t value)
 					case 0x02:
 						system_rom_visible    = (value & 0b00000001) ? true : false;
 						character_rom_visible = (value & 0b00000010) ? true : false;
+						system->host->video_scanlines = (value & 0b00000100) ? true : false;
 						break;
 					default:
 						//

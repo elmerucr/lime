@@ -13,7 +13,6 @@
 #include "stats.hpp"
 #include "common.hpp"
 #include "core.hpp"
-//#include "cpu.hpp"
 
 void stats_t::reset()
 {

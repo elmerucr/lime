@@ -119,7 +119,6 @@ private:
 	int				video_window_height;
     SDL_Renderer	*video_renderer;
 	bool			vsync;
-    bool			video_scanlines{true};
     const uint8_t	video_scanline_alpha = 176;
     bool			video_fullscreen{false};
 	bool			video_fullscreen_stretched{false};
@@ -161,8 +160,9 @@ public:
     void video_toggle_fullscreen();
     void video_toggle_fullscreen_stretched();
 	void video_set_dimensions();
-    void video_update_screen();
+	void video_update_screen();
 	void video_set_window_title(const char *t);
+    bool video_scanlines{true};
 
     uint32_t *video_framebuffer;	// used for scanline effect
 	uint32_t *video_viewer_framebuffer;
