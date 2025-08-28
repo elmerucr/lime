@@ -1,5 +1,5 @@
 Sections:
-00: "seg10000" (10000-10050)
+00: "seg10000" (10000-1004E)
 
 
 Source: "rom.s"
@@ -19,25 +19,24 @@ Source: "rom.s"
 00:00010010 303020302E312032
 00:00010018 30323530383238
                             	    14: 
-00:00010020 41F90001004C    	    15: _start	lea	exc_addr_error,A0
-00:00010026 21C8000C        	    16: 	move.l	A0,$000c.w		; exception for address error
-00:0001002A 207C00010000    	    17: 	move.l	#$00010000,A0
-00:00010030 4E60            	    18: 	move.l	A0,USP
-00:00010032 46FC0200        	    19: 	move.w	#$0200,SR
-00:00010036 2F3C0001004C    	    20: 	move.l	#exc_addr_error,-(A7)
-00:0001003C 10380404        	    21: .1	move.b	$404.w,D0
-00:00010040 5200            	    22: 	addq.b	#$1,D0
-00:00010042 11C00404        	    23: 	move.b	D0,$404.w
-00:00010046 4EF90001003C    	    24: 	jmp	.1
-                            	    25: 
-                            	    26: exc_addr_error
-00:0001004C 6000FFFE        	    27: 	bra	exc_addr_error
+00:00010020 21FC0001004A000C	    15: _start	move.l	#exc_addr_error,$000c.w		; exception for address error
+00:00010028 207C00010000    	    16: 	move.l	#$00010000,A0			; set usp
+00:0001002E 4E60            	    17: 	move.l	A0,USP
+00:00010030 46FC0200        	    18: 	move.w	#$0200,SR			; cpu state
+00:00010034 2F3C0001004A    	    19: 	move.l	#exc_addr_error,-(SP)		; test usp
+00:0001003A 10380404        	    20: .1	move.b	$404.w,D0
+00:0001003E 5200            	    21: 	addq.b	#$1,D0
+00:00010040 11C00404        	    22: 	move.b	D0,$404.w
+00:00010044 4EF90001003A    	    23: 	jmp	.1
+                            	    24: 
+                            	    25: exc_addr_error
+00:0001004A 6000FFFE        	    26: 	bra	exc_addr_error
 
 
 Symbols by name:
 _start                           A:00010020
-exc_addr_error                   A:0001004C
+exc_addr_error                   A:0001004A
 
 Symbols by value:
 00010020 _start
-0001004C exc_addr_error
+0001004A exc_addr_error
