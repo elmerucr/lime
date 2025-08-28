@@ -41,7 +41,7 @@
  *
  * Enable to improve accuracy, disable to gain speed.
  */
-#define MOIRA_EMULATE_ADDRESS_ERROR false
+#define MOIRA_EMULATE_ADDRESS_ERROR true
 
 /* Set to true to emulate function code pins FC0 - FC2.
  *
