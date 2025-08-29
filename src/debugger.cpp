@@ -488,7 +488,13 @@ void debugger_t::process_command(char *c)
 		uint8_t lines_remaining = terminal->lines_remaining();
 		if (lines_remaining == 0) lines_remaining = 1;
 
-		uint32_t temp_pc = system->core->cpu_mc6809->get_pc();
+		uint32_t temp_pc;
+
+		if (system->core->m68000_active) {
+			temp_pc = system->core->cpu_m68000->getPC();
+		} else {
+			temp_pc = system->core->cpu_mc6809->get_pc();
+		}
 
 		if (token1 == NULL) {
 			for (int i=0; i<lines_remaining; i++) {

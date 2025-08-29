@@ -158,7 +158,7 @@ void system_t::switch_mode()
 
 	if (current_mode == RUN_MODE) {
 		if (core->m68000_active) {
-			debugger->terminal->printf("\nbreakpoint at %06x", core->cpu_m68000->getPC());
+			debugger->terminal->printf("\nbreakpoint at $%06x", core->cpu_m68000->getPC());
 		} else {
 			debugger->terminal->printf("\nbreakpoint at $%04x", core->cpu_mc6809->get_pc());
 		}
