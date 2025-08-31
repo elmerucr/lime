@@ -72,6 +72,7 @@ enum output_states core_t::run(bool debug)
 	bool frame_done;
 
 	if (m68000_active) {
+
 		do {
 
 			cpu_m68000->execute();
@@ -91,6 +92,7 @@ enum output_states core_t::run(bool debug)
 		}
 
 	} else {
+
 		do {
 
 			uint16_t cpu_cycles = cpu_mc6809->execute();
