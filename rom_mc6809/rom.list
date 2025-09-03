@@ -41,8 +41,6 @@
                       ; vdc (video display controller)
 0400                  VDC_SR                  equ     $0400
 0401                  VDC_CR                  equ     $0401
-0402                  VDC_CURRENT_SCANLINE    equ     $0402
-0403                  VDC_IRQ_SCANLINE        equ     $0403
 0404                  VDC_BG_COLOR            equ     $0404
 0405                  VDC_CURRENT_PALETTE     equ     $0405
 0406                  VDC_CURRENT_LAYER       equ     $0406
@@ -52,6 +50,12 @@
 0409                  VDC_PALETTE_RED         equ     $0409
 040A                  VDC_PALETTE_GREEN       equ     $040a
 040B                  VDC_PALETTE_BLUE        equ     $040b
+                      
+040C                  VDC_CURRENT_SCANLINE_MSB        equ     $040c
+040D                  VDC_CURRENT_SCANLINE_LSB        equ     $040d
+040E                  VDC_IRQ_SCANLINE_MSB            equ     $040e
+040F                  VDC_IRQ_SCANLINE_LSB            equ     $040f
+                      
                       
 0410                  VDC_LAYER_X             equ     $0410
 0411                  VDC_LAYER_Y             equ     $0411
@@ -189,7 +193,7 @@ FC83 BF0220                           stx     VECTOR_VDC_INDIRECT
                       
                       ; set raster irq on scanline 159
 FC86 869F                             lda     #$9f
-FC88 B70403                           sta     VDC_IRQ_SCANLINE
+FC88 B7040F                           sta     VDC_IRQ_SCANLINE_LSB
 FC8B 8601                             lda     #%00000001
 FC8D B70401                           sta     VDC_CR          ; enable irq's for vdc
                       

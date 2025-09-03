@@ -26,7 +26,7 @@ _start	move.l	#exc_addr_error,$000c.w		; exception for address error
 	jmp	.1
 
 exc_addr_error
-	bra	exc_addr_error			; TODO: screendump when this happens?
+	bra	exc_addr_error			; TODO: bsod when this happens?
 
 logo_data
 	dc.b	112,64,%111,0,$1c		; icon top left

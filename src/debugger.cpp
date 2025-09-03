@@ -249,10 +249,11 @@ void debugger_t::redraw()
 
 	vdc_status->clear();
 	vdc_status->printf("------vdc------");
-	vdc_status->printf(" cycle %3i/%3i\nscanln %3i/255",
+	vdc_status->printf(" cycle %3i/%3i\nscanln %3i/%3i",
 		system->core->vdc->get_cycles_run(),
 		CPU_CYCLES_PER_SCANLINE,
-		system->core->vdc->get_current_scanline()
+		system->core->vdc->get_current_scanline(),
+		VDC_SCANLINES - 1
 	);
 	if (system->core->vdc->get_generate_interrupts()) {
 		vdc_status->printf("\nirq at %3i", system->core->vdc->get_irq_scanline());

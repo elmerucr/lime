@@ -84,7 +84,7 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 
 ; set raster irq on scanline 159
 		lda	#$9f
-		sta	VDC_IRQ_SCANLINE
+		sta	VDC_IRQ_SCANLINE_LSB
 		lda	#%00000001
 		sta	VDC_CR		; enable irq's for vdc
 

@@ -220,10 +220,6 @@ uint8_t vdc_t::io_read8(uint16_t address)
 		case 0x01:
 			// control register
 			return generate_interrupts ? 0b1 : 0b0;
-		case 0x02:
-			return current_scanline & 0xff;
-		case 0x03:
-			return irq_scanline & 0xff;
 		case 0x04:
 			return bg_color;
 		case 0x05:
@@ -240,6 +236,14 @@ uint8_t vdc_t::io_read8(uint16_t address)
 			return (palette[current_palette] & 0x0000ff00) >>  8;
 		case 0x0b:
 			return (palette[current_palette] & 0x000000ff) >>  0;
+		case 0x0c:
+			return (current_scanline & 0xff00) >> 8;
+		case 0x0d:
+			return current_scanline & 0xff;
+		case 0x0e:
+			return (irq_scanline & 0xff00) >> 8;;
+		case 0x0f:
+			return irq_scanline & 0xff;
 
 		// layers
 		case 0x10:
@@ -297,9 +301,6 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 		case 0x01:
 			generate_interrupts = (value & 0b1) ? true : false;
 			break;
-		case 0x03:
-			irq_scanline = value;
-			break;
 		case 0x04:
 			bg_color = value;
 			break;
@@ -328,6 +329,18 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 		case 0x0b:
 			if (current_palette & 0x80) {
 				palette[current_palette] = (palette[current_palette] & 0xffffff00) | value;
+			}
+			break;
+		case 0x0e:
+			irq_scanline = (irq_scanline & 0x00ff) | (value << 8);
+			if (irq_scanline >= VDC_SCANLINES) {
+				irq_scanline = VDC_SCANLINES - 1;
+			}
+			break;
+		case 0x0f:
+			irq_scanline = (irq_scanline & 0xff00) | value;
+			if (irq_scanline >= VDC_SCANLINES) {
+				irq_scanline = VDC_SCANLINES - 1;
 			}
 			break;
 
