@@ -1,5 +1,5 @@
 Sections:
-00: "seg10000" (10000-10076)
+00: "seg10000" (10000-10090)
 
 
 Source: "rom.s"
@@ -10,79 +10,119 @@ Source: "rom.s"
                             	     5: ; Copyright © 2025 elmerucr. All rights reserved.
                             	     6: ; ----------------------------------------------------------------------
                             	     7: 
-                            	     8: 	org	$00010000	; rom based at $10000
+                            	     8: 	include	"definitions.i"
+
+Source: "definitions.i"
+                            	     1: ; ----------------------------------------------------------------------
+                            	     2: ; definitions.i
+                            	     3: ; lime
+                            	     4: ;
+                            	     5: ; Copyright © 2025 elmerucr. All rights reserved.
+                            	     6: ; ----------------------------------------------------------------------
+                            	     7: 
+                            	     8: ; vectors
+                            	     9: VEC_ADDR_ERROR		equ	$000c
+                            	    10: VEC_LVL1_IRQ_AUTO	equ	$0064
+                            	    11: 
+                            	    12: ; vdc (video display controller)
+                            	    13: VDC_TILESET0	equ	$0800
+                            	    14: VDC_TILESET1	equ	$1000
+                            	    15: 
+                            	    16: CORE_ROMS	equ	$0482
+                            	    17: 
+
+Source: "rom.s"
                             	     9: 
-00:00010000 01000000        	    10: 	dc.l	$01000000	; initial ssp at end of ram
-00:00010004 00010020        	    11: 	dc.l	_start		; reset vector
-                            	    12: 
-00:00010008 726F6D206D363830	    13: 	dc.b	"rom m68000 0.1 20250828"
-00:00010010 303020302E312032
-00:00010018 30323530383238
+                            	    10: 	org	$00010000	; rom based at $10000
+                            	    11: 
+00:00010000 01000000        	    12: 	dc.l	$01000000	; initial ssp at end of ram
+00:00010004 00010020        	    13: 	dc.l	_start		; reset vector
                             	    14: 
-                            	    15: 	;align	2
+00:00010008 726F6D206D363830	    15: 	dc.b	"rom m68000 0.1 20250904"
+00:00010010 303020302E312032
+00:00010018 30323530393034
                             	    16: 
-00:00010020 21FC0001004A000C	    17: _start	move.l	#exc_addr_error,$000c.w		; exception for address error
-00:00010028 207C00010000    	    18: 	move.l	#$00010000,A0			; set usp
-00:0001002E 4E60            	    19: 	move.l	A0,USP
-00:00010030 46FC0200        	    20: 	move.w	#$0200,SR			; cpu state
-00:00010034 2F3C0001004A    	    21: 	move.l	#exc_addr_error,-(SP)		; test usp
-                            	    22: 
-00:0001003A 10380404        	    23: .1	move.b	$404.w,D0			; change background colour loop
-00:0001003E 5200            	    24: 	addq.b	#$1,D0
-00:00010040 11C00404        	    25: 	move.b	D0,$404.w
-00:00010044 4EF90001003A    	    26: 	jmp	.1
-                            	    27: 
-                            	    28: exc_addr_error
-00:0001004A 6000FFFE        	    29: 	bra	exc_addr_error
+                            	    17: 	align	2
+                            	    18: 
+00:00010020 21FC00010064000C	    19: _start	move.l	#exc_addr_error,VEC_ADDR_ERROR.w	; exception for address error
+                            	    20: 
+00:00010028 207C00010000    	    21: 	move.l	#$00010000,A0			; set usp
+00:0001002E 4E60            	    22: 	move.l	A0,USP
+                            	    23: 
+00:00010030 003800020482    	    24: 	or.b	#%00000010,CORE_ROMS.w		; make rom font visible to cpu
+00:00010036 307C1000        	    25: 	movea	#VDC_TILESET1.w,A0
+00:0001003A 10D0            	    26: .1	move.b	(A0),(A0)+			; copy rom font to underlying ram
+00:0001003C B0FC2000        	    27: 	cmpa	#VDC_TILESET1+$1000,A0
+00:00010040 6600FFF8        	    28: 	bne	.1
+00:00010044 023800FD0482    	    29: 	and.b	#%11111101,CORE_ROMS.w		; turn off rom font
                             	    30: 
-00:0001004E 70              	    31: logo_data	dc.b	112,64,%111,0,$1c		; icon top left
-00:0001004F 40
-00:00010050 07
-00:00010051 00
-00:00010052 1C
-00:00010053 78              	    32: 		dc.b	120,64,%111,0,$1d		; icon top right
-00:00010054 40
-00:00010055 07
-00:00010056 00
-00:00010057 1D
-00:00010058 70              	    33: 		dc.b	112,72,%111,0,$1e		; icon bottom left
-00:00010059 48
-00:0001005A 07
-00:0001005B 00
-00:0001005C 1E
-00:0001005D 78              	    34: 		dc.b	120,72,%111,0,$1f		; icon bottom right
-00:0001005E 48
-00:0001005F 07
-00:00010060 00
-00:00010061 1F
-00:00010062 6B              	    35: 		dc.b	107,80,%111,0,$6c		; l
-00:00010063 50
-00:00010064 07
-00:00010065 00
-00:00010066 6C
-00:00010067 70              	    36: 		dc.b	112,80,%111,0,$69		; i
-00:00010068 50
-00:00010069 07
-00:0001006A 00
-00:0001006B 69
-00:0001006C 76              	    37: 		dc.b	118,80,%111,0,$6d		; m
-00:0001006D 50
-00:0001006E 07
-00:0001006F 00
-00:00010070 6D
-00:00010071 7E              	    38: 		dc.b	126,80,%111,0,$65		; e
-00:00010072 50
-00:00010073 07
-00:00010074 00
-00:00010075 65
+00:0001004A 46FC0200        	    31: 	move.w	#$0200,SR			; set status register (User Mode, ipl = 0)
+00:0001004E 2F3C00010064    	    32: 	move.l	#exc_addr_error,-(SP)		; test usp
+                            	    33: 
+00:00010054 10380404        	    34: .2	move.b	$404.w,D0			; change background colour loop
+00:00010058 5200            	    35: 	addq.b	#$1,D0
+00:0001005A 11C00404        	    36: 	move.b	D0,$404.w
+00:0001005E 4EF900010054    	    37: 	jmp	.2
+                            	    38: 
+                            	    39: exc_addr_error
+00:00010064 6000FFFE        	    40: 	bra	exc_addr_error			; TODO: bsod when this happens?
+                            	    41: 
+                            	    42: logo_data
+00:00010068 70              	    43: 	dc.b	112,64,%111,0,$1c		; icon top left
+00:00010069 40
+00:0001006A 07
+00:0001006B 00
+00:0001006C 1C
+00:0001006D 78              	    44: 	dc.b	120,64,%111,0,$1d		; icon top right
+00:0001006E 40
+00:0001006F 07
+00:00010070 00
+00:00010071 1D
+00:00010072 70              	    45: 	dc.b	112,72,%111,0,$1e		; icon bottom left
+00:00010073 48
+00:00010074 07
+00:00010075 00
+00:00010076 1E
+00:00010077 78              	    46: 	dc.b	120,72,%111,0,$1f		; icon bottom right
+00:00010078 48
+00:00010079 07
+00:0001007A 00
+00:0001007B 1F
+00:0001007C 6B              	    47: 	dc.b	107,80,%111,0,$6c		; l
+00:0001007D 50
+00:0001007E 07
+00:0001007F 00
+00:00010080 6C
+00:00010081 70              	    48: 	dc.b	112,80,%111,0,$69		; i
+00:00010082 50
+00:00010083 07
+00:00010084 00
+00:00010085 69
+00:00010086 76              	    49: 	dc.b	118,80,%111,0,$6d		; m
+00:00010087 50
+00:00010088 07
+00:00010089 00
+00:0001008A 6D
+00:0001008B 7E              	    50: 	dc.b	126,80,%111,0,$65		; e
+00:0001008C 50
+00:0001008D 07
+00:0001008E 00
+00:0001008F 65
+                            	    51: 
 
 
 Symbols by name:
+CORE_ROMS                        E:00000482
+VDC_TILESET1                     E:00001000
+VEC_ADDR_ERROR                   E:0000000C
 _start                           A:00010020
-exc_addr_error                   A:0001004A
-logo_data                        A:0001004E
+exc_addr_error                   A:00010064
+logo_data                        A:00010068
 
 Symbols by value:
+0000000C VEC_ADDR_ERROR
+00000482 CORE_ROMS
+00001000 VDC_TILESET1
 00010020 _start
-0001004A exc_addr_error
-0001004E logo_data
+00010064 exc_addr_error
+00010068 logo_data

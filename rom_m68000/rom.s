@@ -5,25 +5,36 @@
 ; Copyright © 2025 elmerucr. All rights reserved.
 ; ----------------------------------------------------------------------
 
+	include	"definitions.i"
+
 	org	$00010000	; rom based at $10000
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
 
-	dc.b	"rom m68000 0.1 20250828"
+	dc.b	"rom m68000 0.1 20250904"
 
 	align	2
 
-_start	move.l	#exc_addr_error,$000c.w		; exception for address error
+_start	move.l	#exc_addr_error,VEC_ADDR_ERROR.w	; exception for address error
+
 	move.l	#$00010000,A0			; set usp
 	move.l	A0,USP
-	move.w	#$0200,SR			; cpu state
+
+	or.b	#%00000010,CORE_ROMS.w		; make rom font visible to cpu
+	movea	#VDC_TILESET1.w,A0
+.1	move.b	(A0),(A0)+			; copy rom font to underlying ram
+	cmpa	#VDC_TILESET1+$1000,A0
+	bne	.1
+	and.b	#%11111101,CORE_ROMS.w		; turn off rom font
+
+	move.w	#$0200,SR			; set status register (User Mode, ipl = 0)
 	move.l	#exc_addr_error,-(SP)		; test usp
 
-.1	move.b	$404.w,D0			; change background colour loop
+.2	move.b	$404.w,D0			; change background colour loop
 	addq.b	#$1,D0
 	move.b	D0,$404.w
-	jmp	.1
+	jmp	.2
 
 exc_addr_error
 	bra	exc_addr_error			; TODO: bsod when this happens?
