@@ -76,6 +76,7 @@ public:
 
 	cpu_mc68000_t *cpu_mc68000;
 
+	clocks *mc68000_to_core;
 	clocks *mc6809_to_core;
 	clocks *cpu_to_sid;
 	font_cbm_8x8_t *font;

@@ -37,7 +37,8 @@ core_t::core_t(system_t *s)
 
 	sound = new sound_ic(system);
 
-	mc6809_to_core = new clocks(1, 2);
+	mc68000_to_core = new clocks(8, 4);
+	mc6809_to_core = new clocks(1, 4);
 	cpu_to_sid = new clocks(CPU_CLOCK_SPEED/FPS, SID_CLOCK_SPEED/FPS);
 
 	font = new font_cbm_8x8_t();
@@ -55,8 +56,9 @@ core_t::core_t(system_t *s)
 core_t::~core_t()
 {
 	delete font;
-	delete mc6809_to_core;
 	delete cpu_to_sid;
+	delete mc6809_to_core;
+	delete mc68000_to_core;
 	delete sound;
 	delete timer;
 	delete cpu_mc68000;
@@ -71,18 +73,22 @@ core_t::~core_t()
 enum output_states core_t::run(bool debug)
 {
 	enum output_states output_state = NORMAL;
+	uint16_t cpu_cycles;
+	uint16_t core_cycles;
 	bool frame_done;
+	uint16_t sound_cycles;
 
 	if (mc68000_active) {
 
 		do {
 
 			cpu_mc68000->execute();
-			uint16_t cpu_cycles = cpu_mc68000->getClock() - cpu_mc68000->old_clock;
+			cpu_cycles = cpu_mc68000->getClock() - cpu_mc68000->old_clock;
 			cpu_mc68000->old_clock += cpu_cycles;
-			frame_done = vdc->run(cpu_cycles);
-			timer->run(cpu_cycles);
-			uint16_t sound_cycles = cpu_to_sid->clock(cpu_cycles);
+			core_cycles = mc68000_to_core->clock(cpu_cycles);
+			frame_done = vdc->run(core_cycles);
+			timer->run(core_cycles);
+			sound_cycles = cpu_to_sid->clock(core_cycles);
 			sound->run(sound_cycles);
 			sound_cycle_saldo += sound_cycles;
 
@@ -97,11 +103,11 @@ enum output_states core_t::run(bool debug)
 
 		do {
 
-			uint16_t cpu_cycles = cpu_mc6809->execute();
-			uint16_t core_cycles = mc6809_to_core->clock(cpu_cycles);
+			cpu_cycles = cpu_mc6809->execute();
+			core_cycles = mc6809_to_core->clock(cpu_cycles);
 			frame_done = vdc->run(core_cycles);
 			timer->run(core_cycles);
-			uint16_t sound_cycles = cpu_to_sid->clock(core_cycles);
+			sound_cycles = cpu_to_sid->clock(core_cycles);
 			sound->run(sound_cycles);
 			sound_cycle_saldo += sound_cycles;
 
