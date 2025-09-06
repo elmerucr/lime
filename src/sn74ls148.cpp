@@ -51,7 +51,7 @@ void sn74ls148_t::update_interrupt_level()
 			level = devices[i].level;
 	}
 
-	system->core->cpu_m68000->setIPL(level);
+	system->core->cpu_mc68000->setIPL(level);
 }
 
 void sn74ls148_t::status(char *b, int buffer_length)

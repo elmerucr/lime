@@ -110,10 +110,10 @@ void debugger_t::redraw()
 
 	// update status text
 	status1->clear();
-	if (system->core->m68000_active) {
-		system->core->cpu_m68000->disassembleSR(text_buffer);
-		uint32_t isp = system->core->cpu_m68000->getISP();
-		uint32_t usp = system->core->cpu_m68000->getUSP();
+	if (system->core->mc68000_active) {
+		system->core->cpu_mc68000->disassembleSR(text_buffer);
+		uint32_t isp = system->core->cpu_mc68000->getISP();
+		uint32_t usp = system->core->cpu_mc68000->getUSP();
 		status1->printf(
 			"-------------------------cpu m68000-------------------------"
 			"   D0:%08x   D4:%08x    A0:%08x   A4:%08x\n"
@@ -124,30 +124,30 @@ void debugger_t::redraw()
 			"    SSP:%08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n"
 			"    USP:%08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n",
 
-			system->core->cpu_m68000->getD(0),
-			system->core->cpu_m68000->getD(4),
-			system->core->cpu_m68000->getA(0),
-			system->core->cpu_m68000->getA(4),
+			system->core->cpu_mc68000->getD(0),
+			system->core->cpu_mc68000->getD(4),
+			system->core->cpu_mc68000->getA(0),
+			system->core->cpu_mc68000->getA(4),
 
-			system->core->cpu_m68000->getD(1),
-			system->core->cpu_m68000->getD(5),
-			system->core->cpu_m68000->getA(1),
-			system->core->cpu_m68000->getA(5),
+			system->core->cpu_mc68000->getD(1),
+			system->core->cpu_mc68000->getD(5),
+			system->core->cpu_mc68000->getA(1),
+			system->core->cpu_mc68000->getA(5),
 
-			system->core->cpu_m68000->getD(2),
-			system->core->cpu_m68000->getD(6),
-			system->core->cpu_m68000->getA(2),
-			system->core->cpu_m68000->getA(6),
+			system->core->cpu_mc68000->getD(2),
+			system->core->cpu_mc68000->getD(6),
+			system->core->cpu_mc68000->getA(2),
+			system->core->cpu_mc68000->getA(6),
 
-			system->core->cpu_m68000->getD(3),
-			system->core->cpu_m68000->getD(7),
-			system->core->cpu_m68000->getA(3),
-			system->core->cpu_m68000->getA(7),
+			system->core->cpu_mc68000->getD(3),
+			system->core->cpu_mc68000->getD(7),
+			system->core->cpu_mc68000->getA(3),
+			system->core->cpu_mc68000->getA(7),
 
-			system->core->cpu_m68000->getPC(),
-			system->core->cpu_m68000->getSR(),
+			system->core->cpu_mc68000->getPC(),
+			system->core->cpu_mc68000->getSR(),
 			text_buffer,
-			system->core->cpu_m68000->getIPL(),
+			system->core->cpu_mc68000->getIPL(),
 
 			isp,
 			system->core->read8(isp+0), system->core->read8(isp+1),
@@ -173,11 +173,11 @@ void debugger_t::redraw()
 		status1->printf(
 			"\n------------------------disassembler------------------------"
 		);
-		uint32_t pc = system->core->cpu_m68000->getPC();
+		uint32_t pc = system->core->cpu_mc68000->getPC();
 		uint32_t new_pc;
 		for (int i=0; i<7; i++) {
-			new_pc = pc + system->core->cpu_m68000->disassemble(text_buffer, pc);
-			if (system->core->cpu_m68000->debugger.breakpoints.isSetAt(pc)) {
+			new_pc = pc + system->core->cpu_mc68000->disassemble(text_buffer, pc);
+			if (system->core->cpu_mc68000->debugger.breakpoints.isSetAt(pc)) {
 				status1->fg_color = 0xffe04040;	// orange
 			}
 			if (m68k_disassembly) {
@@ -232,7 +232,7 @@ void debugger_t::redraw()
 
 	exception_status->clear();
 
-	if (system->core->m68000_active) {
+	if (system->core->mc68000_active) {
 		system->core->sn74ls148->status(text_buffer, 2048);
 	} else {
 		system->core->exceptions->status(text_buffer, 2048);
@@ -394,9 +394,9 @@ void debugger_t::process_command(char *c)
 		token1 = strtok(NULL, " ");
 		if (token1 == NULL) {
 			terminal->printf("\nbreakpoints:");
-			if (system->core->m68000_active) {
+			if (system->core->mc68000_active) {
 				for (uint32_t i=0x000000; i<0x1000000; i++) {
-					if (system->core->cpu_m68000->debugger.breakpoints.isSetAt(i)) {
+					if (system->core->cpu_mc68000->debugger.breakpoints.isSetAt(i)) {
 						breakpoints_present = true;
 						terminal->printf("\n$%06x", i);
 					}
@@ -417,13 +417,13 @@ void debugger_t::process_command(char *c)
 			if (!hex_string_to_int(token1, &address)) {
 				terminal->printf("\nerror: '%s' is not a hex number", token1);
 			} else {
-				if (system->core->m68000_active) {
+				if (system->core->mc68000_active) {
 					address &= 0xffffff;
-					if (system->core->cpu_m68000->debugger.breakpoints.isSetAt(address)) {
-						system->core->cpu_m68000->debugger.breakpoints.removeAt(address);
+					if (system->core->cpu_mc68000->debugger.breakpoints.isSetAt(address)) {
+						system->core->cpu_mc68000->debugger.breakpoints.removeAt(address);
 						terminal->printf("\nbreakpoint removed at $%06x", address);
 					} else {
-						system->core->cpu_m68000->debugger.breakpoints.setAt(address);
+						system->core->cpu_mc68000->debugger.breakpoints.setAt(address);
 						terminal->printf("\nbreakpoint set at $%06x", address);
 					}
 				} else {
@@ -440,9 +440,9 @@ void debugger_t::process_command(char *c)
 	} else if (strcmp(token0, "cls") == 0) {
 		terminal->clear();
 	} else if (strcmp(token0, "cpu") == 0) {
-		system->core->m68000_active = !system->core->m68000_active;
-		if (system->core->m68000_active) {
-			terminal->printf("\nm68000 mode");
+		system->core->mc68000_active = !system->core->mc68000_active;
+		if (system->core->mc68000_active) {
+			terminal->printf("\nmc68000 mode");
 		} else {
 			terminal->printf("\nmc6809 mode");
 		}
@@ -491,8 +491,8 @@ void debugger_t::process_command(char *c)
 
 		uint32_t temp_pc;
 
-		if (system->core->m68000_active) {
-			temp_pc = system->core->cpu_m68000->getPC();
+		if (system->core->mc68000_active) {
+			temp_pc = system->core->cpu_mc68000->getPC();
 		} else {
 			temp_pc = system->core->cpu_mc6809->get_pc();
 		}

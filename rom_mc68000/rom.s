@@ -7,18 +7,26 @@
 
 	include	"definitions.i"
 
+LOGO_ANIMATION	equ	$3000
+
+
 	org	$00010000	; rom based at $10000
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
 
-	dc.b	"rom m68000 0.1 20250905"
+	dc.b	"rom m68000 0.1 20250906"
 
 	align	2
 
-_start	move.l	#exc_addr_error,VEC_ADDR_ERROR.w	; exception for address error
+_start
+	; fill vector table
+	move.l	#exc_addr_error,VEC_ADDR_ERROR.w
+	move.l	#exc_lvl1_irq_auto,VEC_LVL1_IRQ_AUTO.w
+	move.l	#exc_lvl6_irq_auto,VEC_LVL6_IRQ_AUTO.w
 
-	move.l	#$00010000,A0				; set usp
+	; set usp
+	move.l	#$00010000,A0
 	move.l	A0,USP
 
 	or.b	#%00000010,CORE_ROMS.w			; make rom font visible to cpu
@@ -44,19 +52,39 @@ _start	move.l	#exc_addr_error,VEC_ADDR_ERROR.w	; exception for address error
 	cmpa.l	#VDC_SPRITE_X+5,A1
 	bne	.4
 	addq	#1,D0
-	cmpa.l	#logo_data+40,A1
+	cmpa.l	#logo_data+40,A0
 	bne	.3
+
+; set variable for letter wobble
+	move.b	#$40,LOGO_ANIMATION.w
+
+; set raster irq on scanline 159
+	move.b	#$9f,VDC_IRQ_SCANLINE_LSB
+	move.b	#%00000001,VDC_CR			; enable irq's for vdc
+
 
 	move.w	#$0200,SR				; set status register (User Mode, ipl = 0)
 	move.l	#exc_addr_error,-(SP)			; test usp
 
-.5	move.b	$404.w,D0				; change background colour loop
-	addq.b	#$1,D0
-	move.b	D0,$404.w
-	jmp	.5
+.5	bra	.5					; loop forever, wait for events
 
 exc_addr_error
 	bra	exc_addr_error				; TODO: bsod when this happens?
+
+exc_lvl1_irq_auto
+	rte
+
+exc_lvl6_irq_auto					; coupled to vdc
+	move.b	D0,-(SP)
+
+	move.b	VDC_SR.w,D0
+	beq	.1
+	move.b	D0,VDC_SR.w
+
+	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w
+
+	move.b	(SP)+,D0
+.1	rte
 
 logo_data
 	dc.b	112,64,%111,0,$1c			; icon top left

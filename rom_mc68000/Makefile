@@ -1,6 +1,6 @@
-all: rom_m68000.hpp
+all: rom_mc68000.hpp
 
-rom_m68000.hpp: mk_rom rom.bin
+rom_mc68000.hpp: mk_rom rom.bin
 	./mk_rom
 
 rom.bin: rom.s
@@ -10,4 +10,4 @@ mk_rom: mk_rom.c
 	gcc -o mk_rom mk_rom.c
 
 clean:
-	rm mk_rom rom.bin rom.list rom_m68000.hpp
+	rm mk_rom rom.bin rom.list rom_mc68000.hpp

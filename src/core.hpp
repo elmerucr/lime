@@ -5,14 +5,6 @@
 // (c)2025 elmerucr
 // ---------------------------------------------------------------------
 
-// ---------------------------------------------------------------------
-// 0x0000-0x00ff base page
-// 0x0100-0x01ff system stack
-// ??0x0200-0x03ff io
-// ??0x0400-0x07ff sprite table (128 x 8 bytes), xpos, ypos, flags, pointer, palette
-// 0x0800-0x1fff tilesets (6kb), 0x2000 start of set 0, 0x2800 start of set 1
-// ---------------------------------------------------------------------
-
 #ifndef CORE_HPP
 #define CORE_HPP
 
@@ -20,9 +12,9 @@
 #include "vdc.hpp"
 #include "cpu_mc6809.hpp"
 #include "exceptions.hpp"
-#include "cpu_m68000.hpp"
+#include "cpu_mc68000.hpp"
 #include "sn74ls148.hpp"
-#include "rom_m68000.hpp"
+#include "rom_mc68000.hpp"
 #include "rom_mc6809.hpp"
 #include "font_cbm_8x8.hpp"
 #include "timer.hpp"
@@ -38,7 +30,7 @@
 #define	SOUND_IO_PAGE       0x000500
 #define CBM_FONT_PAGE       0x001000
 #define MC6809_ROM_ADDRESS  0x00fc00
-#define M68000_ROM_ADDRESS  0x010000
+#define MC68000_ROM_ADDRESS 0x010000
 
 enum output_states {
 	NORMAL,
@@ -52,7 +44,7 @@ private:
 	//bool irq_line_frame_done{true};
 
 	system_t *system;
-	rom_m68000_t *rom_m68000;
+	rom_mc68000_t *rom_mc68000;
 	rom_mc6809_t *rom_mc6809;
 
 	// memory configuration address $02 in core bank
@@ -73,7 +65,7 @@ public:
 	core_t(system_t *s);
 	~core_t();
 
-	bool m68000_active;
+	bool mc68000_active;
 
 	vdc_t *vdc;
 
@@ -82,7 +74,7 @@ public:
 
 	cpu_mc6809_t *cpu_mc6809;
 
-	cpu_m68000_t *cpu_m68000;
+	cpu_mc68000_t *cpu_mc68000;
 
 	clocks *cpu2sid;
 	font_cbm_8x8_t *font;

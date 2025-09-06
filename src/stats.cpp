@@ -64,8 +64,8 @@ void stats_t::process_parameters()
 		/*
 		 * cpu speed
 		 */
-		if (system->core->m68000_active) {
-			cpu_ticks = system->core->cpu_m68000->getClock();
+		if (system->core->mc68000_active) {
+			cpu_ticks = system->core->cpu_mc68000->getClock();
 		} else {
 			cpu_ticks = system->core->cpu_mc6809->clock_ticks();
 		}

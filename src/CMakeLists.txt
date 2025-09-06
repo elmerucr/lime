@@ -1,8 +1,8 @@
 add_library(system STATIC
 	analog.cpp
 	core.cpp
-	cpu_m68000.cpp
 	cpu_mc6809.cpp
+	cpu_mc68000.cpp
 	debugger.cpp
 	exceptions.cpp
 	host.cpp
