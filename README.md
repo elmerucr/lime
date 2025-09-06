@@ -9,7 +9,7 @@ Lime is a virtual computer system that draws inspiration from computing platform
 * 16mb ram (of which only lowest 64k accessible by mc6809)
 * Screen resolution of 240x160 pixels, refresh rate of 60Hz
 * Video Display Controller (VDC) for graphics processing, memory access to lowest 64k
-* Programmable using mc6809 or m68000 assembly
+* Programmable using mc6809 or mc68000 assembly
 
 ## Screenshots
 
@@ -19,7 +19,7 @@ Lime is a virtual computer system that draws inspiration from computing platform
 
 ### Debug screen
 
-![icon](./docs/20250824_screenshot_debug_m68000.png)
+![icon](./docs/20250824_screenshot_debug_mc68000.png)
 
 ![icon](./docs/20250718_screenshot_debug_mc6809.png)
 

@@ -81,7 +81,7 @@ void system_t::run()
 			audio_cycles += SID_CYCLES_PER_FRAME / 5;
 		}
 
-		core->cpu2sid->adjust_target_clock(audio_cycles);
+		core->cpu_to_sid->adjust_target_clock(audio_cycles);
 
         if (host->events_process_events() == QUIT_EVENT) running = false;
 

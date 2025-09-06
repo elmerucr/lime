@@ -15,7 +15,7 @@ LOGO_ANIMATION	equ	$3000
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
 
-	dc.b	"rom m68000 0.1 20250906"
+	dc.b	"rom mc68000 0.1 20250906"
 
 	align	2
 

@@ -115,7 +115,7 @@ void debugger_t::redraw()
 		uint32_t isp = system->core->cpu_mc68000->getISP();
 		uint32_t usp = system->core->cpu_mc68000->getUSP();
 		status1->printf(
-			"-------------------------cpu m68000-------------------------"
+			"-----------------------Motorola 68000-----------------------"
 			"   D0:%08x   D4:%08x    A0:%08x   A4:%08x\n"
 			"   D1:%08x   D5:%08x    A1:%08x   A5:%08x\n"
 			"   D2:%08x   D6:%08x    A2:%08x   A6:%08x\n"
@@ -197,7 +197,7 @@ void debugger_t::redraw()
 		uint16_t usp = system->core->cpu_mc6809->get_us() & 0xffff;
 
 		system->core->cpu_mc6809->status(text_buffer, 1024);
-		status1->printf("-------------------------cpu mc6809-------------------------%s", text_buffer);
+		status1->printf("-----------------------Motorola 6809------------------------%s", text_buffer);
 		status1->printf(
 			"\n\n      system stack: %04x %02x %02x %02x %02x %02x %02x %02x %02x",
 			ssp, system->core->read8(ssp), system->core->read8(ssp+1), system->core->read8(ssp+2),

@@ -15,8 +15,8 @@ include_directories(
 	src/mc6809
 	src/Moira
     src/resid-0.16/
-	rom_mc6809/
 	rom_mc68000/
+	rom_mc6809/
 )
 
 add_subdirectory(src/)
