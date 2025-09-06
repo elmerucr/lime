@@ -47,11 +47,11 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		anda	#%11111101
 		sta	CORE_ROMS
 
-		ldx	#logo_chars
+		ldx	#logo_tiles
 		ldy	#$11c0
 2		lda	,x+
 		sta	,y+
-		cmpx	#logo_chars+64
+		cmpx	#logo_tiles+64
 		bne	2b
 
 ; init logo
@@ -258,7 +258,7 @@ rnd_impl	inc	rndx
 
 1		jmp	[VECTOR_IRQ_INDIRECT]
 
-logo_chars	fcb	%00000000,%00000000	; tile 1 (icon upper left)
+logo_tiles	fcb	%00000000,%00000000	; tile 1 (icon upper left)
 		fcb	%00000001,%00000000
 		fcb	%00000111,%10000000
 		fcb	%00000111,%10100000

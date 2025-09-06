@@ -12,39 +12,95 @@
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
 
-	dc.b	"rom m68000 0.1 20250904"
+	dc.b	"rom m68000 0.1 20250905"
 
 	align	2
 
 _start	move.l	#exc_addr_error,VEC_ADDR_ERROR.w	; exception for address error
 
-	move.l	#$00010000,A0			; set usp
+	move.l	#$00010000,A0				; set usp
 	move.l	A0,USP
 
-	or.b	#%00000010,CORE_ROMS.w		; make rom font visible to cpu
-	movea	#VDC_TILESET1.w,A0
-.1	move.b	(A0),(A0)+			; copy rom font to underlying ram
+	or.b	#%00000010,CORE_ROMS.w			; make rom font visible to cpu
+	movea	#VDC_TILESET1,A0
+.1	move.l	(A0),(A0)+				; copy rom font to underlying ram
 	cmpa	#VDC_TILESET1+$1000,A0
 	bne	.1
-	and.b	#%11111101,CORE_ROMS.w		; turn off rom font
+	and.b	#%11111101,CORE_ROMS.w			; turn off rom font
 
-	move.w	#$0200,SR			; set status register (User Mode, ipl = 0)
-	move.l	#exc_addr_error,-(SP)		; test usp
+; copy logo tiles
+	movea.l	#logo_tiles,A0
+	movea.w	#$11c0,A1
+.2	move.b	(A0)+,(A1)+
+	cmpa.l	#logo_tiles+64,A0
+	bne	.2
 
-.2	move.b	$404.w,D0			; change background colour loop
+; init logo
+	movea.l	#logo_data,A0
+	clr.b	D0
+.3	move.b	D0,VDC_CURRENT_SPRITE
+	movea.l	#VDC_SPRITE_X,A1
+.4	move.b	(A0)+,(A1)+
+	cmpa.l	#VDC_SPRITE_X+5,A1
+	bne	.4
+	addq	#1,D0
+	cmpa.l	#logo_data+40,A1
+	bne	.3
+
+	move.w	#$0200,SR				; set status register (User Mode, ipl = 0)
+	move.l	#exc_addr_error,-(SP)			; test usp
+
+.5	move.b	$404.w,D0				; change background colour loop
 	addq.b	#$1,D0
 	move.b	D0,$404.w
-	jmp	.2
+	jmp	.5
 
 exc_addr_error
-	bra	exc_addr_error			; TODO: bsod when this happens?
+	bra	exc_addr_error				; TODO: bsod when this happens?
 
 logo_data
-	dc.b	112,64,%111,0,$1c		; icon top left
-	dc.b	120,64,%111,0,$1d		; icon top right
-	dc.b	112,72,%111,0,$1e		; icon bottom left
-	dc.b	120,72,%111,0,$1f		; icon bottom right
-	dc.b	107,80,%111,0,$6c		; l
-	dc.b	112,80,%111,0,$69		; i
-	dc.b	118,80,%111,0,$6d		; m
-	dc.b	126,80,%111,0,$65		; e
+	dc.b	112,64,%111,0,$1c			; icon top left
+	dc.b	120,64,%111,0,$1d			; icon top right
+	dc.b	112,72,%111,0,$1e			; icon bottom left
+	dc.b	120,72,%111,0,$1f			; icon bottom right
+	dc.b	107,80,%111,0,$6c			; l
+	dc.b	112,80,%111,0,$69			; i
+	dc.b	118,80,%111,0,$6d			; m
+	dc.b	126,80,%111,0,$65			; e
+
+logo_tiles
+	dc.b	%00000000,%00000000	; tile 1 (icon upper left)
+	dc.b	%00000001,%00000000
+	dc.b	%00000111,%10000000
+	dc.b	%00000111,%10100000
+	dc.b	%00011110,%11111000
+	dc.b	%00011110,%10101111
+	dc.b	%00011110,%10101010
+	dc.b	%00011110,%10101111
+
+	dc.b	%00000000,%00000000	; tile 2 (icon upper right)
+	dc.b	%00000000,%00000000
+	dc.b	%00000000,%00000000
+	dc.b	%00000000,%00000000
+	dc.b	%00000000,%00000000
+	dc.b	%00000000,%00000000
+	dc.b	%11000000,%00000000
+	dc.b	%10110000,%00000000
+
+	dc.b	%00011110,%11111010	; tile 3 (icon bottom left)
+	dc.b	%00000111,%10101010
+	dc.b	%00000111,%10101011
+	dc.b	%00000001,%11101011
+	dc.b	%00000000,%01111110
+	dc.b	%00000000,%00010111
+	dc.b	%00000000,%00000001
+	dc.b	%00000000,%00000000
+
+	dc.b	%11101100,%00000000	; tile 4 (icon bottom right)
+	dc.b	%11101110,%00000000
+	dc.b	%10101011,%10000000
+	dc.b	%10101011,%10100000
+	dc.b	%10101010,%11110100
+	dc.b	%11111111,%01010000
+	dc.b	%01010101,%00000000
+	dc.b	%00000000,%00000000

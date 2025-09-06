@@ -156,11 +156,11 @@ FC34 B60482                           lda     CORE_ROMS               ; turn off
 FC37 84FD                             anda    #%11111101
 FC39 B70482                           sta     CORE_ROMS
                       
-FC3C 8EFDD3                           ldx     #logo_chars
+FC3C 8EFDD3                           ldx     #logo_tiles
 FC3F 108E11C0                         ldy     #$11c0
 FC43 A680             2               lda     ,x+
 FC45 A7A0                             sta     ,y+
-FC47 8CFE13                           cmpx    #logo_chars+64
+FC47 8CFE13                           cmpx    #logo_tiles+64
 FC4A 26F7                             bne     2b
                       
                       ; init logo
@@ -367,7 +367,7 @@ FDCE 39                               rts
                       
 FDCF 6E9F0208         1               jmp     [VECTOR_IRQ_INDIRECT]
                       
-FDD3 0000             logo_chars      fcb     %00000000,%00000000     ; tile 1 (icon upper left)
+FDD3 0000             logo_tiles      fcb     %00000000,%00000000     ; tile 1 (icon upper left)
 FDD5 0100                             fcb     %00000001,%00000000
 FDD7 0780                             fcb     %00000111,%10000000
 FDD9 07A0                             fcb     %00000111,%10100000

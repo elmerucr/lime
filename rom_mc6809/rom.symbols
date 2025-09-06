@@ -43,7 +43,6 @@ VDC_PALETTE_RED	equ	1033
 TIMER1_BPM	equ	1106
 MIX_SID1_LEFT	equ	1410
 TIMER6_BPM	equ	1116
-logo_chars	equ	64979
 exc_next_tim	equ	64801
 MIX_ANA0_LEFT	equ	1412
 exc_core	equ	64821
@@ -98,6 +97,7 @@ TIMER3_BPM	equ	1110
 MIX_SID1_RIGHT	equ	1411
 SID0_V	equ	1307
 reset	equ	64537
+logo_tiles	equ	64979
 rnd	equ	65517
 VDC_SR	equ	1024
 rndx	equ	255
