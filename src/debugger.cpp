@@ -111,9 +111,9 @@ void debugger_t::redraw()
 	// update status text
 	status1->clear();
 	if (system->core->mc68000_active) {
-		system->core->cpu_mc68000->disassembleSR(text_buffer);
-		uint32_t isp = system->core->cpu_mc68000->getISP();
-		uint32_t usp = system->core->cpu_mc68000->getUSP();
+		system->core->mc68000->disassembleSR(text_buffer);
+		uint32_t isp = system->core->mc68000->getISP();
+		uint32_t usp = system->core->mc68000->getUSP();
 		status1->printf(
 			"-----------------------Motorola 68000-----------------------"
 			"   D0:%08x   D4:%08x    A0:%08x   A4:%08x\n"
@@ -124,30 +124,30 @@ void debugger_t::redraw()
 			"    SSP:%08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n"
 			"    USP:%08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n",
 
-			system->core->cpu_mc68000->getD(0),
-			system->core->cpu_mc68000->getD(4),
-			system->core->cpu_mc68000->getA(0),
-			system->core->cpu_mc68000->getA(4),
+			system->core->mc68000->getD(0),
+			system->core->mc68000->getD(4),
+			system->core->mc68000->getA(0),
+			system->core->mc68000->getA(4),
 
-			system->core->cpu_mc68000->getD(1),
-			system->core->cpu_mc68000->getD(5),
-			system->core->cpu_mc68000->getA(1),
-			system->core->cpu_mc68000->getA(5),
+			system->core->mc68000->getD(1),
+			system->core->mc68000->getD(5),
+			system->core->mc68000->getA(1),
+			system->core->mc68000->getA(5),
 
-			system->core->cpu_mc68000->getD(2),
-			system->core->cpu_mc68000->getD(6),
-			system->core->cpu_mc68000->getA(2),
-			system->core->cpu_mc68000->getA(6),
+			system->core->mc68000->getD(2),
+			system->core->mc68000->getD(6),
+			system->core->mc68000->getA(2),
+			system->core->mc68000->getA(6),
 
-			system->core->cpu_mc68000->getD(3),
-			system->core->cpu_mc68000->getD(7),
-			system->core->cpu_mc68000->getA(3),
-			system->core->cpu_mc68000->getA(7),
+			system->core->mc68000->getD(3),
+			system->core->mc68000->getD(7),
+			system->core->mc68000->getA(3),
+			system->core->mc68000->getA(7),
 
-			system->core->cpu_mc68000->getPC(),
-			system->core->cpu_mc68000->getSR(),
+			system->core->mc68000->getPC(),
+			system->core->mc68000->getSR(),
 			text_buffer,
-			system->core->cpu_mc68000->getIPL(),
+			system->core->mc68000->getIPL(),
 
 			isp,
 			system->core->read8(isp+0), system->core->read8(isp+1),
@@ -173,11 +173,11 @@ void debugger_t::redraw()
 		status1->printf(
 			"\n------------------------disassembler------------------------"
 		);
-		uint32_t pc = system->core->cpu_mc68000->getPC();
+		uint32_t pc = system->core->mc68000->getPC();
 		uint32_t new_pc;
 		for (int i=0; i<7; i++) {
-			new_pc = pc + system->core->cpu_mc68000->disassemble(text_buffer, pc);
-			if (system->core->cpu_mc68000->debugger.breakpoints.isSetAt(pc)) {
+			new_pc = pc + system->core->mc68000->disassemble(text_buffer, pc);
+			if (system->core->mc68000->debugger.breakpoints.isSetAt(pc)) {
 				status1->fg_color = 0xffe04040;	// orange
 			}
 			if (m68k_disassembly) {
@@ -193,10 +193,10 @@ void debugger_t::redraw()
 			pc = new_pc;
 		}
 	} else {
-		uint16_t ssp = system->core->cpu_mc6809->get_sp() & 0xffff;
-		uint16_t usp = system->core->cpu_mc6809->get_us() & 0xffff;
+		uint16_t ssp = system->core->mc6809->get_sp() & 0xffff;
+		uint16_t usp = system->core->mc6809->get_us() & 0xffff;
 
-		system->core->cpu_mc6809->status(text_buffer, 1024);
+		system->core->mc6809->status(text_buffer, 1024);
 		status1->printf("-----------------------Motorola 6809------------------------%s", text_buffer);
 		status1->printf(
 			"\n\n      system stack: %04x %02x %02x %02x %02x %02x %02x %02x %02x",
@@ -211,7 +211,7 @@ void debugger_t::redraw()
 			system->core->read8(usp+6), system->core->read8(usp+7)
 		);
 		status1->printf("\n\n------------------------disassembler------------------------");
-		uint16_t pc = system->core->cpu_mc6809->get_pc();
+		uint16_t pc = system->core->mc6809->get_pc();
 		for (int i=0; i<11; i++) {
 			pc += disassemble_instruction_status1(pc);
 			status1->putchar('\n');
@@ -251,7 +251,7 @@ void debugger_t::redraw()
 	vdc_status->printf("------vdc------");
 	vdc_status->printf(" cycle %3i/%3i\nscanln %3i/%3i",
 		system->core->vdc->get_cycles_run(),
-		CPU_CYCLES_PER_SCANLINE,
+		MC6809_CYCLES_PER_SCANLINE,
 		system->core->vdc->get_current_scanline(),
 		VDC_SCANLINES - 1
 	);
@@ -289,16 +289,16 @@ void debugger_t::redraw()
 			system->host->video_viewer_framebuffer[(y * VDC_XRES) + x] = LIME_COLOR_01;
 		}
 		system->host->video_viewer_framebuffer[
-			(system->core->vdc->get_cycles_run()*VDC_XRES/CPU_CYCLES_PER_SCANLINE) + (y * VDC_XRES)
+			(system->core->vdc->get_cycles_run()*VDC_XRES/MC6809_CYCLES_PER_SCANLINE) + (y * VDC_XRES)
 		] = LIME_COLOR_03;
 		if (y > 0) {
 			system->host->video_viewer_framebuffer[
-				(system->core->vdc->get_cycles_run()*VDC_XRES/CPU_CYCLES_PER_SCANLINE) + ((y - 1) * VDC_XRES)
+				(system->core->vdc->get_cycles_run()*VDC_XRES/MC6809_CYCLES_PER_SCANLINE) + ((y - 1) * VDC_XRES)
 			] = LIME_COLOR_03;
 		}
 		if (y < (VDC_YRES - 1)) {
 			system->host->video_viewer_framebuffer[
-				(system->core->vdc->get_cycles_run()*VDC_XRES/CPU_CYCLES_PER_SCANLINE) + ((y + 1) * VDC_XRES)
+				(system->core->vdc->get_cycles_run()*VDC_XRES/MC6809_CYCLES_PER_SCANLINE) + ((y + 1) * VDC_XRES)
 			] = LIME_COLOR_03;
 		}
 	}
@@ -396,14 +396,14 @@ void debugger_t::process_command(char *c)
 			terminal->printf("\nbreakpoints:");
 			if (system->core->mc68000_active) {
 				for (uint32_t i=0x000000; i<0x1000000; i++) {
-					if (system->core->cpu_mc68000->debugger.breakpoints.isSetAt(i)) {
+					if (system->core->mc68000->debugger.breakpoints.isSetAt(i)) {
 						breakpoints_present = true;
 						terminal->printf("\n$%06x", i);
 					}
 				}
 			} else {
 				for (int i=0; i<65536; i++) {
-					if (system->core->cpu_mc6809->breakpoint_array[i]) {
+					if (system->core->mc6809->breakpoint_array[i]) {
 						breakpoints_present = true;
 						terminal->printf("\n$%04x", i);
 					}
@@ -419,17 +419,17 @@ void debugger_t::process_command(char *c)
 			} else {
 				if (system->core->mc68000_active) {
 					address &= 0xffffff;
-					if (system->core->cpu_mc68000->debugger.breakpoints.isSetAt(address)) {
-						system->core->cpu_mc68000->debugger.breakpoints.removeAt(address);
+					if (system->core->mc68000->debugger.breakpoints.isSetAt(address)) {
+						system->core->mc68000->debugger.breakpoints.removeAt(address);
 						terminal->printf("\nbreakpoint removed at $%06x", address);
 					} else {
-						system->core->cpu_mc68000->debugger.breakpoints.setAt(address);
+						system->core->mc68000->debugger.breakpoints.setAt(address);
 						terminal->printf("\nbreakpoint set at $%06x", address);
 					}
 				} else {
 					address &= 0xffff;
-					system->core->cpu_mc6809->toggle_breakpoint(address);
-					if (system->core->cpu_mc6809->breakpoint_array[address]) {
+					system->core->mc6809->toggle_breakpoint(address);
+					if (system->core->mc6809->breakpoint_array[address]) {
 						terminal->printf("\nbreakpoint set at $%04x", address);
 					} else {
 						terminal->printf("\nbreakpoint removed at $%04x", address);
@@ -453,7 +453,7 @@ void debugger_t::process_command(char *c)
 	 	uint8_t lines_remaining = terminal->lines_remaining();
 	 	if (lines_remaining == 0) lines_remaining = 1;
 
-	 	uint32_t temp_pc = system->core->cpu_mc6809->get_pc();
+	 	uint32_t temp_pc = system->core->mc6809->get_pc();
 
 	 	if (token1 == NULL) {
 	 		for (int i=0; i<lines_remaining; i++) {
@@ -492,9 +492,9 @@ void debugger_t::process_command(char *c)
 		uint32_t temp_pc;
 
 		if (system->core->mc68000_active) {
-			temp_pc = system->core->cpu_mc68000->getPC();
+			temp_pc = system->core->mc68000->getPC();
 		} else {
-			temp_pc = system->core->cpu_mc6809->get_pc();
+			temp_pc = system->core->mc6809->get_pc();
 		}
 
 		if (token1 == NULL) {
@@ -522,7 +522,7 @@ void debugger_t::process_command(char *c)
 		uint8_t lines_remaining = terminal->lines_remaining();
 		if (lines_remaining == 0) lines_remaining = 1;
 
-		uint32_t temp_pc = system->core->cpu_mc6809->get_pc();
+		uint32_t temp_pc = system->core->mc6809->get_pc();
 
 		if (token1 == NULL) {
 			for (int i=0; i<lines_remaining; i++) {
@@ -849,10 +849,10 @@ void debugger_t::enter_memory_binary_line(char *buffer)
 uint32_t debugger_t::disassemble_instruction_status1(uint16_t address)
 {
 	uint32_t cycles;
-	if (system->core->cpu_mc6809->breakpoint_array[address]) {
+	if (system->core->mc6809->breakpoint_array[address]) {
 		status1->fg_color = 0xffe04040;	// orange
 	}
-	cycles = system->core->cpu_mc6809->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
+	cycles = system->core->mc6809->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
 	status1->printf(",%s", text_buffer);
 	status1->fg_color = LIME_COLOR_02;
 
@@ -862,7 +862,7 @@ uint32_t debugger_t::disassemble_instruction_status1(uint16_t address)
 uint32_t debugger_t::disassemble_instruction_terminal(uint16_t address)
 {
 	uint32_t cycles;
-	cycles = system->core->cpu_mc6809->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
+	cycles = system->core->mc6809->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
 	terminal->printf(",%s", text_buffer);
 
 	terminal->putchar('\r');

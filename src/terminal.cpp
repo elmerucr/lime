@@ -225,7 +225,7 @@ void terminal_t::cursor_down()
 				break;
 			case DISASSEMBLY:
 				// TODO: !!!
-				address += system->core->cpu_mc6809->disassemble_instruction(text_buffer, TEXT_BUFFER_SIZE, address);
+				address += system->core->mc6809->disassemble_instruction(text_buffer, TEXT_BUFFER_SIZE, address);
 				add_bottom_row();
 				printf("\r.");
 				// TODO: !!!

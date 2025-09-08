@@ -13,7 +13,7 @@
 // ---------------------------------------------------------------------
 #define LIME_MAJOR_VERSION		0
 #define LIME_MINOR_VERSION		9
-#define LIME_BUILD				20250906
+#define LIME_BUILD				20250908
 #define LIME_YEAR				2025
 
 // ---------------------------------------------------------------------
@@ -40,11 +40,11 @@
 #define SCREEN_HEIGHT			(2*VDC_YRES)
 
 // ---------------------------------------------------------------------
-//
+// cpu
 // ---------------------------------------------------------------------
-#define CPU_CYCLES_PER_SCANLINE	VDC_XRES
-#define CPU_CYCLES_PER_FRAME	(CPU_CYCLES_PER_SCANLINE*VDC_SCANLINES)
-#define CPU_CLOCK_SPEED			(CPU_CYCLES_PER_FRAME*FPS)
+#define MC6809_CYCLES_PER_SCANLINE	60
+#define MC6809_CYCLES_PER_FRAME		(MC6809_CYCLES_PER_SCANLINE*VDC_SCANLINES)
+#define MC6809_CLOCK_SPEED			(MC6809_CYCLES_PER_FRAME*FPS)
 
 // ---------------------------------------------------------------------
 // audio

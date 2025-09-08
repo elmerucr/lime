@@ -54,7 +54,7 @@ void timer_ic::run(uint32_t number_of_cycles)
 
 uint32_t timer_ic::bpm_to_clock_interval(uint16_t bpm)
 {
-	return (60.0 / bpm) * CPU_CLOCK_SPEED;
+	return (60.0 / bpm) * MC6809_CLOCK_SPEED;
 }
 
 uint8_t timer_ic::io_read_byte(uint8_t address)

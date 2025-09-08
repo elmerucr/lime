@@ -32,8 +32,8 @@ void stats_t::reset()
 
 	smoothed_framerate = FPS;
 
-	smoothed_cpu_mhz = CPU_CLOCK_SPEED/(1000*1000);
-	old_cpu_ticks = system->core->cpu_mc6809->clock_ticks();
+	smoothed_cpu_mhz = MC6809_CLOCK_SPEED/(1000*1000);
+	old_cpu_ticks = system->core->mc6809->clock_ticks();
 
 	smoothed_core_per_frame = 1000000 / (FPS * 4);
 	smoothed_idle_per_frame = 1000000 / (FPS * 4);
@@ -65,9 +65,9 @@ void stats_t::process_parameters()
 		 * cpu speed
 		 */
 		if (system->core->mc68000_active) {
-			cpu_ticks = system->core->cpu_mc68000->getClock();
+			cpu_ticks = system->core->mc68000->getClock();
 		} else {
-			cpu_ticks = system->core->cpu_mc6809->clock_ticks();
+			cpu_ticks = system->core->mc6809->clock_ticks();
 		}
 		cpu_mhz = (double)(cpu_ticks - old_cpu_ticks) / total_time;
 		smoothed_cpu_mhz =

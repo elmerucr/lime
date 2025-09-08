@@ -23,23 +23,21 @@ core_t::core_t(system_t *s)
 
 	vdc = new vdc_t(exceptions, sn74ls148);
 
-	cpu_mc6809 = new cpu_mc6809_t(system);
+	mc6809 = new cpu_mc6809_t(system);
 
-	cpu_mc6809->assign_nmi_line(&exceptions->nmi_output_pin);
-	cpu_mc6809->assign_irq_line(&exceptions->irq_output_pin);
+	mc6809->assign_nmi_line(&exceptions->nmi_output_pin);
+	mc6809->assign_irq_line(&exceptions->irq_output_pin);
 
-	cpu_mc68000 = new cpu_mc68000_t(system);
-	cpu_mc68000->setModel(moira::Model::M68000 , moira::Model::M68000);
-	cpu_mc68000->setDasmSyntax(moira::Syntax::MOIRA);
-	cpu_mc68000->setDasmIndentation(8);
+	mc68000 = new cpu_mc68000_t(system);
+	mc68000->setModel(moira::Model::M68000 , moira::Model::M68000);
+	mc68000->setDasmSyntax(moira::Syntax::MOIRA);
+	mc68000->setDasmIndentation(8);
 
 	timer = new timer_ic(exceptions, sn74ls148);
 
 	sound = new sound_ic(system);
 
-	mc68000_to_core = new clocks(8, 4);
-	mc6809_to_core = new clocks(1, 4);
-	cpu_to_sid = new clocks(CPU_CLOCK_SPEED/FPS, SID_CLOCK_SPEED/FPS);
+	mc6809_to_sid = new clocks(MC6809_CYCLES_PER_FRAME, SID_CYCLES_PER_FRAME);
 
 	font = new font_cbm_8x8_t();
 
@@ -56,14 +54,12 @@ core_t::core_t(system_t *s)
 core_t::~core_t()
 {
 	delete font;
-	delete cpu_to_sid;
-	delete mc6809_to_core;
-	delete mc68000_to_core;
+	delete mc6809_to_sid;
 	delete sound;
 	delete timer;
-	delete cpu_mc68000;
+	delete mc68000;
 	delete sn74ls148;
-	delete cpu_mc6809;
+	delete mc6809;
 	delete vdc;
 	delete exceptions;
 	delete rom_mc68000;
@@ -74,7 +70,6 @@ enum output_states core_t::run(bool debug)
 {
 	enum output_states output_state = NORMAL;
 	uint16_t cpu_cycles;
-	uint16_t core_cycles;
 	bool frame_done;
 	uint16_t sound_cycles;
 
@@ -82,20 +77,19 @@ enum output_states core_t::run(bool debug)
 
 		do {
 
-			cpu_mc68000->execute();
-			cpu_cycles = cpu_mc68000->getClock() - cpu_mc68000->old_clock;
-			cpu_mc68000->old_clock += cpu_cycles;
-			core_cycles = mc68000_to_core->clock(cpu_cycles);
-			frame_done = vdc->run(core_cycles);
-			timer->run(core_cycles);
-			sound_cycles = cpu_to_sid->clock(core_cycles);
+			mc68000->execute();
+			cpu_cycles = mc68000->getClock() - mc68000->old_clock;
+			mc68000->old_clock += cpu_cycles;
+			frame_done = vdc->run(cpu_cycles);
+			timer->run(cpu_cycles);
+			sound_cycles = mc6809_to_sid->clock(cpu_cycles);
 			sound->run(sound_cycles);
 			sound_cycle_saldo += sound_cycles;
 
-		} while((!cpu_mc68000->breakpoint_reached) && (!frame_done) && (!debug));
+		} while((!mc68000->breakpoint_reached) && (!frame_done) && (!debug));
 
-		if (cpu_mc68000->breakpoint_reached) {
-			cpu_mc68000->breakpoint_reached = false;
+		if (mc68000->breakpoint_reached) {
+			mc68000->breakpoint_reached = false;
 			output_state = BREAKPOINT;
 		}
 
@@ -103,17 +97,16 @@ enum output_states core_t::run(bool debug)
 
 		do {
 
-			cpu_cycles = cpu_mc6809->execute();
-			core_cycles = mc6809_to_core->clock(cpu_cycles);
-			frame_done = vdc->run(core_cycles);
-			timer->run(core_cycles);
-			sound_cycles = cpu_to_sid->clock(core_cycles);
+			cpu_cycles = mc6809->execute();
+			frame_done = vdc->run(cpu_cycles);
+			timer->run(cpu_cycles);
+			sound_cycles = mc6809_to_sid->clock(cpu_cycles);
 			sound->run(sound_cycles);
 			sound_cycle_saldo += sound_cycles;
 
-		} while ((!cpu_mc6809->breakpoint()) && (!frame_done) && (!debug));
+		} while ((!mc6809->breakpoint()) && (!frame_done) && (!debug));
 
-		if (cpu_mc6809->breakpoint()) output_state = BREAKPOINT;
+		if (mc6809->breakpoint()) output_state = BREAKPOINT;
 
 	}
 
@@ -259,11 +252,11 @@ void core_t::reset()
 	sound->reset();
 	timer->reset();
 	vdc->reset();	// vdc before cpu, as vdc also inits ram
-	cpu_mc6809->reset();
+	mc6809->reset();
 
-	cpu_mc68000->reset();
-	cpu_mc68000->old_clock = 0;
-	cpu_mc68000->setClock(0);
+	mc68000->reset();
+	mc68000->old_clock = 0;
+	mc68000->setClock(0);
 }
 
 void core_t::attach_bin(char *path)

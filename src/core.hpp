@@ -39,6 +39,9 @@ enum output_states {
 
 class core_t {
 private:
+	uint32_t current_cpu_cycles_per_scanline;
+	uint32_t current_cpu_clock_speed;
+
 	uint32_t sound_cycle_saldo{0};
 
 	//bool irq_line_frame_done{true};
@@ -70,15 +73,12 @@ public:
 	vdc_t *vdc;
 
 	exceptions_ic *exceptions;	// for mc6809
-	sn74ls148_t *sn74ls148;	// for m68k
+	sn74ls148_t *sn74ls148;		// for m68k
 
-	cpu_mc6809_t *cpu_mc6809;
+	cpu_mc6809_t *mc6809;
+	cpu_mc68000_t *mc68000;
 
-	cpu_mc68000_t *cpu_mc68000;
-
-	clocks *mc68000_to_core;
-	clocks *mc6809_to_core;
-	clocks *cpu_to_sid;
+	clocks *mc6809_to_sid;
 	font_cbm_8x8_t *font;
 	timer_ic *timer;
 	sound_ic *sound;
