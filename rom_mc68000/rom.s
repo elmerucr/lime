@@ -23,6 +23,7 @@ _start
 	; fill vector table
 	move.l	#exc_addr_error,VEC_ADDR_ERROR.w
 	move.l	#exc_lvl1_irq_auto,VEC_LVL1_IRQ_AUTO.w
+	move.l	#exc_lvl4_irq_auto,VEC_LVL4_IRQ_AUTO.w
 	move.l	#exc_lvl6_irq_auto,VEC_LVL6_IRQ_AUTO.w
 
 	; set usp
@@ -74,8 +75,14 @@ exc_addr_error
 exc_lvl1_irq_auto
 	rte
 
+exc_lvl4_irq_auto					; coupled to timer
+	move.l	D0,-(SP)
+	move.b	TIMER_SR.w,D0
+	move.l	(SP)+,D0
+	rte
+
 exc_lvl6_irq_auto					; coupled to vdc
-	move.b	D0,-(SP)
+	move.l	D0,-(SP)
 
 	move.b	VDC_SR.w,D0
 	beq	.1
@@ -83,7 +90,7 @@ exc_lvl6_irq_auto					; coupled to vdc
 
 	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w
 
-	move.b	(SP)+,D0
+	move.l	(SP)+,D0
 .1	rte
 
 logo_data
