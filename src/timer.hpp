@@ -40,13 +40,12 @@
  */
 
 /*
- * Registers 2 to 15 unused
+ * Registers 2 to 15 currently unused and reserved
  */
-
 
 /*
  * Registers 16 to 31 are respectively the high and low bytes of
- * unsigned 16bit data values.
+ * unsigned 16bit data values (all bpm's)
  */
 
 #ifndef timer_hpp
@@ -57,10 +56,19 @@
 #include "sn74ls148.hpp"
 
 struct timer_unit {
+	/*
+	 * Beats per minute (current choice for time interval)
+	 */
 	uint16_t bpm;
+
+	/*
+	 * Number of cycles (depends on clock speed) for a specific bpm
+	 */
 	uint32_t clock_interval;
 
-	// NEEDS WORK? used to be 64 bit...
+	/*
+	 *
+	 */
 	uint32_t counter;
 };
 
@@ -69,7 +77,7 @@ private:
 	uint8_t status_register;
 	uint8_t control_register;
 
-	struct timer_unit timers[8];
+	struct timer_unit timer[8];
 
 	uint32_t bpm_to_clock_interval(uint16_t bpm);
 
@@ -87,9 +95,9 @@ public:
 	void io_write_byte(uint8_t address, uint8_t byte);
 
 	// get functions
-	uint64_t get_timer_counter(uint8_t timer_number);
-	uint64_t get_timer_clock_interval(uint8_t timer_number);
-	uint16_t get_timer_bpm(uint8_t timer_number);
+	inline uint64_t get_timer_counter(uint8_t timer_number) { return timer[timer_number & 0x07].counter; }
+	inline uint64_t get_timer_clock_interval(uint8_t timer_number) { return timer[timer_number & 0x07].clock_interval; }
+	inline uint16_t get_timer_bpm(uint8_t timer_number) { return timer[timer_number & 0x7].bpm; }
 
 	// run cycles on this ic
 	void run(uint32_t number_of_cycles);

@@ -29,9 +29,9 @@ void timer_ic::reset()
 	control_register = 0x00;
 
 	for (int i=0; i<8; i++) {
-		timers[i].bpm = 0x0001; // load with 1, may never be zero
-		timers[i].clock_interval = bpm_to_clock_interval(timers[i].bpm);
-		timers[i].counter = 0;
+		timer[i].bpm = 0x0001; // load with 1, may never be zero
+		timer[i].clock_interval = bpm_to_clock_interval(timer[i].bpm);
+		timer[i].counter = 0;
 	}
 
 	exceptions->release(dev_number_exceptions);
@@ -41,10 +41,10 @@ void timer_ic::reset()
 void timer_ic::run(uint32_t number_of_cycles)
 {
 	for (int i=0; i<8; i++) {
-		timers[i].counter += number_of_cycles;
-		if ((timers[i].counter >= timers[i].clock_interval) && (control_register & (0b1 << i))) {
-			while (timers[i].counter >= timers[i].clock_interval)
-				timers[i].counter -= timers[i].clock_interval;
+		timer[i].counter += number_of_cycles;
+		if ((timer[i].counter >= timer[i].clock_interval) && (control_register & (0b1 << i))) {
+			while (timer[i].counter >= timer[i].clock_interval)
+				timer[i].counter -= timer[i].clock_interval;
 			exceptions->pull(dev_number_exceptions);
 			sn74ls148->pull_line(dev_number_sn74ls148);
 			status_register |= (0b1 << i);
@@ -54,7 +54,7 @@ void timer_ic::run(uint32_t number_of_cycles)
 
 uint32_t timer_ic::bpm_to_clock_interval(uint16_t bpm)
 {
-	return (60.0 / bpm) * MC6809_CLOCK_SPEED;
+	return (60.0 / bpm) * CORE_CLOCK_SPEED;
 }
 
 uint8_t timer_ic::io_read_byte(uint8_t address)
@@ -65,37 +65,37 @@ uint8_t timer_ic::io_read_byte(uint8_t address)
 		case 0x01:
 			return control_register;
 		case 0x10:
-			return (timers[0].bpm & 0xff00) >> 8;
+			return (timer[0].bpm & 0xff00) >> 8;
 		case 0x11:
-			return timers[0].bpm & 0xff;
+			return timer[0].bpm & 0xff;
 		case 0x12:
-			return (timers[1].bpm & 0xff00) >> 8;
+			return (timer[1].bpm & 0xff00) >> 8;
 		case 0x13:
-			return timers[1].bpm & 0xff;
+			return timer[1].bpm & 0xff;
 		case 0x14:
-			return (timers[2].bpm & 0xff00) >> 8;
+			return (timer[2].bpm & 0xff00) >> 8;
 		case 0x15:
-			return timers[2].bpm & 0xff;
+			return timer[2].bpm & 0xff;
 		case 0x16:
-			return (timers[3].bpm & 0xff00) >> 8;
+			return (timer[3].bpm & 0xff00) >> 8;
 		case 0x17:
-			return timers[3].bpm & 0xff;
+			return timer[3].bpm & 0xff;
 		case 0x18:
-			return (timers[4].bpm & 0xff00) >> 8;
+			return (timer[4].bpm & 0xff00) >> 8;
 		case 0x19:
-			return timers[4].bpm & 0xff;
+			return timer[4].bpm & 0xff;
 		case 0x1a:
-			return (timers[5].bpm & 0xff00) >> 8;
+			return (timer[5].bpm & 0xff00) >> 8;
 		case 0x1b:
-			return timers[5].bpm & 0xff;
+			return timer[5].bpm & 0xff;
 		case 0x1c:
-			return (timers[6].bpm & 0xff00) >> 8;
+			return (timer[6].bpm & 0xff00) >> 8;
 		case 0x1d:
-			return timers[6].bpm & 0xff;
+			return timer[6].bpm & 0xff;
 		case 0x1e:
-			return (timers[7].bpm & 0xff00) >> 8;
+			return (timer[7].bpm & 0xff00) >> 8;
 		case 0x1f:
-			return timers[7].bpm & 0xff;
+			return timer[7].bpm & 0xff;
 		default:
 			return 0;
 	}
@@ -129,91 +129,91 @@ void timer_ic::io_write_byte(uint8_t address, uint8_t byte)
 			uint8_t turned_on = byte & (~control_register);
 			for (int i=0; i<8; i++) {
 				if (turned_on & (0b1 << i)) {
-					timers[i].counter = 0;
+					timer[i].counter = 0;
 				}
 			}
 			control_register = byte;
 			break;
 		}
 		case 0x10:
-			timers[0].bpm = (timers[0].bpm & 0x00ff) | (byte << 8);
-			if (timers[0].bpm == 0) timers[0].bpm = 1;
-			timers[0].clock_interval = bpm_to_clock_interval(timers[0].bpm);
+			timer[0].bpm = (timer[0].bpm & 0x00ff) | (byte << 8);
+			if (timer[0].bpm == 0) timer[0].bpm = 1;
+			timer[0].clock_interval = bpm_to_clock_interval(timer[0].bpm);
 			break;
 		case 0x11:
-			timers[0].bpm = (timers[0].bpm & 0xff00) | byte;
-			if (timers[0].bpm == 0) timers[0].bpm = 1;
-			timers[0].clock_interval = bpm_to_clock_interval(timers[0].bpm);
+			timer[0].bpm = (timer[0].bpm & 0xff00) | byte;
+			if (timer[0].bpm == 0) timer[0].bpm = 1;
+			timer[0].clock_interval = bpm_to_clock_interval(timer[0].bpm);
 			break;
 		case 0x12:
-			timers[1].bpm = (timers[1].bpm & 0x00ff) | (byte << 8);
-			if (timers[1].bpm == 0) timers[0].bpm = 1;
-			timers[1].clock_interval = bpm_to_clock_interval(timers[1].bpm);
+			timer[1].bpm = (timer[1].bpm & 0x00ff) | (byte << 8);
+			if (timer[1].bpm == 0) timer[0].bpm = 1;
+			timer[1].clock_interval = bpm_to_clock_interval(timer[1].bpm);
 			break;
 		case 0x13:
-			timers[1].bpm = (timers[1].bpm & 0xff00) | byte;
-			if (timers[1].bpm == 0) timers[0].bpm = 1;
-			timers[1].clock_interval = bpm_to_clock_interval(timers[1].bpm);
+			timer[1].bpm = (timer[1].bpm & 0xff00) | byte;
+			if (timer[1].bpm == 0) timer[0].bpm = 1;
+			timer[1].clock_interval = bpm_to_clock_interval(timer[1].bpm);
 			break;
 		case 0x14:
-			timers[2].bpm = (timers[2].bpm & 0x00ff) | (byte << 8);
-			if (timers[2].bpm == 0) timers[0].bpm = 1;
-			timers[2].clock_interval = bpm_to_clock_interval(timers[2].bpm);
+			timer[2].bpm = (timer[2].bpm & 0x00ff) | (byte << 8);
+			if (timer[2].bpm == 0) timer[0].bpm = 1;
+			timer[2].clock_interval = bpm_to_clock_interval(timer[2].bpm);
 			break;
 		case 0x15:
-			timers[2].bpm = (timers[2].bpm & 0xff00) | byte;
-			if (timers[2].bpm == 0) timers[0].bpm = 1;
-			timers[2].clock_interval = bpm_to_clock_interval(timers[2].bpm);
+			timer[2].bpm = (timer[2].bpm & 0xff00) | byte;
+			if (timer[2].bpm == 0) timer[0].bpm = 1;
+			timer[2].clock_interval = bpm_to_clock_interval(timer[2].bpm);
 			break;
 		case 0x16:
-			timers[3].bpm = (timers[3].bpm & 0x00ff) | (byte << 8);
-			if (timers[3].bpm == 0) timers[0].bpm = 1;
-			timers[3].clock_interval = bpm_to_clock_interval(timers[3].bpm);
+			timer[3].bpm = (timer[3].bpm & 0x00ff) | (byte << 8);
+			if (timer[3].bpm == 0) timer[0].bpm = 1;
+			timer[3].clock_interval = bpm_to_clock_interval(timer[3].bpm);
 			break;
 		case 0x17:
-			timers[3].bpm = (timers[3].bpm & 0xff00) | byte;
-			if (timers[3].bpm == 0) timers[0].bpm = 1;
-			timers[3].clock_interval = bpm_to_clock_interval(timers[3].bpm);
+			timer[3].bpm = (timer[3].bpm & 0xff00) | byte;
+			if (timer[3].bpm == 0) timer[0].bpm = 1;
+			timer[3].clock_interval = bpm_to_clock_interval(timer[3].bpm);
 			break;
 		case 0x18:
-			timers[4].bpm = (timers[4].bpm & 0x00ff) | (byte << 8);
-			if (timers[4].bpm == 0) timers[0].bpm = 1;
-			timers[4].clock_interval = bpm_to_clock_interval(timers[4].bpm);
+			timer[4].bpm = (timer[4].bpm & 0x00ff) | (byte << 8);
+			if (timer[4].bpm == 0) timer[0].bpm = 1;
+			timer[4].clock_interval = bpm_to_clock_interval(timer[4].bpm);
 			break;
 		case 0x19:
-			timers[4].bpm = (timers[4].bpm & 0xff00) | byte;
-			if (timers[4].bpm == 0) timers[0].bpm = 1;
-			timers[4].clock_interval = bpm_to_clock_interval(timers[4].bpm);
+			timer[4].bpm = (timer[4].bpm & 0xff00) | byte;
+			if (timer[4].bpm == 0) timer[0].bpm = 1;
+			timer[4].clock_interval = bpm_to_clock_interval(timer[4].bpm);
 			break;
 		case 0x1a:
-			timers[5].bpm = (timers[5].bpm & 0x00ff) | (byte << 8);
-			if (timers[5].bpm == 0) timers[0].bpm = 1;
-			timers[5].clock_interval = bpm_to_clock_interval(timers[5].bpm);
+			timer[5].bpm = (timer[5].bpm & 0x00ff) | (byte << 8);
+			if (timer[5].bpm == 0) timer[0].bpm = 1;
+			timer[5].clock_interval = bpm_to_clock_interval(timer[5].bpm);
 			break;
 		case 0x1b:
-			timers[5].bpm = (timers[5].bpm & 0xff00) | byte;
-			if (timers[5].bpm == 0) timers[0].bpm = 1;
-			timers[5].clock_interval = bpm_to_clock_interval(timers[5].bpm);
+			timer[5].bpm = (timer[5].bpm & 0xff00) | byte;
+			if (timer[5].bpm == 0) timer[0].bpm = 1;
+			timer[5].clock_interval = bpm_to_clock_interval(timer[5].bpm);
 			break;
 		case 0x1c:
-			timers[6].bpm = (timers[6].bpm & 0x00ff) | (byte << 8);
-			if (timers[6].bpm == 0) timers[0].bpm = 1;
-			timers[6].clock_interval = bpm_to_clock_interval(timers[6].bpm);
+			timer[6].bpm = (timer[6].bpm & 0x00ff) | (byte << 8);
+			if (timer[6].bpm == 0) timer[0].bpm = 1;
+			timer[6].clock_interval = bpm_to_clock_interval(timer[6].bpm);
 			break;
 		case 0x1d:
-			timers[6].bpm = (timers[6].bpm & 0xff00) | byte;
-			if (timers[6].bpm == 0) timers[0].bpm = 1;
-			timers[6].clock_interval = bpm_to_clock_interval(timers[6].bpm);
+			timer[6].bpm = (timer[6].bpm & 0xff00) | byte;
+			if (timer[6].bpm == 0) timer[0].bpm = 1;
+			timer[6].clock_interval = bpm_to_clock_interval(timer[6].bpm);
 			break;
 		case 0x1e:
-			timers[7].bpm = (timers[7].bpm & 0x00ff) | (byte << 8);
-			if (timers[7].bpm == 0) timers[0].bpm = 1;
-			timers[7].clock_interval = bpm_to_clock_interval(timers[7].bpm);
+			timer[7].bpm = (timer[7].bpm & 0x00ff) | (byte << 8);
+			if (timer[7].bpm == 0) timer[0].bpm = 1;
+			timer[7].clock_interval = bpm_to_clock_interval(timer[7].bpm);
 			break;
 		case 0x1f:
-			timers[7].bpm = (timers[7].bpm & 0xff00) | byte;
-			if (timers[7].bpm == 0) timers[0].bpm = 1;
-			timers[7].clock_interval = bpm_to_clock_interval(timers[7].bpm);
+			timer[7].bpm = (timer[7].bpm & 0xff00) | byte;
+			if (timer[7].bpm == 0) timer[0].bpm = 1;
+			timer[7].clock_interval = bpm_to_clock_interval(timer[7].bpm);
 			break;
 		default:
 			// do nothing
@@ -221,23 +221,13 @@ void timer_ic::io_write_byte(uint8_t address, uint8_t byte)
 	}
 }
 
-uint64_t timer_ic::get_timer_counter(uint8_t timer_number)
-{
-	return timers[timer_number & 0x07].counter;
-}
-
-uint64_t timer_ic::get_timer_clock_interval(uint8_t timer_number)
-{
-	return timers[timer_number & 0x07].clock_interval;
-}
-
 void timer_ic::set(uint8_t timer_no, uint16_t bpm)
 {
 	timer_no &= 0b111; // limit to max 7
 
 	if (bpm == 0) bpm = 1;
-	timers[timer_no].bpm = bpm;
-	timers[timer_no].clock_interval = bpm_to_clock_interval(bpm);
+	timer[timer_no].bpm = bpm;
+	timer[timer_no].clock_interval = bpm_to_clock_interval(bpm);
 
 	uint8_t byte = io_read_byte(0x01);
 	io_write_byte(0x01, (0b1 << timer_no) | byte);
@@ -250,12 +240,7 @@ void timer_ic::status(char *buffer, uint8_t timer_no)
 	snprintf(buffer, 64, "\n%2u:%s/%5u/%10u/%10u",
 		 timer_no,
 		 control_register & (0b1 << timer_no) ? " on" : "off",
-		 timers[timer_no].bpm,
-		 timers[timer_no].counter,
-		 timers[timer_no].clock_interval);
-}
-
-uint16_t timer_ic::get_timer_bpm(uint8_t timer_number)
-{
-	return timers[timer_number & 0x7].bpm;
+		 timer[timer_no].bpm,
+		 timer[timer_no].counter,
+		 timer[timer_no].clock_interval);
 }

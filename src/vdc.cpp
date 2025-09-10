@@ -414,9 +414,9 @@ bool vdc_t::run(uint32_t number_of_cycles)
 	bool frame_done = false;
 	cycles_run += number_of_cycles;
 
-	if (cycles_run >= MC6809_CYCLES_PER_SCANLINE) {
+	if (cycles_run >= CORE_CYCLES_PER_SCANLINE) {
 		new_scanline = true;
-		cycles_run -= MC6809_CYCLES_PER_SCANLINE;
+		cycles_run -= CORE_CYCLES_PER_SCANLINE;
 		current_scanline++;
 		if (current_scanline == VDC_SCANLINES) {
 			frame_done = true;

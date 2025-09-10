@@ -32,7 +32,7 @@ void stats_t::reset()
 
 	smoothed_framerate = FPS;
 
-	smoothed_cpu_mhz = MC6809_CLOCK_SPEED/(1000*1000);
+	smoothed_cpu_mhz = CORE_CLOCK_SPEED/(1000*1000);
 	old_cpu_ticks = system->core->mc6809->clock_ticks();
 
 	smoothed_core_per_frame = 1000000 / (FPS * 4);

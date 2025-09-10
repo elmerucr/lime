@@ -15,6 +15,8 @@ core_t::core_t(system_t *s)
 {
 	system = s;
 
+	mc68000_active = true;
+
 	rom_mc6809 = new rom_mc6809_t();
 	rom_mc68000 = new rom_mc68000_t();
 
@@ -37,7 +39,9 @@ core_t::core_t(system_t *s)
 
 	sound = new sound_ic(system);
 
-	mc6809_to_sid = new clocks(MC6809_CYCLES_PER_FRAME, SID_CYCLES_PER_FRAME);
+	cpu_to_core_clock = new clocks(cpu_multiplier, 1);
+
+	core_to_sid_clock = new clocks(CORE_CYCLES_PER_FRAME, SID_CYCLES_PER_FRAME);
 
 	font = new font_cbm_8x8_t();
 
@@ -47,14 +51,13 @@ core_t::core_t(system_t *s)
 
 	dev_number_sn74ls148 = sn74ls148->connect_device(2, "core");
 	printf("[core] Connecting to sn74ls148 at ipl 2 getting dev %i\n", dev_number_sn74ls148);
-
-	mc68000_active = true;
 }
 
 core_t::~core_t()
 {
 	delete font;
-	delete mc6809_to_sid;
+	delete core_to_sid_clock;
+	delete cpu_to_core_clock;
 	delete sound;
 	delete timer;
 	delete mc68000;
@@ -70,8 +73,11 @@ enum output_states core_t::run(bool debug)
 {
 	enum output_states output_state = NORMAL;
 	uint16_t cpu_cycles;
+	uint16_t core_cycles;
 	bool frame_done;
 	uint16_t sound_cycles;
+
+	cpu_to_core_clock->adjust_base_clock(0b1 << cpu_multiplier);
 
 	if (mc68000_active) {
 
@@ -80,9 +86,12 @@ enum output_states core_t::run(bool debug)
 			mc68000->execute();
 			cpu_cycles = mc68000->getClock() - mc68000->old_clock;
 			mc68000->old_clock += cpu_cycles;
-			frame_done = vdc->run(cpu_cycles);
-			timer->run(cpu_cycles);
-			sound_cycles = mc6809_to_sid->clock(cpu_cycles);
+
+			core_cycles = cpu_to_core_clock->clock(cpu_cycles);
+
+			frame_done = vdc->run(core_cycles);
+			timer->run(core_cycles);
+			sound_cycles = core_to_sid_clock->clock(core_cycles);
 			sound->run(sound_cycles);
 			sound_cycle_saldo += sound_cycles;
 
@@ -98,9 +107,10 @@ enum output_states core_t::run(bool debug)
 		do {
 
 			cpu_cycles = mc6809->execute();
-			frame_done = vdc->run(cpu_cycles);
-			timer->run(cpu_cycles);
-			sound_cycles = mc6809_to_sid->clock(cpu_cycles);
+			core_cycles = cpu_to_core_clock->clock(cpu_cycles);
+			frame_done = vdc->run(core_cycles);
+			timer->run(core_cycles);
+			sound_cycles = core_to_sid_clock->clock(core_cycles);
 			sound->run(sound_cycles);
 			sound_cycle_saldo += sound_cycles;
 
@@ -140,6 +150,8 @@ uint8_t core_t::read8(uint32_t address)
 							(system_rom_visible    ? 0b00000001 : 0b00000000) |
 							(character_rom_visible ? 0b00000010 : 0b00000000) |
 							(system->host->video_scanlines ? 0b00000100 : 0b00000000);
+					case 0x03:
+						return cpu_multiplier;
 					case 0x04:
 						return file_data[file_pointer++];
 					case 0x08:
@@ -223,6 +235,9 @@ void core_t::write8(uint32_t address, uint8_t value)
 						character_rom_visible = (value & 0b00000010) ? true : false;
 						system->host->video_scanlines = (value & 0b00000100) ? true : false;
 						break;
+					case 0x03:
+						cpu_multiplier = value & 0b11;
+						break;
 					default:
 						//
 						break;
@@ -257,6 +272,14 @@ void core_t::reset()
 	mc68000->reset();
 	mc68000->old_clock = 0;
 	mc68000->setClock(0);
+
+	cpu_to_core_clock->reset();
+
+	if (mc68000_active) {
+		cpu_multiplier = 0b11;
+	} else {
+		cpu_multiplier = 0b00;
+	}
 }
 
 void core_t::attach_bin(char *path)

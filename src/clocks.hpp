@@ -26,6 +26,10 @@ public:
 		mod = 0;
 	}
 
+	inline void reset() {
+		mod = 0;
+	}
+
 	inline uint32_t clock(uint32_t delta_base_clock) {
 		mult = (delta_base_clock * target_clock_freq) + mod;
 		mod  = mult % base_clock_freq;
@@ -39,6 +43,9 @@ public:
 	inline void adjust_target_clock(uint32_t target_clock_f) {
 		target_clock_freq = target_clock_f;
 	}
+
+	// mod is like "unused cycles" remaining for the target clock
+	inline uint64_t get_mod() { return mod; }
 };
 
 #endif

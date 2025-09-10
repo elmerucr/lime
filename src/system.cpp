@@ -81,7 +81,7 @@ void system_t::run()
 			audio_cycles += SID_CYCLES_PER_FRAME / 5;
 		}
 
-		core->mc6809_to_sid->adjust_target_clock(audio_cycles);
+		core->core_to_sid_clock->adjust_target_clock(audio_cycles);
 
         if (host->events_process_events() == QUIT_EVENT) running = false;
 

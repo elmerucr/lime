@@ -75,7 +75,7 @@ debugger_t::debugger_t(system_t *s)
 
 	status1 = new terminal_t(system, 60, 26, LIME_COLOR_02, LIME_COLOR_00);
 	exception_status = new terminal_t(system, 20, 5, LIME_COLOR_02, 0xff000000);
-	vdc_status = new terminal_t(system, 15, 5, LIME_COLOR_02, 0xff000000);
+	vdc_status = new terminal_t(system, 17, 5, LIME_COLOR_02, 0xff000000);
 }
 
 debugger_t::~debugger_t()
@@ -218,10 +218,10 @@ void debugger_t::redraw()
 		}
 	}
 
-		status1->printf("\n---------timers---------\n t     s  bpm   cycles  ");
+		status1->printf("\n--------timers--------\nt     s  bpm   cycles  ");
 		for (int i=0; i<4; i++) {
 			int j = i + (timers_4_7 ? 4 : 0);
-			status1->printf("\n %1x %s %s %05u %08x",
+			status1->printf("\n%1x %s %s %05u %08x",
 				j,
 				system->core->timer->io_read_byte(0x01) & (1 << j) ? " on" : "off",
 				system->core->timer->io_read_byte(0x00) & (1 << j) ? "*" : "-",
@@ -242,18 +242,18 @@ void debugger_t::redraw()
 	// copy exception_status into status1
 	for (int y = 0; y < exception_status->height; y++) {
 		for (int x = 0; x < exception_status->width; x++) {
-			status1->tiles[((20 + y) * status1->width) + 25 + x] =
+			status1->tiles[((20 + y) * status1->width) + 23 + x] =
 				exception_status->tiles[(y * exception_status->width) + x];
 		}
 	}
 
 	vdc_status->clear();
-	vdc_status->printf("------vdc------");
-	vdc_status->printf(" cycle %3i/%3i\nscanln %3i/%3i",
-		system->core->vdc->get_cycles_run(),
-		MC6809_CYCLES_PER_SCANLINE,
+	vdc_status->printf("-----vdc/cpu-----");
+	vdc_status->printf(" scanline %3i/%3icpu cycle %3i/%3i",
 		system->core->vdc->get_current_scanline(),
-		VDC_SCANLINES - 1
+		VDC_SCANLINES - 1,
+		(system->core->vdc->get_cycles_run() << system->core->cpu_multiplier) + system->core->cpu_to_core_clock->get_mod(),
+		CORE_CYCLES_PER_SCANLINE << system->core->cpu_multiplier
 	);
 	if (system->core->vdc->get_generate_interrupts()) {
 		vdc_status->printf("\nirq at %3i", system->core->vdc->get_irq_scanline());
@@ -261,7 +261,7 @@ void debugger_t::redraw()
 	// copy vdc_status into status1
 	for (int y = 0; y < vdc_status->height; y++) {
 		for (int x = 0; x < vdc_status->width; x++) {
-			status1->tiles[((20 + y) * status1->width) + 45 + x] =
+			status1->tiles[((20 + y) * status1->width) + 43 + x] =
 				vdc_status->tiles[(y * vdc_status->width) + x];
 		}
 	}
@@ -289,16 +289,16 @@ void debugger_t::redraw()
 			system->host->video_viewer_framebuffer[(y * VDC_XRES) + x] = LIME_COLOR_01;
 		}
 		system->host->video_viewer_framebuffer[
-			(system->core->vdc->get_cycles_run()*VDC_XRES/MC6809_CYCLES_PER_SCANLINE) + (y * VDC_XRES)
+			(system->core->vdc->get_cycles_run()*VDC_XRES/CORE_CYCLES_PER_SCANLINE) + (y * VDC_XRES)
 		] = LIME_COLOR_03;
 		if (y > 0) {
 			system->host->video_viewer_framebuffer[
-				(system->core->vdc->get_cycles_run()*VDC_XRES/MC6809_CYCLES_PER_SCANLINE) + ((y - 1) * VDC_XRES)
+				(system->core->vdc->get_cycles_run()*VDC_XRES/CORE_CYCLES_PER_SCANLINE) + ((y - 1) * VDC_XRES)
 			] = LIME_COLOR_03;
 		}
 		if (y < (VDC_YRES - 1)) {
 			system->host->video_viewer_framebuffer[
-				(system->core->vdc->get_cycles_run()*VDC_XRES/MC6809_CYCLES_PER_SCANLINE) + ((y + 1) * VDC_XRES)
+				(system->core->vdc->get_cycles_run()*VDC_XRES/CORE_CYCLES_PER_SCANLINE) + ((y + 1) * VDC_XRES)
 			] = LIME_COLOR_03;
 		}
 	}

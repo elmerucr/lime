@@ -34,17 +34,12 @@
 
 enum output_states {
 	NORMAL,
-	BREAKPOINT,
+	BREAKPOINT
 };
 
 class core_t {
 private:
-	uint32_t current_cpu_cycles_per_scanline;
-	uint32_t current_cpu_clock_speed;
-
 	uint32_t sound_cycle_saldo{0};
-
-	//bool irq_line_frame_done{true};
 
 	system_t *system;
 	rom_mc68000_t *rom_mc68000;
@@ -70,6 +65,8 @@ public:
 
 	bool mc68000_active;
 
+	uint8_t cpu_multiplier{0};
+
 	vdc_t *vdc;
 
 	exceptions_ic *exceptions;	// for mc6809
@@ -78,7 +75,9 @@ public:
 	cpu_mc6809_t *mc6809;
 	cpu_mc68000_t *mc68000;
 
-	clocks *mc6809_to_sid;
+	clocks *cpu_to_core_clock;
+	clocks *core_to_sid_clock;
+
 	font_cbm_8x8_t *font;
 	timer_ic *timer;
 	sound_ic *sound;
