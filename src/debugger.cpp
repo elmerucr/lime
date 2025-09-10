@@ -75,7 +75,7 @@ debugger_t::debugger_t(system_t *s)
 
 	status1 = new terminal_t(system, 60, 26, LIME_COLOR_02, LIME_COLOR_00);
 	exception_status = new terminal_t(system, 20, 5, LIME_COLOR_02, 0xff000000);
-	vdc_status = new terminal_t(system, 17, 5, LIME_COLOR_02, 0xff000000);
+	vdc_status = new terminal_t(system, 17, 6, LIME_COLOR_02, 0xff000000);
 }
 
 debugger_t::~debugger_t()
@@ -249,15 +249,17 @@ void debugger_t::redraw()
 
 	vdc_status->clear();
 	vdc_status->printf("-----vdc/cpu-----");
-	vdc_status->printf(" scanline %3i/%3icpu cycle %3i/%3i",
+	vdc_status->printf("  scanln: %3i/%3icpu cycl: %3i/%3i",
 		system->core->vdc->get_current_scanline(),
 		VDC_SCANLINES - 1,
 		(system->core->vdc->get_cycles_run() << system->core->cpu_multiplier) + system->core->cpu_to_core_clock->get_mod(),
 		CORE_CYCLES_PER_SCANLINE << system->core->cpu_multiplier
 	);
-	if (system->core->vdc->get_generate_interrupts()) {
-		vdc_status->printf("\nirq at %3i", system->core->vdc->get_irq_scanline());
-	}
+	vdc_status->printf("\n    raster: %3i\n  does irq: %s",
+		system->core->vdc->get_irq_scanline(),
+		system->core->vdc->get_generate_interrupts() ? "yes" : " no"
+	);
+
 	// copy vdc_status into status1
 	for (int y = 0; y < vdc_status->height; y++) {
 		for (int x = 0; x < vdc_status->width; x++) {
@@ -383,9 +385,6 @@ void debugger_t::process_command(char *c)
 	} else if (token0[0] == ';') {
 		have_prompt = false;
 		enter_memory_binary_line(c);
-	// } else if (token0[0] == '\'') {
-	// 	have_prompt = false;
-	// 	enter_vram_binary_line(c);
 	} else if (token0[0] == ',') {
 	 	have_prompt = false;
 	 	enter_assembly_line(c);
@@ -440,11 +439,20 @@ void debugger_t::process_command(char *c)
 	} else if (strcmp(token0, "cls") == 0) {
 		terminal->clear();
 	} else if (strcmp(token0, "cpu") == 0) {
-		system->core->mc68000_active = !system->core->mc68000_active;
-		if (system->core->mc68000_active) {
-			terminal->printf("\nmc68000 mode");
+		terminal->printf("\nchange cpu and reset lime (y/n)");
+		redraw();
+		system->host->video_update_screen();
+		if (system->host->events_yes_no()) {
+			system->core->mc68000_active = !system->core->mc68000_active;
+			if (system->core->mc68000_active) {
+				terminal->printf("\nmc68000 mode");
+			} else {
+				terminal->printf("\nmc6809 mode");
+			}
+			system->core->reset();
+			system->host->events_wait_until_key_released(SDLK_y);
 		} else {
-			terminal->printf("\nmc6809 mode");
+			system->host->events_wait_until_key_released(SDLK_n);
 		}
 	} else if (strcmp(token0, "d") == 0) {
 	 	have_prompt = false;
@@ -594,11 +602,6 @@ void debugger_t::process_command(char *c)
 		have_prompt = false;
 		system->host->events_wait_until_key_released(SDLK_RETURN);
 		system->switch_to_run_mode();
-	} else if (strcmp(token0, "timer") == 0) {
-		for (int i=0; i<8; i++) {
-			system->core->timer->status(text_buffer, i);
-			terminal->printf("%s", text_buffer);
-		}
 	} else if (strcmp(token0, "ver") == 0) {
 		print_version();
 	} else {
