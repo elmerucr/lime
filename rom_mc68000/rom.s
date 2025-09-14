@@ -15,7 +15,7 @@ LOGO_ANIMATION	equ	$3000
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
 
-	dc.b	"rom mc68000 0.2 20250910"
+	dc.b	"rom mc68000 0.2 20250914"
 
 	align	2
 
@@ -78,6 +78,8 @@ exc_lvl1_irq_auto
 exc_lvl4_irq_auto					; coupled to timer
 	move.l	D0,-(SP)
 	move.b	TIMER_SR.w,D0
+	; rest of lgic...
+	; which timer and jump to handler
 	move.l	(SP)+,D0
 	rte
 
@@ -94,14 +96,14 @@ exc_lvl6_irq_auto					; coupled to vdc
 .1	rte
 
 logo_data
-	dc.b	112,64,%111,0,$1c			; icon top left
-	dc.b	120,64,%111,0,$1d			; icon top right
-	dc.b	112,72,%111,0,$1e			; icon bottom left
-	dc.b	120,72,%111,0,$1f			; icon bottom right
-	dc.b	107,80,%111,0,$6c			; l
-	dc.b	112,80,%111,0,$69			; i
-	dc.b	118,80,%111,0,$6d			; m
-	dc.b	126,80,%111,0,$65			; e
+	dc.b	112,64,%111,0,$1c	; icon top left
+	dc.b	120,64,%111,0,$1d	; icon top right
+	dc.b	112,72,%111,0,$1e	; icon bottom left
+	dc.b	120,72,%111,0,$1f	; icon bottom right
+	dc.b	107,80,%111,0,$6c	; l
+	dc.b	112,80,%111,0,$69	; i
+	dc.b	118,80,%111,0,$6d	; m
+	dc.b	126,80,%111,0,$65	; e
 
 logo_tiles
 	dc.b	%00000000,%00000000	; tile 1 (icon upper left)

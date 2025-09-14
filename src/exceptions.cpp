@@ -47,8 +47,8 @@ void exceptions_ic::toggle(uint8_t device)
 
 void exceptions_ic::status(char *b, int buffer_length)
 {
-	b += snprintf(b, buffer_length, "----exceptions----- dev   lin   name");
+	b += snprintf(b, buffer_length, "----exceptions-----  dev  lin  devname");
 	for (int i=0; i<next_available_device; i++) {
-		b += snprintf(b, buffer_length, "\n %1i     %c    \"%s\"", i, irq_input_pins[i] ? '1' : '0', dev_name[i]);
+		b += snprintf(b, buffer_length, "\n  %1i    %c   \"%s\"", i, irq_input_pins[i] ? '1' : '0', dev_name[i]);
 	}
 }

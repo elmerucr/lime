@@ -68,14 +68,14 @@ debugger_t::debugger_t(system_t *s)
 {
 	system = s;
 
-	terminal = new terminal_t(system, 60, 14, PUNCH_LIGHTBLUE, PUNCH_BLUE);
+	terminal = new terminal_t(system, 60, 16, PUNCH_LIGHTBLUE, PUNCH_BLUE);
 	terminal->clear();
 	print_version();
 	terminal->activate_cursor();
 
-	status1 = new terminal_t(system, 60, 26, LIME_COLOR_02, LIME_COLOR_00);
+	status1 = new terminal_t(system, 60, 24, LIME_COLOR_02, LIME_COLOR_00);
 	exception_status = new terminal_t(system, 20, 5, LIME_COLOR_02, 0xff000000);
-	vdc_status = new terminal_t(system, 17, 6, LIME_COLOR_02, 0xff000000);
+	vdc_status = new terminal_t(system, 16, 6, LIME_COLOR_02, 0xff000000);
 }
 
 debugger_t::~debugger_t()
@@ -101,7 +101,7 @@ void debugger_t::redraw()
 		for (int x = 0; x < (terminal->width << 3); x++) {
 			uint8_t symbol = terminal->tiles[((y>>3) * terminal->width) + (x >> 3)];
 	 		uint8_t x_in_char = x % 8;
-			system->host->video_framebuffer[((y + 208) * SCREEN_WIDTH) + x + 0] =
+			system->host->video_framebuffer[((y + 192) * SCREEN_WIDTH) + x + 0] =
 				(debugger_cbm_font.original_data[(symbol << 3) + y_in_char] & (0b1 << (7 - x_in_char))) ?
 				terminal->fg_colors[((y>>3) * terminal->width) + (x >> 3)] :
 				terminal->bg_colors[((y>>3) * terminal->width) + (x >> 3)] ;
@@ -175,7 +175,7 @@ void debugger_t::redraw()
 		);
 		uint32_t pc = system->core->mc68000->getPC();
 		uint32_t new_pc;
-		for (int i=0; i<7; i++) {
+		for (int i=0; i<5; i++) {
 			new_pc = pc + system->core->mc68000->disassemble(text_buffer, pc);
 			if (system->core->mc68000->debugger.breakpoints.isSetAt(pc)) {
 				status1->fg_color = 0xffe04040;	// orange
@@ -212,13 +212,13 @@ void debugger_t::redraw()
 		);
 		status1->printf("\n\n------------------------disassembler------------------------");
 		uint16_t pc = system->core->mc6809->get_pc();
-		for (int i=0; i<11; i++) {
+		for (int i=0; i<9; i++) {
 			pc += disassemble_instruction_status1(pc);
 			status1->putchar('\n');
 		}
 	}
 
-		status1->printf("\n--------timers--------\nt     s  bpm   cycles  ");
+		status1->printf("\n--------timer---------\nt     s  bpm   cycles  ");
 		for (int i=0; i<4; i++) {
 			int j = i + (timers_4_7 ? 4 : 0);
 			status1->printf("\n%1x %s %s %05u %08x",
@@ -242,20 +242,20 @@ void debugger_t::redraw()
 	// copy exception_status into status1
 	for (int y = 0; y < exception_status->height; y++) {
 		for (int x = 0; x < exception_status->width; x++) {
-			status1->tiles[((20 + y) * status1->width) + 23 + x] =
+			status1->tiles[((18 + y) * status1->width) + 23 + x] =
 				exception_status->tiles[(y * exception_status->width) + x];
 		}
 	}
 
 	vdc_status->clear();
-	vdc_status->printf("-----vdc/cpu-----");
-	vdc_status->printf("  scanln: %3i/%3icpu cycl: %3i/%3i",
+	vdc_status->printf("----vdc/cpu-----");
+	vdc_status->printf("scanline %3i/%3i  cycles %3i/%3i",
 		system->core->vdc->get_current_scanline(),
 		VDC_SCANLINES - 1,
 		(system->core->vdc->get_cycles_run() << system->core->cpu_multiplier) + system->core->cpu_to_core_clock->get_mod(),
 		CORE_CYCLES_PER_SCANLINE << system->core->cpu_multiplier
 	);
-	vdc_status->printf("\n    raster: %3i\n  does irq: %s",
+	vdc_status->printf("\n rasterline %3i\n        irq %s",
 		system->core->vdc->get_irq_scanline(),
 		system->core->vdc->get_generate_interrupts() ? "yes" : " no"
 	);
@@ -263,7 +263,7 @@ void debugger_t::redraw()
 	// copy vdc_status into status1
 	for (int y = 0; y < vdc_status->height; y++) {
 		for (int x = 0; x < vdc_status->width; x++) {
-			status1->tiles[((20 + y) * status1->width) + 43 + x] =
+			status1->tiles[((18 + y) * status1->width) + 43 + x] =
 				vdc_status->tiles[(y * vdc_status->width) + x];
 		}
 	}

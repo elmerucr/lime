@@ -42,12 +42,14 @@ void timer_ic::run(uint32_t number_of_cycles)
 {
 	for (int i=0; i<8; i++) {
 		timer[i].counter += number_of_cycles;
-		if ((timer[i].counter >= timer[i].clock_interval) && (control_register & (0b1 << i))) {
+		if ((timer[i].counter >= timer[i].clock_interval)) {
 			while (timer[i].counter >= timer[i].clock_interval)
 				timer[i].counter -= timer[i].clock_interval;
-			exceptions->pull(dev_number_exceptions);
-			sn74ls148->pull_line(dev_number_sn74ls148);
-			status_register |= (0b1 << i);
+			if (control_register & (0b1 << i)) {
+				exceptions->pull(dev_number_exceptions);
+				sn74ls148->pull_line(dev_number_sn74ls148);
+				status_register |= (0b1 << i);
+			}
 		}
 	}
 }

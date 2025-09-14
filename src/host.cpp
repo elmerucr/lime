@@ -496,7 +496,7 @@ void host_t::video_set_dimensions()
 			};
 			viewer_placement = {
 				.x = ((8 * 43 * video_window_height) / SCREEN_HEIGHT) + (video_window_width - (3 * video_window_height) / 2) / 2,
-				.y = (8 * 28 * video_window_height) / SCREEN_HEIGHT,
+				.y = (8 * 27 * video_window_height) / SCREEN_HEIGHT,
 				.w = 15 * 8 * (video_window_height) / SCREEN_HEIGHT,
 				.h = 10 * 8 * video_window_height / SCREEN_HEIGHT
 			};
@@ -510,7 +510,7 @@ void host_t::video_set_dimensions()
 			};
 			viewer_placement = {
 				.x = ((video_window_width - (video_scaling * SCREEN_WIDTH)) / 2) + (8 * 43 * video_scaling),
-				.y = ((video_window_height - (video_scaling * SCREEN_HEIGHT)) / 2) + (8 * 28 * video_scaling),
+				.y = ((video_window_height - (video_scaling * SCREEN_HEIGHT)) / 2) + (8 * 27 * video_scaling),
 				.w = 15 * 8 * video_scaling,
 				.h = 10 * 8 * video_scaling
 			};
@@ -528,7 +528,7 @@ void host_t::video_set_dimensions()
 		};
 		viewer_placement = {
 			.x = 43 * 8 * video_scaling,
-			.y = 28 * 8 * video_scaling,
+			.y = 27 * 8 * video_scaling,
 			.w = 15 * 8 * video_scaling,
 			.h = 10 * 8 * video_scaling
 		};
