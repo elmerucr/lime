@@ -488,6 +488,8 @@ void debugger_t::process_command(char *c)
 	 			}
 	 		}
 	 	}
+	} else if (strcmp(token0, "v") == 0) {
+		system->host->viewer_visible = !system->host->viewer_visible;
 	} else if (strcmp(token0, "x") == 0) {
 		terminal->printf("\nexit lime (y/n)");
 		redraw();

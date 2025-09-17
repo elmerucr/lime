@@ -163,6 +163,7 @@ public:
 	void video_update_screen();
 	void video_set_window_title(const char *t);
     bool video_scanlines{true};
+	bool viewer_visible{true};
 
     uint32_t *video_framebuffer;	// used for scanline effect
 	uint32_t *video_viewer_framebuffer;

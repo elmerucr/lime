@@ -238,7 +238,7 @@ void host_t::video_update_screen()
 	SDL_UpdateTexture(video_texture, nullptr, (void *)video_framebuffer, SCREEN_WIDTH*sizeof(uint32_t));
 	SDL_RenderCopy(video_renderer, video_texture, nullptr, &video_placement);
 
-	if (system->current_mode == DEBUG_MODE) {
+	if ((system->current_mode == DEBUG_MODE) && viewer_visible) {
 		SDL_UpdateTexture(viewer_texture, nullptr, (void *)video_viewer_framebuffer, VDC_XRES*sizeof(uint32_t));
 		SDL_RenderCopy(video_renderer, viewer_texture, nullptr, &viewer_placement);
 	}
