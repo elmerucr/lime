@@ -46,7 +46,7 @@ public:
 	void memory_binary_dump(uint32_t address);
 	void enter_memory_binary_line(char *buffer);
 	void enter_dgc_line(char *buffer);
-	void enter_assembly_line(char *buffer);
+	void enter_mc6809_assembly_line(char *buffer);
 	uint32_t disassemble_instruction_status1(uint16_t address);
 	uint32_t disassemble_instruction_terminal(uint16_t address);
 

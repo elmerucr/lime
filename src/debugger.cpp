@@ -68,7 +68,7 @@ debugger_t::debugger_t(system_t *s)
 {
 	system = s;
 
-	terminal = new terminal_t(system, 60, 16, PUNCH_LIGHTBLUE, PUNCH_BLUE);
+	terminal = new terminal_t(system, 60, 14, PUNCH_LIGHTBLUE, PUNCH_BLUE);
 	terminal->clear();
 	print_version();
 	terminal->activate_cursor();
@@ -91,7 +91,7 @@ void debugger_t::redraw()
 	// clear buffer
 	for (int y=0; y<SCREEN_HEIGHT; y++) {
 		for (int x=0; x<SCREEN_WIDTH; x++) {
-			system->host->video_framebuffer[(y * SCREEN_WIDTH) + x] = PUNCH_BLACK;
+			system->host->video_framebuffer[(y * SCREEN_WIDTH) + x] = PUNCH_LIGHTBLUE;
 		}
 	}
 
@@ -101,7 +101,7 @@ void debugger_t::redraw()
 		for (int x = 0; x < (terminal->width << 3); x++) {
 			uint8_t symbol = terminal->tiles[((y>>3) * terminal->width) + (x >> 3)];
 	 		uint8_t x_in_char = x % 8;
-			system->host->video_framebuffer[((y + 192) * SCREEN_WIDTH) + x + 0] =
+			system->host->video_framebuffer[((y + 200) * SCREEN_WIDTH) + x + 0] =
 				(debugger_cbm_font.original_data[(symbol << 3) + y_in_char] & (0b1 << (7 - x_in_char))) ?
 				terminal->fg_colors[((y>>3) * terminal->width) + (x >> 3)] :
 				terminal->bg_colors[((y>>3) * terminal->width) + (x >> 3)] ;
@@ -386,8 +386,11 @@ void debugger_t::process_command(char *c)
 		have_prompt = false;
 		enter_memory_binary_line(c);
 	} else if (token0[0] == ',') {
-	 	have_prompt = false;
-	 	enter_assembly_line(c);
+		if (!system->core->mc68000_active) {
+			// mc6809 mode
+			have_prompt = false;
+			enter_mc6809_assembly_line(c);
+		}
 	} else if (strcmp(token0, "b") == 0) {
 		bool breakpoints_present = false;
 		token1 = strtok(NULL, " ");
@@ -461,7 +464,13 @@ void debugger_t::process_command(char *c)
 	 	uint8_t lines_remaining = terminal->lines_remaining();
 	 	if (lines_remaining == 0) lines_remaining = 1;
 
-	 	uint32_t temp_pc = system->core->mc6809->get_pc();
+	 	uint32_t temp_pc;
+
+		if (system->core->mc68000_active) {
+			temp_pc = system->core->mc68000->getPC();
+		} else {
+			temp_pc = system->core->mc6809->get_pc();
+		}
 
 	 	if (token1 == NULL) {
 	 		for (int i=0; i<lines_remaining; i++) {
@@ -530,7 +539,13 @@ void debugger_t::process_command(char *c)
 		uint8_t lines_remaining = terminal->lines_remaining();
 		if (lines_remaining == 0) lines_remaining = 1;
 
-		uint32_t temp_pc = system->core->mc6809->get_pc();
+		uint32_t temp_pc;
+
+		if (system->core->mc68000_active) {
+			temp_pc = system->core->mc68000->getPC();
+		} else {
+			temp_pc = system->core->mc6809->get_pc();
+		}
 
 		if (token1 == NULL) {
 			for (int i=0; i<lines_remaining; i++) {
@@ -865,11 +880,17 @@ uint32_t debugger_t::disassemble_instruction_status1(uint16_t address)
 uint32_t debugger_t::disassemble_instruction_terminal(uint16_t address)
 {
 	uint32_t cycles;
-	cycles = system->core->mc6809->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
-	terminal->printf(",%s", text_buffer);
 
-	terminal->putchar('\r');
-	for (int i=0; i<7; i++) terminal->cursor_right();
+	if (system->core->mc68000_active) {
+		//cycles = system->core->mc68000->disassemble(text_buffer, pc);
+	} else {
+		cycles = system->core->mc6809->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
+		terminal->printf(",%s", text_buffer);
+
+		terminal->putchar('\r');
+		for (int i=0; i<7; i++) terminal->cursor_right();
+	}
+
 	return cycles;
 }
 
@@ -921,7 +942,7 @@ void debugger_t::enter_dgc_line(char *buffer)
 	}
 }
 
-void debugger_t::enter_assembly_line(char *buffer)
+void debugger_t::enter_mc6809_assembly_line(char *buffer)
 {
 	uint32_t word;
 	uint32_t address;
