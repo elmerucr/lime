@@ -48,7 +48,7 @@ public:
 	void enter_dgc_line(char *buffer);
 	void enter_mc6809_assembly_line(char *buffer);
 	uint32_t disassemble_instruction_status1(uint16_t address);
-	uint32_t disassemble_instruction_terminal(uint16_t address);
+	uint32_t disassemble_instruction_terminal(uint32_t address);
 
 	bool hex_string_to_int(const char *temp_string, uint32_t *return_value);
 	bool binary_string_to_int(const char *temp_string, uint32_t *return_value);

@@ -181,9 +181,9 @@ void debugger_t::redraw()
 				status1->fg_color = 0xffe04040;	// orange
 			}
 			if (m68k_disassembly) {
-				status1->printf(",%08x %s\n", pc, text_buffer);
+				status1->printf(",%06x  %s\n", pc, text_buffer);
 			} else {
-				status1->printf(",%08x ", pc);
+				status1->printf(",%06x  ", pc);
 				for (int i=pc; i < new_pc; i++) {
 					status1->printf("%02x", system->core->read8(i));
 				}
@@ -877,14 +877,18 @@ uint32_t debugger_t::disassemble_instruction_status1(uint16_t address)
 	return cycles;
 }
 
-uint32_t debugger_t::disassemble_instruction_terminal(uint16_t address)
+uint32_t debugger_t::disassemble_instruction_terminal(uint32_t address)
 {
 	uint32_t cycles;
 
 	if (system->core->mc68000_active) {
-		//cycles = system->core->mc68000->disassemble(text_buffer, pc);
+		cycles = system->core->mc68000->disassemble(text_buffer, address);
+		terminal->printf(",%06x  %s", address, text_buffer);
+
+		terminal->putchar('\r');
+		for (int i=0; i<10; i++) terminal->cursor_right();
 	} else {
-		cycles = system->core->mc6809->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
+		cycles = system->core->mc6809->disassemble_instruction(text_buffer, 1024, address & 0xffff);
 		terminal->printf(",%s", text_buffer);
 
 		terminal->putchar('\r');
