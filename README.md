@@ -19,9 +19,9 @@ Lime is a virtual computer system that draws inspiration from computing platform
 
 ### Debug screen
 
-![icon](./docs/20250824_screenshot_debug_mc68000.png)
+![icon](./docs/20250920_screenshot_debug_mc68000.png)
 
-![icon](./docs/20250718_screenshot_debug_mc6809.png)
+![icon](./docs/20250920_screenshot_debug_mc6809.png)
 
 ## Memory Map
 
@@ -29,47 +29,29 @@ Lime is a virtual computer system that draws inspiration from computing platform
 
 ### Motorola 68000 mode
 
-```0x000000 - 0x000007``` initial ssp / reset vector (8b)
-
-```0x000008 - 0x0003ff``` vector table (1016b)
-
-```0x000400 - 0x00043f``` io vdc (64b)
-
-```0x000440 - 0x00047f``` io timer (64b)
-
-```0x000480 - 0x0004bf``` io core (64b)
-
-```0x0004c0 - 0x0004ff``` unused / reserved (64b)
-
-```0x000500 - 0x00051f``` io sound / sid0 (32b)
-
-```0x000520 - 0x00053f``` io sound / sid1 (32b)
-
-```0x000540 - 0x00055f``` io sound / analog0 (32b)
-
-```0x000560 - 0x00057f``` io sound / analog1 (32b)
-
-```0x000580 - 0x0005ff``` io sound / mixer (128b)
-
-```0x000600 - 0x0007ff``` unused / reserved (512b)
-
-```0x000800 - 0x0017ff``` tileset bank 0 (2kb)
-
-```0x001000 - 0x001fff``` overlapping tileset bank 1 / tileset rom (2kb)
-
-```0x002000 - 0x0023ff``` layer 0 (1kb)
-
-```0x002400 - 0x0027ff``` layer 1 (1kb)
-
-```0x002800 - 0x002bff``` layer 2 (1kb)
-
-```0x002c00 - 0x002fff``` layer 3 (1kb)
-
-```0x003000 - 0x00ffff``` available ram (52kb)
-
-```0x010000 - 0x01ffff``` system rom (64kb)
-
-```0x020000 - 0xffffff``` available ram (16256kb)
+```
+0x000000 - 0x000007 initial ssp / reset vector (8b)
+0x000008 - 0x0003ff vector table (1016b)
+0x000400 - 0x00043f io vdc (64b)
+0x000440 - 0x00047f io timer (64b)
+0x000480 - 0x0004bf io core (64b)
+0x0004c0 - 0x0004ff unused / reserved (64b)
+0x000500 - 0x00051f io sound / sid0 (32b)
+0x000520 - 0x00053f io sound / sid1 (32b)
+0x000540 - 0x00055f io sound / analog0 (32b)
+0x000560 - 0x00057f io sound / analog1 (32b)
+0x000580 - 0x0005ff io sound / mixer (128b)
+0x000600 - 0x0007ff unused / reserved (512b)
+0x000800 - 0x0017ff tileset bank 0 (2kb)
+0x001000 - 0x001fff overlapping tileset bank 1 / tileset rom (2kb)
+0x002000 - 0x0023ff layer 0 (1kb)
+0x002400 - 0x0027ff layer 1 (1kb)
+0x002800 - 0x002bff layer 2 (1kb)
+0x002c00 - 0x002fff layer 3 (1kb)
+0x003000 - 0x00ffff available ram (52kb)
+0x010000 - 0x01ffff system rom (64kb)
+0x020000 - 0xffffff available ram (16256kb)
+```
 
 ## Building
 

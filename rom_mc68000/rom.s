@@ -78,10 +78,10 @@ exc_lvl1_irq_auto
 exc_lvl4_irq_auto					; coupled to timer
 	move.l	D0,-(SP)
 	move.b	TIMER_SR.w,D0
-	; rest of lgic...
+	; rest of logic...
 	; which timer and jump to handler
 	move.l	(SP)+,D0
-	rte
+.1	rte
 
 exc_lvl6_irq_auto					; coupled to vdc
 	move.l	D0,-(SP)
