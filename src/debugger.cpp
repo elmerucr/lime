@@ -73,9 +73,9 @@ debugger_t::debugger_t(system_t *s)
 	print_version();
 	terminal->activate_cursor();
 
-	status1 = new terminal_t(system, 60, 24, LIME_COLOR_02, LIME_COLOR_00);
-	exception_status = new terminal_t(system, 20, 5, LIME_COLOR_02, 0xff000000);
-	vdc_status = new terminal_t(system, 16, 6, LIME_COLOR_02, 0xff000000);
+	status1 = new terminal_t(system, 60, 24, PICOTRON_V5_1A, LIME_COLOR_00);
+	exception_status = new terminal_t(system, 20, 5, PICOTRON_V5_1A, 0xff000000);
+	vdc_status = new terminal_t(system, 16, 6, PICOTRON_V5_1A, 0xff000000);
 }
 
 debugger_t::~debugger_t()
@@ -189,7 +189,7 @@ void debugger_t::redraw()
 				}
 				status1->printf("\n");
 			}
-			status1->fg_color = LIME_COLOR_02;
+			status1->fg_color = PICOTRON_V5_1A;
 			pc = new_pc;
 		}
 	} else {
@@ -653,7 +653,7 @@ void debugger_t::memory_dump(uint32_t address)
 	}
 
 	//terminal->bg_color = LIME_COLOR_00;
-	//terminal->fg_color = LIME_COLOR_02;
+	//terminal->fg_color = PICOTRON_V5_1A;
 
 	for (int i=0; i<8; i++) {
 		terminal->putsymbol(data[i]);
@@ -874,7 +874,7 @@ uint32_t debugger_t::disassemble_instruction_status1(uint16_t address)
 	}
 	cycles = system->core->mc6809->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
 	status1->printf(",%s", text_buffer);
-	status1->fg_color = LIME_COLOR_02;
+	status1->fg_color = PICOTRON_V5_1A;
 
 	return cycles;
 }

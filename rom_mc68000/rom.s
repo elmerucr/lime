@@ -15,7 +15,7 @@ LOGO_ANIMATION	equ	$3000
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
 
-	dc.b	"rom mc68000 0.2 20250914"
+	dc.b	"rom mc68000 0.2 20250921"
 
 	align	2
 
@@ -25,6 +25,14 @@ _start
 	move.l	#exc_lvl1_irq_auto,VEC_LVL1_IRQ_AUTO.w
 	move.l	#exc_lvl4_irq_auto,VEC_LVL4_IRQ_AUTO.w
 	move.l	#exc_lvl6_irq_auto,VEC_LVL6_IRQ_AUTO.w
+	move.l	#timer_default_handler,VEC_TIMER0.w
+	move.l	#timer_default_handler,VEC_TIMER1.w
+	move.l	#timer_default_handler,VEC_TIMER2.w
+	move.l	#timer_default_handler,VEC_TIMER3.w
+	move.l	#timer_default_handler,VEC_TIMER4.w
+	move.l	#timer_default_handler,VEC_TIMER5.w
+	move.l	#timer_default_handler,VEC_TIMER6.w
+	move.l	#timer_default_handler,VEC_TIMER7.w
 
 	; set usp
 	move.l	#$00010000,A0
@@ -76,12 +84,26 @@ exc_lvl1_irq_auto
 	rte
 
 exc_lvl4_irq_auto					; coupled to timer
-	move.l	D0,-(SP)
-	move.b	TIMER_SR.w,D0
-	; rest of logic...
-	; which timer and jump to handler
-	move.l	(SP)+,D0
-.1	rte
+	movem.l	D0-D1/A0,-(SP)
+
+	movea.l	#VEC_TIMER0.w,A0
+	move.b	#%00000001,D0	; D0 contains the bit to be tested
+
+.1	move.b	D0,D1		; copy D0 to D1
+	and.b	TIMER_SR.w,D1
+	bne	.2		; it was this timer
+	addq	#4,A0
+	asl.b	D0
+	beq	.3
+	bra.s	.1
+
+	; code for dealing with this timer
+.2	move.b	D0,TIMER_SR.w	; confirm this irq
+	movea.l	(A0),A0
+	jsr	(A0)
+
+.3	movem.l	(SP)+,D0-D1/A0
+	rte
 
 exc_lvl6_irq_auto					; coupled to vdc
 	move.l	D0,-(SP)
@@ -94,6 +116,10 @@ exc_lvl6_irq_auto					; coupled to vdc
 
 	move.l	(SP)+,D0
 .1	rte
+
+timer_default_handler
+	move.b	#$12,VDC_BG_COLOR.w
+	rts
 
 logo_data
 	dc.b	112,64,%111,0,$1c	; icon top left
