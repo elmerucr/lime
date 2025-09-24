@@ -34,6 +34,20 @@ VDC_SPRITE_X			equ	$0420
 VDC_TILESET0			equ	$0800
 VDC_TILESET1			equ	$1000
 
+; sound devices
+SID0_F				equ	$0500
+SID0_PW				equ	$0502
+SID0_V				equ	$051b
+SID1_V				equ	$053b
+MIX_SID0_LEFT			equ	$0580
+MIX_SID0_RIGHT			equ	$0581
+MIX_SID1_LEFT			equ	$0582
+MIX_SID1_RIGHT			equ	$0583
+MIX_ANA0_LEFT			equ	$0584
+MIX_ANA0_RIGHT			equ	$0585
+MIX_ANA1_LEFT			equ	$0586
+MIX_ANA1_RIGHT			equ	$0587
+
 ; timer
 TIMER_SR			equ	$0440
 TIMER_CR			equ	$0441

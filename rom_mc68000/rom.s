@@ -15,7 +15,7 @@ LOGO_ANIMATION	equ	$3000
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
 
-	dc.b	"rom mc68000 0.2 20250921"
+	dc.b	"rom mc68000 0.2 20250924"
 
 	align	2
 
@@ -68,12 +68,14 @@ _start
 	move.b	#$40,LOGO_ANIMATION.w
 
 ; set raster irq on scanline 159
-	move.b	#$9f,VDC_IRQ_SCANLINE_LSB
+	move.b	#$9f,VDC_IRQ_SCANLINE_LSB		; rasterline 159
 	move.b	#%00000001,VDC_CR			; enable irq's for vdc
 
 
 	move.w	#$0200,SR				; set status register (User Mode, ipl = 0)
 	move.l	#exc_addr_error,-(SP)			; test usp
+
+	jsr	sound_reset
 
 .5	bra	.5					; loop forever, wait for events
 
@@ -110,7 +112,7 @@ exc_lvl6_irq_auto					; coupled to vdc
 
 	move.b	VDC_SR.w,D0
 	beq	.1
-	move.b	D0,VDC_SR.w
+	move.b	D0,VDC_SR.w				; acknowledge irq
 
 	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w
 
@@ -119,6 +121,20 @@ exc_lvl6_irq_auto					; coupled to vdc
 
 timer_default_handler
 	move.b	#$12,VDC_BG_COLOR.w
+	rts
+
+sound_reset
+	movea.l	#SID0_F,A0
+.1	clr.b	(A0)+
+	cmpa.l	#SID0_F+$40,A0
+	bne	.1
+	move.b	#$7f,D0
+	movea.l	#MIX_SID0_LEFT,A0
+.2	move.b	D0,(A0)+
+	cmpa.l	#MIX_SID0_LEFT+$8,A0
+	bne	.2
+	move.b	#$f,SID0_V
+	move.b	#$f,SID1_V
 	rts
 
 logo_data

@@ -322,6 +322,10 @@ void host_t::video_init()
 		video_renderer = SDL_CreateRenderer(video_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
 	}
 
+	int w, h;
+	SDL_GetRendererOutputSize(video_renderer, &w, &h);
+	printf("[SDL] Renderer Output Size: %i x %i\n", w, h);
+
     // set clear color black
     SDL_SetRenderDrawColor(video_renderer, 0, 0, 0, 255);
 
