@@ -53,15 +53,16 @@ _start
 	bne	.2
 
 ; init logo
+loogoo
 	movea.l	#logo_data,A0
 	clr.b	D0
 .3	move.b	D0,VDC_CURRENT_SPRITE
-	movea.l	#VDC_SPRITE_X,A1
+	movea.l	#VDC_SPRITE_X_MSB,A1
 .4	move.b	(A0)+,(A1)+
-	cmpa.l	#VDC_SPRITE_X+5,A1
+	cmpa.l	#VDC_SPRITE_X_MSB+7,A1
 	bne	.4
 	addq	#1,D0
-	cmpa.l	#logo_data+40,A0
+	cmpa.l	#logo_data+56,A0
 	bne	.3
 
 ; set variable for letter wobble
@@ -88,7 +89,7 @@ exc_lvl1_irq_auto
 exc_lvl4_irq_auto					; coupled to timer
 	movem.l	D0-D1/A0,-(SP)
 
-	movea.l	#VEC_TIMER0.w,A0
+	movea.l	#VEC_TIMER0,A0
 	move.b	#%00000001,D0	; D0 contains the bit to be tested
 
 .1	move.b	D0,D1		; copy D0 to D1
@@ -138,14 +139,14 @@ sound_reset
 	rts
 
 logo_data
-	dc.b	112,64,%111,0,$1c	; icon top left
-	dc.b	120,64,%111,0,$1d	; icon top right
-	dc.b	112,72,%111,0,$1e	; icon bottom left
-	dc.b	120,72,%111,0,$1f	; icon bottom right
-	dc.b	107,80,%111,0,$6c	; l
-	dc.b	112,80,%111,0,$69	; i
-	dc.b	118,80,%111,0,$6d	; m
-	dc.b	126,80,%111,0,$65	; e
+	dc.b	0,112,0,64,%111,0,$1c	; icon top left
+	dc.b	0,120,0,64,%111,0,$1d	; icon top right
+	dc.b	0,112,0,72,%111,0,$1e	; icon bottom left
+	dc.b	0,120,0,72,%111,0,$1f	; icon bottom right
+	dc.b	0,107,0,80,%111,0,$6c	; l
+	dc.b	0,112,0,80,%111,0,$69	; i
+	dc.b	0,118,0,80,%111,0,$6d	; m
+	dc.b	0,126,0,80,%111,0,$65	; e
 
 logo_tiles
 	dc.b	%00000000,%00000000	; tile 1 (icon upper left)

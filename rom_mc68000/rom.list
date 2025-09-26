@@ -1,5 +1,5 @@
 Sections:
-00: "seg10000" (10000-10206)
+00: "seg10000" (10000-10216)
 
 
 Source: "rom.s"
@@ -44,41 +44,47 @@ Source: "definitions.i"
                             	    29: VDC_IRQ_SCANLINE_MSB		equ	$040e
                             	    30: VDC_IRQ_SCANLINE_LSB		equ	$040f
                             	    31: 
-                            	    32: VDC_SPRITE_X			equ	$0420
-                            	    33: 
-                            	    34: VDC_TILESET0			equ	$0800
-                            	    35: VDC_TILESET1			equ	$1000
-                            	    36: 
-                            	    37: ; sound devices
-                            	    38: SID0_F				equ	$0500
-                            	    39: SID0_PW				equ	$0502
-                            	    40: SID0_V				equ	$051b
-                            	    41: SID1_V				equ	$053b
-                            	    42: MIX_SID0_LEFT			equ	$0580
-                            	    43: MIX_SID0_RIGHT			equ	$0581
-                            	    44: MIX_SID1_LEFT			equ	$0582
-                            	    45: MIX_SID1_RIGHT			equ	$0583
-                            	    46: MIX_ANA0_LEFT			equ	$0584
-                            	    47: MIX_ANA0_RIGHT			equ	$0585
-                            	    48: MIX_ANA1_LEFT			equ	$0586
-                            	    49: MIX_ANA1_RIGHT			equ	$0587
-                            	    50: 
-                            	    51: ; timer
-                            	    52: TIMER_SR			equ	$0440
-                            	    53: TIMER_CR			equ	$0441
-                            	    54: TIMER0_BPM			equ	$0450
-                            	    55: TIMER1_BPM			equ	$0452
-                            	    56: TIMER2_BPM			equ	$0454
-                            	    57: TIMER3_BPM			equ	$0456
-                            	    58: TIMER4_BPM			equ	$0458
-                            	    59: TIMER5_BPM			equ	$045a
-                            	    60: TIMER6_BPM			equ	$045c
-                            	    61: TIMER7_BPM			equ	$045e
-                            	    62: 
-                            	    63: ; core
-                            	    64: CORE_ROMS			equ	$0482
-                            	    65: CORE_INPUT0			equ	$0488
-                            	    66: 
+                            	    32: VDC_LAYER_BASE_MSB		equ	$0416
+                            	    33: VDC_LAYER_BASE_LSB		equ	$0417
+                            	    34: 
+                            	    35: VDC_SPRITE_X_MSB		equ	$0420
+                            	    36: VDC_SPRITE_X_LSB		equ	$0421
+                            	    37: VDC_SPRITE_Y_MSB		equ	$0422
+                            	    38: VDC_SPRITE_Y_LSB		equ	$0423
+                            	    39: 
+                            	    40: VDC_TILESET0			equ	$0800
+                            	    41: VDC_TILESET1			equ	$1000
+                            	    42: 
+                            	    43: ; sound devices
+                            	    44: SID0_F				equ	$0500
+                            	    45: SID0_PW				equ	$0502
+                            	    46: SID0_V				equ	$051b
+                            	    47: SID1_V				equ	$053b
+                            	    48: MIX_SID0_LEFT			equ	$0580
+                            	    49: MIX_SID0_RIGHT			equ	$0581
+                            	    50: MIX_SID1_LEFT			equ	$0582
+                            	    51: MIX_SID1_RIGHT			equ	$0583
+                            	    52: MIX_ANA0_LEFT			equ	$0584
+                            	    53: MIX_ANA0_RIGHT			equ	$0585
+                            	    54: MIX_ANA1_LEFT			equ	$0586
+                            	    55: MIX_ANA1_RIGHT			equ	$0587
+                            	    56: 
+                            	    57: ; timer
+                            	    58: TIMER_SR			equ	$0440
+                            	    59: TIMER_CR			equ	$0441
+                            	    60: TIMER0_BPM			equ	$0450
+                            	    61: TIMER1_BPM			equ	$0452
+                            	    62: TIMER2_BPM			equ	$0454
+                            	    63: TIMER3_BPM			equ	$0456
+                            	    64: TIMER4_BPM			equ	$0458
+                            	    65: TIMER5_BPM			equ	$045a
+                            	    66: TIMER6_BPM			equ	$045c
+                            	    67: TIMER7_BPM			equ	$045e
+                            	    68: 
+                            	    69: ; core
+                            	    70: CORE_ROMS			equ	$0482
+                            	    71: CORE_INPUT0			equ	$0488
+                            	    72: 
 
 Source: "rom.s"
                             	     9: 
@@ -123,208 +129,225 @@ Source: "rom.s"
 00:0001009C 023800FD0482    	    46: 	and.b	#%11111101,CORE_ROMS.w			; turn off rom font
                             	    47: 
                             	    48: ; copy logo tiles
-00:000100A2 207C000101C6    	    49: 	movea.l	#logo_tiles,A0
+00:000100A2 207C000101D6    	    49: 	movea.l	#logo_tiles,A0
 00:000100A8 327C11C0        	    50: 	movea.w	#$11c0,A1
 00:000100AC 12D8            	    51: .2	move.b	(A0)+,(A1)+
-00:000100AE B1FC00010206    	    52: 	cmpa.l	#logo_tiles+64,A0
+00:000100AE B1FC00010216    	    52: 	cmpa.l	#logo_tiles+64,A0
 00:000100B4 6600FFF6        	    53: 	bne	.2
                             	    54: 
                             	    55: ; init logo
-00:000100B8 207C0001019E    	    56: 	movea.l	#logo_data,A0
-00:000100BE 4200            	    57: 	clr.b	D0
-00:000100C0 13C000000407    	    58: .3	move.b	D0,VDC_CURRENT_SPRITE
-00:000100C6 227C00000420    	    59: 	movea.l	#VDC_SPRITE_X,A1
-00:000100CC 12D8            	    60: .4	move.b	(A0)+,(A1)+
-00:000100CE B3FC00000425    	    61: 	cmpa.l	#VDC_SPRITE_X+5,A1
-00:000100D4 6600FFF6        	    62: 	bne	.4
-00:000100D8 5240            	    63: 	addq	#1,D0
-00:000100DA B1FC000101C6    	    64: 	cmpa.l	#logo_data+40,A0
-00:000100E0 6600FFDE        	    65: 	bne	.3
-                            	    66: 
-                            	    67: ; set variable for letter wobble
-00:000100E4 11FC00403000    	    68: 	move.b	#$40,LOGO_ANIMATION.w
-                            	    69: 
-                            	    70: ; set raster irq on scanline 159
-00:000100EA 13FC009F0000040F	    71: 	move.b	#$9f,VDC_IRQ_SCANLINE_LSB		; rasterline 159
-00:000100F2 13FC000100000401	    72: 	move.b	#%00000001,VDC_CR			; enable irq's for vdc
-                            	    73: 
+                            	    56: loogoo
+00:000100B8 207C0001019E    	    57: 	movea.l	#logo_data,A0
+00:000100BE 4200            	    58: 	clr.b	D0
+00:000100C0 13C000000407    	    59: .3	move.b	D0,VDC_CURRENT_SPRITE
+00:000100C6 227C00000420    	    60: 	movea.l	#VDC_SPRITE_X_MSB,A1
+00:000100CC 12D8            	    61: .4	move.b	(A0)+,(A1)+
+00:000100CE B3FC00000427    	    62: 	cmpa.l	#VDC_SPRITE_X_MSB+7,A1
+00:000100D4 6600FFF6        	    63: 	bne	.4
+00:000100D8 5240            	    64: 	addq	#1,D0
+00:000100DA B1FC000101D6    	    65: 	cmpa.l	#logo_data+56,A0
+00:000100E0 6600FFDE        	    66: 	bne	.3
+                            	    67: 
+                            	    68: ; set variable for letter wobble
+00:000100E4 11FC00403000    	    69: 	move.b	#$40,LOGO_ANIMATION.w
+                            	    70: 
+                            	    71: ; set raster irq on scanline 159
+00:000100EA 13FC009F0000040F	    72: 	move.b	#$9f,VDC_IRQ_SCANLINE_LSB		; rasterline 159
+00:000100F2 13FC000100000401	    73: 	move.b	#%00000001,VDC_CR			; enable irq's for vdc
                             	    74: 
-00:000100FA 46FC0200        	    75: 	move.w	#$0200,SR				; set status register (User Mode, ipl = 0)
-00:000100FE 2F3C0001010E    	    76: 	move.l	#exc_addr_error,-(SP)			; test usp
-                            	    77: 
-00:00010104 4EB900010164    	    78: 	jsr	sound_reset
-                            	    79: 
-00:0001010A 6000FFFE        	    80: .5	bra	.5					; loop forever, wait for events
-                            	    81: 
-                            	    82: exc_addr_error
-00:0001010E 6000FFFE        	    83: 	bra	exc_addr_error				; TODO: bsod when this happens?
-                            	    84: 
-                            	    85: exc_lvl1_irq_auto
-00:00010112 4E73            	    86: 	rte
-                            	    87: 
-                            	    88: exc_lvl4_irq_auto					; coupled to timer
-00:00010114 48E7C080        	    89: 	movem.l	D0-D1/A0,-(SP)
-                            	    90: 
-00:00010118 207C00000100    	    91: 	movea.l	#VEC_TIMER0.w,A0
-00:0001011E 103C0001        	    92: 	move.b	#%00000001,D0	; D0 contains the bit to be tested
-                            	    93: 
-00:00010122 1200            	    94: .1	move.b	D0,D1		; copy D0 to D1
-00:00010124 C2380440        	    95: 	and.b	TIMER_SR.w,D1
-00:00010128 6600000C        	    96: 	bne	.2		; it was this timer
-00:0001012C 5848            	    97: 	addq	#4,A0
-00:0001012E E300            	    98: 	asl.b	D0
-00:00010130 6700000C        	    99: 	beq	.3
-00:00010134 60EC            	   100: 	bra.s	.1
-                            	   101: 
-                            	   102: 	; code for dealing with this timer
-00:00010136 11C00440        	   103: .2	move.b	D0,TIMER_SR.w	; confirm this irq
-00:0001013A 2050            	   104: 	movea.l	(A0),A0
-00:0001013C 4E90            	   105: 	jsr	(A0)
-                            	   106: 
-00:0001013E 4CDF0103        	   107: .3	movem.l	(SP)+,D0-D1/A0
-00:00010142 4E73            	   108: 	rte
-                            	   109: 
-                            	   110: exc_lvl6_irq_auto					; coupled to vdc
-00:00010144 2F00            	   111: 	move.l	D0,-(SP)
-                            	   112: 
-00:00010146 10380400        	   113: 	move.b	VDC_SR.w,D0
-00:0001014A 6700000E        	   114: 	beq	.1
-00:0001014E 11C00400        	   115: 	move.b	D0,VDC_SR.w				; acknowledge irq
-                            	   116: 
-00:00010152 11F804880404    	   117: 	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w
-                            	   118: 
-00:00010158 201F            	   119: 	move.l	(SP)+,D0
-00:0001015A 4E73            	   120: .1	rte
-                            	   121: 
-                            	   122: timer_default_handler
-00:0001015C 11FC00120404    	   123: 	move.b	#$12,VDC_BG_COLOR.w
-00:00010162 4E75            	   124: 	rts
-                            	   125: 
-                            	   126: sound_reset
-00:00010164 207C00000500    	   127: 	movea.l	#SID0_F,A0
-00:0001016A 4218            	   128: .1	clr.b	(A0)+
-00:0001016C B1FC00000540    	   129: 	cmpa.l	#SID0_F+$40,A0
-00:00010172 6600FFF6        	   130: 	bne	.1
-00:00010176 103C007F        	   131: 	move.b	#$7f,D0
-00:0001017A 207C00000580    	   132: 	movea.l	#MIX_SID0_LEFT,A0
-00:00010180 10C0            	   133: .2	move.b	D0,(A0)+
-00:00010182 B1FC00000588    	   134: 	cmpa.l	#MIX_SID0_LEFT+$8,A0
-00:00010188 6600FFF6        	   135: 	bne	.2
-00:0001018C 13FC000F0000051B	   136: 	move.b	#$f,SID0_V
-00:00010194 13FC000F0000053B	   137: 	move.b	#$f,SID1_V
-00:0001019C 4E75            	   138: 	rts
-                            	   139: 
-                            	   140: logo_data
-00:0001019E 70              	   141: 	dc.b	112,64,%111,0,$1c	; icon top left
-00:0001019F 40
-00:000101A0 07
-00:000101A1 00
-00:000101A2 1C
-00:000101A3 78              	   142: 	dc.b	120,64,%111,0,$1d	; icon top right
-00:000101A4 40
-00:000101A5 07
-00:000101A6 00
-00:000101A7 1D
-00:000101A8 70              	   143: 	dc.b	112,72,%111,0,$1e	; icon bottom left
-00:000101A9 48
-00:000101AA 07
-00:000101AB 00
-00:000101AC 1E
-00:000101AD 78              	   144: 	dc.b	120,72,%111,0,$1f	; icon bottom right
-00:000101AE 48
-00:000101AF 07
-00:000101B0 00
-00:000101B1 1F
-00:000101B2 6B              	   145: 	dc.b	107,80,%111,0,$6c	; l
-00:000101B3 50
-00:000101B4 07
+                            	    75: 
+00:000100FA 46FC0200        	    76: 	move.w	#$0200,SR				; set status register (User Mode, ipl = 0)
+00:000100FE 2F3C0001010E    	    77: 	move.l	#exc_addr_error,-(SP)			; test usp
+                            	    78: 
+00:00010104 4EB900010164    	    79: 	jsr	sound_reset
+                            	    80: 
+00:0001010A 6000FFFE        	    81: .5	bra	.5					; loop forever, wait for events
+                            	    82: 
+                            	    83: exc_addr_error
+00:0001010E 6000FFFE        	    84: 	bra	exc_addr_error				; TODO: bsod when this happens?
+                            	    85: 
+                            	    86: exc_lvl1_irq_auto
+00:00010112 4E73            	    87: 	rte
+                            	    88: 
+                            	    89: exc_lvl4_irq_auto					; coupled to timer
+00:00010114 48E7C080        	    90: 	movem.l	D0-D1/A0,-(SP)
+                            	    91: 
+00:00010118 207C00000100    	    92: 	movea.l	#VEC_TIMER0,A0
+00:0001011E 103C0001        	    93: 	move.b	#%00000001,D0	; D0 contains the bit to be tested
+                            	    94: 
+00:00010122 1200            	    95: .1	move.b	D0,D1		; copy D0 to D1
+00:00010124 C2380440        	    96: 	and.b	TIMER_SR.w,D1
+00:00010128 6600000C        	    97: 	bne	.2		; it was this timer
+00:0001012C 5848            	    98: 	addq	#4,A0
+00:0001012E E300            	    99: 	asl.b	D0
+00:00010130 6700000C        	   100: 	beq	.3
+00:00010134 60EC            	   101: 	bra.s	.1
+                            	   102: 
+                            	   103: 	; code for dealing with this timer
+00:00010136 11C00440        	   104: .2	move.b	D0,TIMER_SR.w	; confirm this irq
+00:0001013A 2050            	   105: 	movea.l	(A0),A0
+00:0001013C 4E90            	   106: 	jsr	(A0)
+                            	   107: 
+00:0001013E 4CDF0103        	   108: .3	movem.l	(SP)+,D0-D1/A0
+00:00010142 4E73            	   109: 	rte
+                            	   110: 
+                            	   111: exc_lvl6_irq_auto					; coupled to vdc
+00:00010144 2F00            	   112: 	move.l	D0,-(SP)
+                            	   113: 
+00:00010146 10380400        	   114: 	move.b	VDC_SR.w,D0
+00:0001014A 6700000E        	   115: 	beq	.1
+00:0001014E 11C00400        	   116: 	move.b	D0,VDC_SR.w				; acknowledge irq
+                            	   117: 
+00:00010152 11F804880404    	   118: 	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w
+                            	   119: 
+00:00010158 201F            	   120: 	move.l	(SP)+,D0
+00:0001015A 4E73            	   121: .1	rte
+                            	   122: 
+                            	   123: timer_default_handler
+00:0001015C 11FC00120404    	   124: 	move.b	#$12,VDC_BG_COLOR.w
+00:00010162 4E75            	   125: 	rts
+                            	   126: 
+                            	   127: sound_reset
+00:00010164 207C00000500    	   128: 	movea.l	#SID0_F,A0
+00:0001016A 4218            	   129: .1	clr.b	(A0)+
+00:0001016C B1FC00000540    	   130: 	cmpa.l	#SID0_F+$40,A0
+00:00010172 6600FFF6        	   131: 	bne	.1
+00:00010176 103C007F        	   132: 	move.b	#$7f,D0
+00:0001017A 207C00000580    	   133: 	movea.l	#MIX_SID0_LEFT,A0
+00:00010180 10C0            	   134: .2	move.b	D0,(A0)+
+00:00010182 B1FC00000588    	   135: 	cmpa.l	#MIX_SID0_LEFT+$8,A0
+00:00010188 6600FFF6        	   136: 	bne	.2
+00:0001018C 13FC000F0000051B	   137: 	move.b	#$f,SID0_V
+00:00010194 13FC000F0000053B	   138: 	move.b	#$f,SID1_V
+00:0001019C 4E75            	   139: 	rts
+                            	   140: 
+                            	   141: logo_data
+00:0001019E 00              	   142: 	dc.b	0,112,0,64,%111,0,$1c	; icon top left
+00:0001019F 70
+00:000101A0 00
+00:000101A1 40
+00:000101A2 07
+00:000101A3 00
+00:000101A4 1C
+00:000101A5 00              	   143: 	dc.b	0,120,0,64,%111,0,$1d	; icon top right
+00:000101A6 78
+00:000101A7 00
+00:000101A8 40
+00:000101A9 07
+00:000101AA 00
+00:000101AB 1D
+00:000101AC 00              	   144: 	dc.b	0,112,0,72,%111,0,$1e	; icon bottom left
+00:000101AD 70
+00:000101AE 00
+00:000101AF 48
+00:000101B0 07
+00:000101B1 00
+00:000101B2 1E
+00:000101B3 00              	   145: 	dc.b	0,120,0,72,%111,0,$1f	; icon bottom right
+00:000101B4 78
 00:000101B5 00
-00:000101B6 6C
-00:000101B7 70              	   146: 	dc.b	112,80,%111,0,$69	; i
-00:000101B8 50
-00:000101B9 07
-00:000101BA 00
-00:000101BB 69
-00:000101BC 76              	   147: 	dc.b	118,80,%111,0,$6d	; m
+00:000101B6 48
+00:000101B7 07
+00:000101B8 00
+00:000101B9 1F
+00:000101BA 00              	   146: 	dc.b	0,107,0,80,%111,0,$6c	; l
+00:000101BB 6B
+00:000101BC 00
 00:000101BD 50
 00:000101BE 07
 00:000101BF 00
-00:000101C0 6D
-00:000101C1 7E              	   148: 	dc.b	126,80,%111,0,$65	; e
-00:000101C2 50
-00:000101C3 07
-00:000101C4 00
-00:000101C5 65
-                            	   149: 
-                            	   150: logo_tiles
-00:000101C6 00              	   151: 	dc.b	%00000000,%00000000	; tile 1 (icon upper left)
-00:000101C7 00
-00:000101C8 01              	   152: 	dc.b	%00000001,%00000000
-00:000101C9 00
-00:000101CA 07              	   153: 	dc.b	%00000111,%10000000
-00:000101CB 80
-00:000101CC 07              	   154: 	dc.b	%00000111,%10100000
-00:000101CD A0
-00:000101CE 1E              	   155: 	dc.b	%00011110,%11111000
-00:000101CF F8
-00:000101D0 1E              	   156: 	dc.b	%00011110,%10101111
-00:000101D1 AF
-00:000101D2 1E              	   157: 	dc.b	%00011110,%10101010
-00:000101D3 AA
-00:000101D4 1E              	   158: 	dc.b	%00011110,%10101111
-00:000101D5 AF
-                            	   159: 
-00:000101D6 00              	   160: 	dc.b	%00000000,%00000000	; tile 2 (icon upper right)
+00:000101C0 6C
+00:000101C1 00              	   147: 	dc.b	0,112,0,80,%111,0,$69	; i
+00:000101C2 70
+00:000101C3 00
+00:000101C4 50
+00:000101C5 07
+00:000101C6 00
+00:000101C7 69
+00:000101C8 00              	   148: 	dc.b	0,118,0,80,%111,0,$6d	; m
+00:000101C9 76
+00:000101CA 00
+00:000101CB 50
+00:000101CC 07
+00:000101CD 00
+00:000101CE 6D
+00:000101CF 00              	   149: 	dc.b	0,126,0,80,%111,0,$65	; e
+00:000101D0 7E
+00:000101D1 00
+00:000101D2 50
+00:000101D3 07
+00:000101D4 00
+00:000101D5 65
+                            	   150: 
+                            	   151: logo_tiles
+00:000101D6 00              	   152: 	dc.b	%00000000,%00000000	; tile 1 (icon upper left)
 00:000101D7 00
-00:000101D8 00              	   161: 	dc.b	%00000000,%00000000
+00:000101D8 01              	   153: 	dc.b	%00000001,%00000000
 00:000101D9 00
-00:000101DA 00              	   162: 	dc.b	%00000000,%00000000
-00:000101DB 00
-00:000101DC 00              	   163: 	dc.b	%00000000,%00000000
-00:000101DD 00
-00:000101DE 00              	   164: 	dc.b	%00000000,%00000000
-00:000101DF 00
-00:000101E0 00              	   165: 	dc.b	%00000000,%00000000
-00:000101E1 00
-00:000101E2 C0              	   166: 	dc.b	%11000000,%00000000
-00:000101E3 00
-00:000101E4 B0              	   167: 	dc.b	%10110000,%00000000
-00:000101E5 00
-                            	   168: 
-00:000101E6 1E              	   169: 	dc.b	%00011110,%11111010	; tile 3 (icon bottom left)
-00:000101E7 FA
-00:000101E8 07              	   170: 	dc.b	%00000111,%10101010
-00:000101E9 AA
-00:000101EA 07              	   171: 	dc.b	%00000111,%10101011
-00:000101EB AB
-00:000101EC 01              	   172: 	dc.b	%00000001,%11101011
-00:000101ED EB
-00:000101EE 00              	   173: 	dc.b	%00000000,%01111110
-00:000101EF 7E
-00:000101F0 00              	   174: 	dc.b	%00000000,%00010111
-00:000101F1 17
-00:000101F2 00              	   175: 	dc.b	%00000000,%00000001
-00:000101F3 01
-00:000101F4 00              	   176: 	dc.b	%00000000,%00000000
+00:000101DA 07              	   154: 	dc.b	%00000111,%10000000
+00:000101DB 80
+00:000101DC 07              	   155: 	dc.b	%00000111,%10100000
+00:000101DD A0
+00:000101DE 1E              	   156: 	dc.b	%00011110,%11111000
+00:000101DF F8
+00:000101E0 1E              	   157: 	dc.b	%00011110,%10101111
+00:000101E1 AF
+00:000101E2 1E              	   158: 	dc.b	%00011110,%10101010
+00:000101E3 AA
+00:000101E4 1E              	   159: 	dc.b	%00011110,%10101111
+00:000101E5 AF
+                            	   160: 
+00:000101E6 00              	   161: 	dc.b	%00000000,%00000000	; tile 2 (icon upper right)
+00:000101E7 00
+00:000101E8 00              	   162: 	dc.b	%00000000,%00000000
+00:000101E9 00
+00:000101EA 00              	   163: 	dc.b	%00000000,%00000000
+00:000101EB 00
+00:000101EC 00              	   164: 	dc.b	%00000000,%00000000
+00:000101ED 00
+00:000101EE 00              	   165: 	dc.b	%00000000,%00000000
+00:000101EF 00
+00:000101F0 00              	   166: 	dc.b	%00000000,%00000000
+00:000101F1 00
+00:000101F2 C0              	   167: 	dc.b	%11000000,%00000000
+00:000101F3 00
+00:000101F4 B0              	   168: 	dc.b	%10110000,%00000000
 00:000101F5 00
-                            	   177: 
-00:000101F6 EC              	   178: 	dc.b	%11101100,%00000000	; tile 4 (icon bottom right)
-00:000101F7 00
-00:000101F8 EE              	   179: 	dc.b	%11101110,%00000000
-00:000101F9 00
-00:000101FA AB              	   180: 	dc.b	%10101011,%10000000
-00:000101FB 80
-00:000101FC AB              	   181: 	dc.b	%10101011,%10100000
-00:000101FD A0
-00:000101FE AA              	   182: 	dc.b	%10101010,%11110100
-00:000101FF F4
-00:00010200 FF              	   183: 	dc.b	%11111111,%01010000
-00:00010201 50
-00:00010202 55              	   184: 	dc.b	%01010101,%00000000
-00:00010203 00
-00:00010204 00              	   185: 	dc.b	%00000000,%00000000
+                            	   169: 
+00:000101F6 1E              	   170: 	dc.b	%00011110,%11111010	; tile 3 (icon bottom left)
+00:000101F7 FA
+00:000101F8 07              	   171: 	dc.b	%00000111,%10101010
+00:000101F9 AA
+00:000101FA 07              	   172: 	dc.b	%00000111,%10101011
+00:000101FB AB
+00:000101FC 01              	   173: 	dc.b	%00000001,%11101011
+00:000101FD EB
+00:000101FE 00              	   174: 	dc.b	%00000000,%01111110
+00:000101FF 7E
+00:00010200 00              	   175: 	dc.b	%00000000,%00010111
+00:00010201 17
+00:00010202 00              	   176: 	dc.b	%00000000,%00000001
+00:00010203 01
+00:00010204 00              	   177: 	dc.b	%00000000,%00000000
 00:00010205 00
-                            	   186: 
+                            	   178: 
+00:00010206 EC              	   179: 	dc.b	%11101100,%00000000	; tile 4 (icon bottom right)
+00:00010207 00
+00:00010208 EE              	   180: 	dc.b	%11101110,%00000000
+00:00010209 00
+00:0001020A AB              	   181: 	dc.b	%10101011,%10000000
+00:0001020B 80
+00:0001020C AB              	   182: 	dc.b	%10101011,%10100000
+00:0001020D A0
+00:0001020E AA              	   183: 	dc.b	%10101010,%11110100
+00:0001020F F4
+00:00010210 FF              	   184: 	dc.b	%11111111,%01010000
+00:00010211 50
+00:00010212 55              	   185: 	dc.b	%01010101,%00000000
+00:00010213 00
+00:00010214 00              	   186: 	dc.b	%00000000,%00000000
+00:00010215 00
+                            	   187: 
 
 
 Symbols by name:
@@ -340,7 +363,7 @@ VDC_BG_COLOR                     E:00000404
 VDC_CR                           E:00000401
 VDC_CURRENT_SPRITE               E:00000407
 VDC_IRQ_SCANLINE_LSB             E:0000040F
-VDC_SPRITE_X                     E:00000420
+VDC_SPRITE_X_MSB                 E:00000420
 VDC_SR                           E:00000400
 VDC_TILESET1                     E:00001000
 VEC_ADDR_ERROR                   E:0000000C
@@ -361,7 +384,8 @@ exc_lvl1_irq_auto                A:00010112
 exc_lvl4_irq_auto                A:00010114
 exc_lvl6_irq_auto                A:00010144
 logo_data                        A:0001019E
-logo_tiles                       A:000101C6
+logo_tiles                       A:000101D6
+loogoo                           A:000100B8
 sound_reset                      A:00010164
 timer_default_handler            A:0001015C
 
@@ -383,7 +407,7 @@ Symbols by value:
 00000404 VDC_BG_COLOR
 00000407 VDC_CURRENT_SPRITE
 0000040F VDC_IRQ_SCANLINE_LSB
-00000420 VDC_SPRITE_X
+00000420 VDC_SPRITE_X_MSB
 00000440 TIMER_SR
 00000482 CORE_ROMS
 00000488 CORE_INPUT0
@@ -394,6 +418,7 @@ Symbols by value:
 00001000 VDC_TILESET1
 00003000 LOGO_ANIMATION
 00010020 _start
+000100B8 loogoo
 0001010E exc_addr_error
 00010112 exc_lvl1_irq_auto
 00010114 exc_lvl4_irq_auto
@@ -401,4 +426,4 @@ Symbols by value:
 0001015C timer_default_handler
 00010164 sound_reset
 0001019E logo_data
-000101C6 logo_tiles
+000101D6 logo_tiles

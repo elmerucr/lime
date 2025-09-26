@@ -22,11 +22,6 @@ vdc_t::vdc_t(exceptions_ic *e, sn74ls148_t *t)
 
     ram = new uint8_t[VDC_RAM];
     buffer = new uint32_t[VDC_XRES * VDC_YRES];
-
-	layer[0].address = VDC_LAYER0_ADDRESS;
-	layer[1].address = VDC_LAYER1_ADDRESS;
-	layer[2].address = VDC_LAYER2_ADDRESS;
-	layer[3].address = VDC_LAYER3_ADDRESS;
 }
 
 vdc_t::~vdc_t()
@@ -74,6 +69,11 @@ void vdc_t::reset()
 		layer[i].colors[3] = 0b11;
 	}
 
+	layer[0].address = VDC_LAYER0_ADDRESS & 0xfffe;
+	layer[1].address = VDC_LAYER1_ADDRESS & 0xfffe;
+	layer[2].address = VDC_LAYER2_ADDRESS & 0xfffe;
+	layer[3].address = VDC_LAYER3_ADDRESS & 0xfffe;
+
 	current_layer = 0;
 	current_sprite = 0;
 	current_palette = 0;
@@ -112,7 +112,7 @@ void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 				}
 
 				uint8_t px = x % 4;
-				uint8_t tile_index = ram[l->address + ((y >> 3) << 5) + (x >> 3)];
+				uint8_t tile_index = ram[(l->address + ((y >> 3) << 5) + (x >> 3)) & 0xffff];
 
 				uint8_t result =
 					(ram[tileset + (tile_index << 4) + (y_in_tile << 1) + ((x & 0x4) ? 1 : 0)] &
@@ -220,6 +220,10 @@ uint8_t vdc_t::io_read8(uint16_t address)
 		case 0x01:
 			// control register
 			return generate_interrupts ? 0b1 : 0b0;
+		case 0x02:
+		case 0x03:
+			// reserved
+			return 0;
 		case 0x04:
 			return bg_color;
 		case 0x05:
@@ -241,19 +245,23 @@ uint8_t vdc_t::io_read8(uint16_t address)
 		case 0x0d:
 			return current_scanline & 0xff;
 		case 0x0e:
-			return (irq_scanline & 0xff00) >> 8;;
+			return (irq_scanline & 0xff00) >> 8;
 		case 0x0f:
 			return irq_scanline & 0xff;
 
 		// layers
-		case 0x10:
-			return layer[current_layer].x;
 		case 0x11:
-			return layer[current_layer].y;
-		case 0x12:
-			return layer[current_layer].flags0;
+			return layer[current_layer].x;
 		case 0x13:
+			return layer[current_layer].y;
+		case 0x14:
+			return layer[current_layer].flags0;
+		case 0x15:
 			return layer[current_layer].flags1;
+		case 0x16:
+			return (layer[current_layer].address & 0xff00) >> 8;
+		case 0x17:
+			return layer[current_layer].address & 0xff;
 		case 0x18:
 			return layer[current_layer].colors[0];
 		case 0x19:
@@ -264,15 +272,15 @@ uint8_t vdc_t::io_read8(uint16_t address)
 			return layer[current_layer].colors[3];
 
 		// sprites
-		case 0x20:
-			return sprite[current_sprite].x;
 		case 0x21:
-			return sprite[current_sprite].y;
-		case 0x22:
-			return sprite[current_sprite].flags0;
+			return sprite[current_sprite].x;
 		case 0x23:
-			return sprite[current_sprite].flags1;
+			return sprite[current_sprite].y;
 		case 0x24:
+			return sprite[current_sprite].flags0;
+		case 0x25:
+			return sprite[current_sprite].flags1;
+		case 0x26:
 			return sprite[current_sprite].index;
 		case 0x28:
 			return sprite[current_sprite].colors[0];
@@ -300,6 +308,10 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			break;
 		case 0x01:
 			generate_interrupts = (value & 0b1) ? true : false;
+			break;
+		case 0x02:
+		case 0x03:
+			// reserved
 			break;
 		case 0x04:
 			bg_color = value;
@@ -345,17 +357,23 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			break;
 
 		// layers
-		case 0x10:
+		case 0x11:
 			layer[current_layer].x = value;
 			break;
-		case 0x11:
+		case 0x13:
 			layer[current_layer].y = value;
 			break;
-		case 0x12:
+		case 0x14:
 			layer[current_layer].flags0 = value & 0b00000111;
 			break;
-		case 0x13:
+		case 0x15:
 			layer[current_layer].flags1 = value & 0b01010000;
+			break;
+		case 0x16:
+			layer[current_layer].address = (layer[current_layer].address & 0x00ff) | (value << 8);
+			break;
+		case 0x17:
+			layer[current_layer].address = (layer[current_layer].address & 0xff00) | (value & 0xfe);
 			break;
 		case 0x18:
 			layer[current_layer].colors[0] = value;
@@ -371,19 +389,19 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			break;
 
 		// sprites
-		case 0x20:
+		case 0x21:
 			sprite[current_sprite].x = value;
 			break;
-		case 0x21:
+		case 0x23:
 			sprite[current_sprite].y = value;
 			break;
-		case 0x22:
+		case 0x24:
 			sprite[current_sprite].flags0 = value & 0b00001111;
 			break;
-		case 0x23:
+		case 0x25:
 			sprite[current_sprite].flags1 = value & 0b01010111;
 			break;
-		case 0x24:
+		case 0x26:
 			sprite[current_sprite].index = value;
 			break;
 		case 0x28:
