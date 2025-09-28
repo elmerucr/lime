@@ -53,7 +53,6 @@ _start
 	bne	.2
 
 ; init logo
-loogoo
 	movea.l	#logo_data,A0
 	clr.b	D0
 .3	move.b	D0,VDC_CURRENT_SPRITE
@@ -74,7 +73,6 @@ loogoo
 
 
 	move.w	#$0200,SR				; set status register (User Mode, ipl = 0)
-	move.l	#exc_addr_error,-(SP)			; test usp
 
 	jsr	sound_reset
 
@@ -108,17 +106,33 @@ exc_lvl4_irq_auto					; coupled to timer
 .3	movem.l	(SP)+,D0-D1/A0
 	rte
 
-exc_lvl6_irq_auto					; coupled to vdc
+exc_lvl6_irq_auto				; coupled to vdc
 	move.l	D0,-(SP)
+	move.b	VDC_CURRENT_SPRITE,-(SP)
 
 	move.b	VDC_SR.w,D0
-	beq	.1
-	move.b	D0,VDC_SR.w				; acknowledge irq
+	beq	.end
+	move.b	D0,VDC_SR.w			; acknowledge irq
 
-	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w
+	move.b	LOGO_ANIMATION,D0
+	addq.b	#$1,D0
+	cmp.b	#$90,D0
+	bne	.1
+	move.b	#%00000001,CORE_CR		; activate irq's fof binary insert
+						; this makes sure letters wobble at least 1 time
+	clr.b	D0
+.1	move.b	D0,LOGO_ANIMATION
 
+	move.b	#$4,VDC_CURRENT_SPRITE
+	move.b	#80,VDC_SPRITE_Y_LSB
+
+	move.b	VDC_SPRITE_X_LSB,D0
+	sub.b	LOGO_ANIMATION,D0
+
+.end	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w
+	move.b	(SP)+,VDC_CURRENT_SPRITE
 	move.l	(SP)+,D0
-.1	rte
+	rte
 
 timer_default_handler
 	move.b	#$12,VDC_BG_COLOR.w

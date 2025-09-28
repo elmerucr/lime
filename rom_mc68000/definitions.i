@@ -67,5 +67,6 @@ TIMER6_BPM			equ	$045c
 TIMER7_BPM			equ	$045e
 
 ; core
+CORE_CR				equ	$0481
 CORE_ROMS			equ	$0482
 CORE_INPUT0			equ	$0488

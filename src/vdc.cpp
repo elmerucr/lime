@@ -250,8 +250,14 @@ uint8_t vdc_t::io_read8(uint16_t address)
 			return irq_scanline & 0xff;
 
 		// layers
+		case 0x10:
+			// reserved
+			return 0;
 		case 0x11:
 			return layer[current_layer].x;
+		case 0x12:
+			// reserved
+			return 0;
 		case 0x13:
 			return layer[current_layer].y;
 		case 0x14:
@@ -272,8 +278,14 @@ uint8_t vdc_t::io_read8(uint16_t address)
 			return layer[current_layer].colors[3];
 
 		// sprites
+		case 0x20:
+			// reserved
+			return 0;
 		case 0x21:
 			return sprite[current_sprite].x;
+		case 0x22:
+			// reserved
+			return 0;
 		case 0x23:
 			return sprite[current_sprite].y;
 		case 0x24:
@@ -357,8 +369,14 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			break;
 
 		// layers
+		case 0x10:
+			// reserved
+			break;
 		case 0x11:
 			layer[current_layer].x = value;
+			break;
+		case 0x12:
+			// reserved
 			break;
 		case 0x13:
 			layer[current_layer].y = value;
@@ -389,8 +407,14 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			break;
 
 		// sprites
+		case 0x20:
+			// reserved
+			break;
 		case 0x21:
 			sprite[current_sprite].x = value;
+			break;
+		case 0x22:
+			// reserved
 			break;
 		case 0x23:
 			sprite[current_sprite].y = value;
