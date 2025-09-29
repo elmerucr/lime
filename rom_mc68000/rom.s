@@ -15,7 +15,7 @@ LOGO_ANIMATION	equ	$3000
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
 
-	dc.b	"rom mc68000 0.2 20250924"
+	dc.b	"rom mc68000 0.3 20250929"
 
 	align	2
 
@@ -76,7 +76,11 @@ _start
 
 	jsr	sound_reset
 
-.5	bra	.5					; loop forever, wait for events
+	move.b	#0,D0
+loop	cmp.b	#4,D0
+	addq.b	#1,D0
+
+	bra	loop					; loop forever, wait for events
 
 exc_addr_error
 	bra	exc_addr_error				; TODO: bsod when this happens?
@@ -107,7 +111,7 @@ exc_lvl4_irq_auto					; coupled to timer
 	rte
 
 exc_lvl6_irq_auto				; coupled to vdc
-	move.l	D0,-(SP)
+	movem.l	D0-D1,-(SP)
 	move.b	VDC_CURRENT_SPRITE,-(SP)
 
 	move.b	VDC_SR.w,D0
@@ -118,20 +122,31 @@ exc_lvl6_irq_auto				; coupled to vdc
 	addq.b	#$1,D0
 	cmp.b	#$90,D0
 	bne	.1
-	move.b	#%00000001,CORE_CR		; activate irq's fof binary insert
+	move.b	#%00000001,CORE_CR		; activate irq's for binary insert
 						; this makes sure letters wobble at least 1 time
 	clr.b	D0
+
 .1	move.b	D0,LOGO_ANIMATION
 
-	move.b	#$4,VDC_CURRENT_SPRITE
-	move.b	#80,VDC_SPRITE_Y_LSB
+	move.b	#4,D1				; start with sprite 4 (letter 'l')
+.2	move.b	D1,VDC_CURRENT_SPRITE
+	move.b	#80,VDC_SPRITE_Y_LSB		; base position for each letter
 
-	move.b	VDC_SPRITE_X_LSB,D0
-	sub.b	LOGO_ANIMATION,D0
+	move.b	VDC_SPRITE_X_LSB,D0		; store x for current sprite in D0
+	sub.b	LOGO_ANIMATION,D0		; subtract logo_an x value from D0
+
+	cmp.b	#8,D0
+	bcc	.3				; if more than 8, jump to .3
+
+	subq.b	#1,VDC_SPRITE_Y_LSB		; move letter up 1 pixel
+
+.3	addq	#1,D1				; move to next sprite
+	cmp.b	#8,D1				; did we reach sprite 8?
+	bne	.2				; not yet, jump to .2
 
 .end	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w
 	move.b	(SP)+,VDC_CURRENT_SPRITE
-	move.l	(SP)+,D0
+	movem.l	(SP)+,D0-D1
 	rte
 
 timer_default_handler
