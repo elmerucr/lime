@@ -119,7 +119,6 @@ private:
 	int				video_window_height;
     SDL_Renderer	*video_renderer;
 	bool			vsync;
-    const uint8_t	video_scanline_alpha = 176;
     bool			video_fullscreen{false};
 	bool			video_fullscreen_stretched{false};
 
@@ -135,7 +134,8 @@ private:
 	SDL_Rect		viewer_placement;
 
     inline uint32_t video_blend(uint32_t c0, uint32_t c1) {
-		    return
+		const uint8_t video_scanline_alpha = 176;
+		return
 			((((c0 & 0x00ff00ff) + (c1 & 0x00ff00ff)) >> 1) & 0x00ff00ff) |
 			((((c0 & 0x0000ff00) + (c1 & 0x0000ff00)) >> 1) & 0x0000ff00) |
 			(video_scanline_alpha << 24);
