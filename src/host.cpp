@@ -283,26 +283,29 @@ void host_t::video_init()
 	SDL_GetCurrentDisplayMode(0, &video_displaymode);
 	printf("[SDL] Display current desktop dimension: %i x %i\n", video_displaymode.w, video_displaymode.h);
 
-    video_scaling = video_displaymode.h / SCREEN_HEIGHT;
-
-	// if size >90% of screen height, reduce size
-	while ((10 * video_scaling * SCREEN_HEIGHT) > (9 * video_displaymode.h)) {
-		video_scaling--;
+	if ((VDC_YRES * video_displaymode.w / video_displaymode.h) > VDC_XRES) {
+		// wider than 3:2 aspect ration
+		video_scaling = video_displaymode.h / VDC_YRES;
+		if ((video_displaymode.h % VDC_YRES) == 0) {
+			video_scaling--;
+		}
+	} else {
+		video_scaling = video_displaymode.w / VDC_XRES;
+		if ((video_displaymode.w % VDC_XRES) == 0) {
+			video_scaling--;
+		}
 	}
 
 	if (video_scaling < 1) video_scaling = 1;
 
-    printf("[SDL] Video scaling will be %i time(s)\n", video_scaling);
-
-	char title[64];
-	snprintf(title, 64, "lime  %i.%i.%i", LIME_MAJOR_VERSION, LIME_MINOR_VERSION, LIME_BUILD);
+    printf("[SDL] Video scaling will be %i time%s\n", video_scaling, (video_scaling == 1) ? "" : "s");
 
     video_window = SDL_CreateWindow(
         nullptr,
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        video_scaling * SCREEN_WIDTH,
-        video_scaling * SCREEN_HEIGHT,
+        video_scaling * VDC_XRES,
+        video_scaling * VDC_YRES,
         SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
     );
 
