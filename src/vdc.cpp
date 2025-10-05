@@ -34,7 +34,7 @@ void vdc_t::reset()
 {
 	// initial video buffer status, buffer invisible to system
 	for (int i = 0; i < (VDC_YRES * VDC_XRES); i++) {
-		if ((i % VDC_YRES) & 0b100) {
+		if ((i % VDC_XRES) & 0b100) {
 			buffer[i] = palette[0b01];
 		} else {
 			buffer[i] = palette[0b00];

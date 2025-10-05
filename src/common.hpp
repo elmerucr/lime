@@ -13,31 +13,29 @@
 // ---------------------------------------------------------------------
 #define LIME_MAJOR_VERSION		0
 #define LIME_MINOR_VERSION		9
-#define LIME_BUILD				20251001
+#define LIME_BUILD				20251005
 #define LIME_YEAR				2025
 
 // ---------------------------------------------------------------------
 // vdc (video display controller)
 // ---------------------------------------------------------------------
-#define	VDC_RAM					0x1000000	// 16mb
-#define	VDC_RAM_MASK			(VDC_RAM-1)
-#define VDC_XRES				240
-#define VDC_YRES				160
-#define VDC_SCANLINES			278
+#define	VDC_RAM						0x1000000	// 16mb
+#define	VDC_RAM_MASK				(VDC_RAM-1)
+#define VDC_XRES					320
+#define VDC_YRES					180
+#define VDC_SCANLINES				278
 
-#define VDC_TILESET0_ADDRESS	0x0800
-#define VDC_TILESET1_ADDRESS	0x1000
-#define VDC_LAYER0_ADDRESS		0x2000
-#define VDC_LAYER1_ADDRESS		0x2400
-#define VDC_LAYER2_ADDRESS		0x2800
-#define VDC_LAYER3_ADDRESS		0x2c00
+#define VDC_TILESET0_ADDRESS		0x0800
+#define VDC_TILESET1_ADDRESS		0x1000
+#define VDC_LAYER0_ADDRESS			0x2000
+#define VDC_LAYER1_ADDRESS			0x2400
+#define VDC_LAYER2_ADDRESS			0x2800
+#define VDC_LAYER3_ADDRESS			0x2c00
 
 // ---------------------------------------------------------------------
 // system / host
 // ---------------------------------------------------------------------
-#define	FPS						60
-#define SCREEN_WIDTH			(2*VDC_XRES)
-#define SCREEN_HEIGHT			(2*VDC_YRES)
+#define	FPS							60
 
 // ---------------------------------------------------------------------
 //
@@ -47,12 +45,18 @@
 #define CORE_CLOCK_SPEED			(CORE_CYCLES_PER_FRAME*FPS)
 
 // ---------------------------------------------------------------------
+// debugger
+// ---------------------------------------------------------------------
+#define DEBUGGER_XRES				640
+#define	DEBUGGER_YRES				360
+
+// ---------------------------------------------------------------------
 // audio
 // ---------------------------------------------------------------------
-#define SAMPLE_RATE				48000
-#define AUDIO_BUFFER_SIZE		8000.0
-#define SID_CLOCK_SPEED			985248
-#define SID_CYCLES_PER_FRAME	(SID_CLOCK_SPEED/FPS)
+#define SAMPLE_RATE					48000
+#define AUDIO_BUFFER_SIZE			8000.0
+#define SID_CLOCK_SPEED				985248
+#define SID_CYCLES_PER_FRAME		(SID_CLOCK_SPEED/FPS)
 
 // ---------------------------------------------------------------------
 // color palette

@@ -68,12 +68,14 @@ debugger_t::debugger_t(system_t *s)
 {
 	system = s;
 
-	terminal = new terminal_t(system, 60, 14, PUNCH_LIGHTBLUE, PUNCH_BLUE);
+	buffer = new uint32_t[DEBUGGER_XRES * DEBUGGER_YRES];
+
+	terminal = new terminal_t(system, DEBUGGER_XRES / 8, 18, PUNCH_LIGHTBLUE, (PUNCH_BLUE & 0x00ffffff) | 0xd0000000);
 	terminal->clear();
 	print_version();
 	terminal->activate_cursor();
 
-	status1 = new terminal_t(system, 60, 24, PICOTRON_V5_1A, LIME_COLOR_00);
+	status1 = new terminal_t(system, 60, 25, PICOTRON_V5_1A, (LIME_COLOR_00 & 0x00ffffff) | 0xd0000000);
 	exception_status = new terminal_t(system, 20, 5, PICOTRON_V5_1A, 0xff000000);
 	vdc_status = new terminal_t(system, 16, 6, PICOTRON_V5_1A, 0xff000000);
 }
@@ -84,14 +86,15 @@ debugger_t::~debugger_t()
 	delete exception_status;
 	delete status1;
 	delete terminal;
+	delete [] buffer;
 }
 
 void debugger_t::redraw()
 {
 	// clear buffer
-	for (int y=0; y<SCREEN_HEIGHT; y++) {
-		for (int x=0; x<SCREEN_WIDTH; x++) {
-			system->host->video_framebuffer[(y * SCREEN_WIDTH) + x] = PUNCH_LIGHTBLUE;
+	for (int y=0; y<DEBUGGER_YRES; y++) {
+		for (int x=0; x<DEBUGGER_XRES; x++) {
+			buffer[(y * DEBUGGER_XRES) + x] = (LIME_COLOR_00 & 0x00ffffff) | 0xd0000000;
 		}
 	}
 
@@ -101,7 +104,7 @@ void debugger_t::redraw()
 		for (int x = 0; x < (terminal->width << 3); x++) {
 			uint8_t symbol = terminal->tiles[((y>>3) * terminal->width) + (x >> 3)];
 	 		uint8_t x_in_char = x % 8;
-			system->host->video_framebuffer[((y + 200) * SCREEN_WIDTH) + x + 0] =
+			buffer[((y + 208) * DEBUGGER_XRES) + x + 0] =
 				(debugger_cbm_font.original_data[(symbol << 3) + y_in_char] & (0b1 << (7 - x_in_char))) ?
 				terminal->fg_colors[((y>>3) * terminal->width) + (x >> 3)] :
 				terminal->bg_colors[((y>>3) * terminal->width) + (x >> 3)] ;
@@ -115,7 +118,7 @@ void debugger_t::redraw()
 		uint32_t isp = system->core->mc68000->getISP();
 		uint32_t usp = system->core->mc68000->getUSP();
 		status1->printf(
-			"-----------------------Motorola 68000-----------------------"
+			"\n-----------------------Motorola 68000-----------------------"
 			"   D0:%08x   D4:%08x    A0:%08x   A4:%08x\n"
 			"   D1:%08x   D5:%08x    A1:%08x   A5:%08x\n"
 			"   D2:%08x   D6:%08x    A2:%08x   A6:%08x\n"
@@ -197,7 +200,7 @@ void debugger_t::redraw()
 		uint16_t usp = system->core->mc6809->get_us() & 0xffff;
 
 		system->core->mc6809->status(text_buffer, 1024);
-		status1->printf("-----------------------Motorola 6809------------------------%s", text_buffer);
+		status1->printf("\n-----------------------Motorola 6809------------------------%s", text_buffer);
 		status1->printf(
 			"\n\n      system stack: %04x %02x %02x %02x %02x %02x %02x %02x %02x",
 			ssp, system->core->read8(ssp), system->core->read8(ssp+1), system->core->read8(ssp+2),
@@ -242,7 +245,7 @@ void debugger_t::redraw()
 	// copy exception_status into status1
 	for (int y = 0; y < exception_status->height; y++) {
 		for (int x = 0; x < exception_status->width; x++) {
-			status1->tiles[((18 + y) * status1->width) + 23 + x] =
+			status1->tiles[((19 + y) * status1->width) + 23 + x] =
 				exception_status->tiles[(y * exception_status->width) + x];
 		}
 	}
@@ -263,7 +266,7 @@ void debugger_t::redraw()
 	// copy vdc_status into status1
 	for (int y = 0; y < vdc_status->height; y++) {
 		for (int x = 0; x < vdc_status->width; x++) {
-			status1->tiles[((18 + y) * status1->width) + 43 + x] =
+			status1->tiles[((19 + y) * status1->width) + 43 + x] =
 				vdc_status->tiles[(y * vdc_status->width) + x];
 		}
 	}
@@ -274,7 +277,7 @@ void debugger_t::redraw()
 		for (int x = 0; x < (status1->width << 3); x++) {
 			uint8_t symbol = status1->tiles[((y>>3) * status1->width) + (x >> 3)];
 	 		uint8_t x_in_char = x % 8;
-			system->host->video_framebuffer[((y + 0) * SCREEN_WIDTH) + x + 0] =
+			buffer[((y + 0) * DEBUGGER_XRES) + x + 0] =
 				(debugger_cbm_font.original_data[(symbol << 3) + y_in_char] & (0b1 << (7 - x_in_char))) ?
 				status1->fg_colors[((y>>3) * status1->width) + (x >> 3)] :
 				status1->bg_colors[((y>>3) * status1->width) + (x >> 3)] ;
@@ -588,10 +591,12 @@ void debugger_t::process_command(char *c)
 	}
 
 		for (int i=temp_no; i<(temp_no + 0x40); i++) {
-			if ((i & 0b111) == 0) terminal->printf("\n %02x ", i & 0xff);
+			if ((i & 0b111) == 0) {
+				terminal->printf("\n %02x ", i & 0xff);
+			}
 			terminal->bg_color = system->core->vdc->palette[i & 0xff];
 			terminal->printf("  ");
-			terminal->bg_color = PUNCH_BLUE;
+			terminal->bg_color = (PUNCH_BLUE & 0x00ffffff) | 0xd0000000;
 		}
 		terminal->printf(
 			"\n\ndgc  %02x  %02x  %02x  %02x\n    ",
@@ -604,7 +609,7 @@ void debugger_t::process_command(char *c)
 			terminal->bg_color = system->core->vdc->palette[terminal_graphics_colors[i]];
 			terminal->printf("    ");
 		}
-		terminal->bg_color = PUNCH_BLUE;
+		terminal->bg_color = (PUNCH_BLUE & 0x00ffffff) | 0xd0000000;
 	} else if (strcmp(token0, "reset") == 0) {
 		terminal->printf("\nreset lime (y/n)");
 		redraw();
@@ -775,7 +780,7 @@ void debugger_t::memory_binary_dump(uint32_t address)
 		terminal->bg_color = system->core->vdc->palette[terminal_graphics_colors[res[i]]];
 		terminal->printf(" ");
 	}
-	terminal->bg_color = PUNCH_BLUE;
+	terminal->bg_color = (PUNCH_BLUE & 0x00ffffff) | 0xd0000000;
 
 	for (int i=0; i<32; i++) {
 		terminal->cursor_left();

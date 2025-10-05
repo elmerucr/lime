@@ -122,8 +122,9 @@ private:
     bool			video_fullscreen{false};
 	bool			video_fullscreen_stretched{false};
 
-    SDL_Texture		*video_texture;
-	SDL_Rect		video_placement;
+    SDL_Texture		*vdc_texture;
+
+	SDL_Texture		*debugger_texture;
 
 	SDL_Texture		*osd_texture;
 	bool			osd_visible{false};
@@ -131,15 +132,15 @@ private:
 	SDL_Rect		osd_placement;
 
 	SDL_Texture		*viewer_texture;
-	SDL_Rect		viewer_placement;
+	SDL_Rect		viewer_texture_placement;
 
-    inline uint32_t video_blend(uint32_t c0, uint32_t c1) {
-		const uint8_t video_scanline_alpha = 176;
-		return
-			((((c0 & 0x00ff00ff) + (c1 & 0x00ff00ff)) >> 1) & 0x00ff00ff) |
-			((((c0 & 0x0000ff00) + (c1 & 0x0000ff00)) >> 1) & 0x0000ff00) |
-			(video_scanline_alpha << 24);
-	}
+    // inline uint32_t video_blend(uint32_t c0, uint32_t c1) {
+	// 	const uint8_t video_scanline_alpha = 176;
+	// 	return
+	// 		((((c0 & 0x00ff00ff) + (c1 & 0x00ff00ff)) >> 1) & 0x00ff00ff) |
+	// 		((((c0 & 0x0000ff00) + (c1 & 0x0000ff00)) >> 1) & 0x0000ff00) |
+	// 		(video_scanline_alpha << 24);
+	// }
 
 	char *home;
 public:
@@ -158,14 +159,14 @@ public:
 	void video_init();
 	void video_stop();
     void video_toggle_fullscreen();
-    void video_toggle_fullscreen_stretched();
-	void video_set_dimensions();
+    // void video_toggle_fullscreen_stretched();
+	// void video_set_dimensions();
 	void video_update_screen();
 	void video_set_window_title(const char *t);
-    bool video_scanlines{true};
+    // bool video_scanlines{true};
 	bool viewer_visible{true};
 
-    uint32_t *video_framebuffer;	// used for scanline effect
+    // uint32_t *video_framebuffer;	// used for scanline effect
 	uint32_t *video_viewer_framebuffer;
 
 	inline bool vsync_enabled() { return vsync; }

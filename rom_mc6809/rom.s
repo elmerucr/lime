@@ -140,14 +140,14 @@ sound_reset	pshu	y,b,a
 		pulu	y,b,a
 		rts
 
-logo_data	fcb	0,112,0,64,%111,0,$1c		; icon top left
-		fcb	0,120,0,64,%111,0,$1d		; icon top right
-		fcb	0,112,0,72,%111,0,$1e		; icon bottom left
-		fcb	0,120,0,72,%111,0,$1f		; icon bottom right
-		fcb	0,107,0,80,%111,0,$6c		; l
-		fcb	0,112,0,80,%111,0,$69		; i
-		fcb	0,118,0,80,%111,0,$6d		; m
-		fcb	0,126,0,80,%111,0,$65		; e
+logo_data	fcb	0,112,0,74,%111,0,$1c		; icon top left
+		fcb	0,120,0,74,%111,0,$1d		; icon top right
+		fcb	0,112,0,82,%111,0,$1e		; icon bottom left
+		fcb	0,120,0,82,%111,0,$1f		; icon bottom right
+		fcb	0,107,0,90,%111,0,$6c		; l
+		fcb	0,112,0,90,%111,0,$69		; i
+		fcb	0,118,0,90,%111,0,$6d		; m
+		fcb	0,126,0,90,%111,0,$65		; e
 
 exc_irq		lda	TIMER_SR		; load timer status register
 		beq	exc_vdc
@@ -188,7 +188,7 @@ vdc_interrupt	lda	VDC_CURRENT_SPRITE
 		ldb	#$04			; set current sprite to 4
 2		stb	VDC_CURRENT_SPRITE
 
-		lda	#80			; set default y value
+		lda	#90			; set default y value
 		sta	VDC_SPRITE_Y_LSB
 
 		lda	VDC_SPRITE_X_LSB	; load its x register

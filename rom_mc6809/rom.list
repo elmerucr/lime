@@ -255,14 +255,14 @@ FCDF B7053B                           sta     SID1_V                  ; sid 1 vo
 FCE2 3726                             pulu    y,b,a
 FCE4 39                               rts
                       
-FCE5 0070004007001C   logo_data       fcb     0,112,0,64,%111,0,$1c           ; icon top left
-FCEC 0078004007001D                   fcb     0,120,0,64,%111,0,$1d           ; icon top right
-FCF3 0070004807001E                   fcb     0,112,0,72,%111,0,$1e           ; icon bottom left
-FCFA 0078004807001F                   fcb     0,120,0,72,%111,0,$1f           ; icon bottom right
-FD01 006B005007006C                   fcb     0,107,0,80,%111,0,$6c           ; l
-FD08 00700050070069                   fcb     0,112,0,80,%111,0,$69           ; i
-FD0F 0076005007006D                   fcb     0,118,0,80,%111,0,$6d           ; m
-FD16 007E0050070065                   fcb     0,126,0,80,%111,0,$65           ; e
+FCE5 0070004A07001C   logo_data       fcb     0,112,0,74,%111,0,$1c           ; icon top left
+FCEC 0078004A07001D                   fcb     0,120,0,74,%111,0,$1d           ; icon top right
+FCF3 0070005207001E                   fcb     0,112,0,82,%111,0,$1e           ; icon bottom left
+FCFA 0078005207001F                   fcb     0,120,0,82,%111,0,$1f           ; icon bottom right
+FD01 006B005A07006C                   fcb     0,107,0,90,%111,0,$6c           ; l
+FD08 0070005A070069                   fcb     0,112,0,90,%111,0,$69           ; i
+FD0F 0076005A07006D                   fcb     0,118,0,90,%111,0,$6d           ; m
+FD16 007E005A070065                   fcb     0,126,0,90,%111,0,$65           ; e
                       
 FD1D B60440           exc_irq         lda     TIMER_SR                ; load timer status register
 FD20 2716                             beq     exc_vdc
@@ -303,7 +303,7 @@ FD63 9700             1               sta     logo_animation
 FD65 C604                             ldb     #$04                    ; set current sprite to 4
 FD67 F70407           2               stb     VDC_CURRENT_SPRITE
                       
-FD6A 8650                             lda     #80                     ; set default y value
+FD6A 865A                             lda     #90                     ; set default y value
 FD6C B70423                           sta     VDC_SPRITE_Y_LSB
                       
 FD6F B60421                           lda     VDC_SPRITE_X_LSB        ; load its x register

@@ -130,7 +130,7 @@ exc_lvl6_irq_auto				; coupled to vdc
 
 	move.b	#4,D1				; start with sprite 4 (letter 'l')
 .2	move.b	D1,VDC_CURRENT_SPRITE
-	move.b	#80,VDC_SPRITE_Y_LSB		; base position for each letter
+	move.b	#90,VDC_SPRITE_Y_LSB		; base position for each letter
 
 	move.b	VDC_SPRITE_X_LSB,D0		; store x for current sprite in D0
 	sub.b	LOGO_ANIMATION,D0		; subtract logo_an x value from D0
@@ -168,14 +168,14 @@ sound_reset
 	rts
 
 logo_data
-	dc.b	0,112,0,64,%111,0,$1c	; icon top left
-	dc.b	0,120,0,64,%111,0,$1d	; icon top right
-	dc.b	0,112,0,72,%111,0,$1e	; icon bottom left
-	dc.b	0,120,0,72,%111,0,$1f	; icon bottom right
-	dc.b	0,107,0,80,%111,0,$6c	; l
-	dc.b	0,112,0,80,%111,0,$69	; i
-	dc.b	0,118,0,80,%111,0,$6d	; m
-	dc.b	0,126,0,80,%111,0,$65	; e
+	dc.b	0,112,0,74,%111,0,$1c	; icon top left
+	dc.b	0,120,0,74,%111,0,$1d	; icon top right
+	dc.b	0,112,0,82,%111,0,$1e	; icon bottom left
+	dc.b	0,120,0,82,%111,0,$1f	; icon bottom right
+	dc.b	0,107,0,90,%111,0,$6c	; l
+	dc.b	0,112,0,90,%111,0,$69	; i
+	dc.b	0,118,0,90,%111,0,$6d	; m
+	dc.b	0,126,0,90,%111,0,$65	; e
 
 logo_tiles
 	dc.b	%00000000,%00000000	; tile 1 (icon upper left)

@@ -38,6 +38,8 @@ public:
 
 	terminal_t *terminal;
 
+	uint32_t *buffer;
+
 	void process_command(char *c);
 	void prompt();
 	void print_version();
