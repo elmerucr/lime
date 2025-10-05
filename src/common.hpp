@@ -28,9 +28,9 @@
 #define VDC_TILESET0_ADDRESS		0x0800
 #define VDC_TILESET1_ADDRESS		0x1000
 #define VDC_LAYER0_ADDRESS			0x2000
-#define VDC_LAYER1_ADDRESS			0x2400
-#define VDC_LAYER2_ADDRESS			0x2800
-#define VDC_LAYER3_ADDRESS			0x2c00
+#define VDC_LAYER1_ADDRESS			0x2800
+#define VDC_LAYER2_ADDRESS			0x3000
+#define VDC_LAYER3_ADDRESS			0x3800
 
 // ---------------------------------------------------------------------
 // system / host

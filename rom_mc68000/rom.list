@@ -88,7 +88,7 @@ Source: "definitions.i"
 
 Source: "rom.s"
                             	     9: 
-                            	    10: LOGO_ANIMATION	equ	$3000
+                            	    10: LOGO_ANIMATION	equ	$4000
                             	    11: 
                             	    12: 
                             	    13: 	org	$00010000	; rom based at $10000
@@ -148,7 +148,7 @@ Source: "rom.s"
 00:000100E0 6600FFDE        	    65: 	bne	.3
                             	    66: 
                             	    67: ; set variable for letter wobble
-00:000100E4 11FC00403000    	    68: 	move.b	#$40,LOGO_ANIMATION.w
+00:000100E4 11FC00404000    	    68: 	move.b	#$40,LOGO_ANIMATION.w
                             	    69: 
                             	    70: ; set raster irq on scanline 159
 00:000100EA 13FC009F0000040F	    71: 	move.b	#$9f,VDC_IRQ_SCANLINE_LSB		; rasterline 159
@@ -201,7 +201,7 @@ Source: "rom.s"
 00:00010156 6700005C        	   118: 	beq	.end
 00:0001015A 11C00400        	   119: 	move.b	D0,VDC_SR.w			; acknowledge irq
                             	   120: 
-00:0001015E 103900003000    	   121: 	move.b	LOGO_ANIMATION,D0
+00:0001015E 103900004000    	   121: 	move.b	LOGO_ANIMATION,D0
 00:00010164 5200            	   122: 	addq.b	#$1,D0
 00:00010166 B03C0090        	   123: 	cmp.b	#$90,D0
 00:0001016A 6600000C        	   124: 	bne	.1
@@ -209,14 +209,14 @@ Source: "rom.s"
                             	   126: 						; this makes sure letters wobble at least 1 time
 00:00010176 4200            	   127: 	clr.b	D0
                             	   128: 
-00:00010178 13C000003000    	   129: .1	move.b	D0,LOGO_ANIMATION
+00:00010178 13C000004000    	   129: .1	move.b	D0,LOGO_ANIMATION
                             	   130: 
 00:0001017E 123C0004        	   131: 	move.b	#4,D1				; start with sprite 4 (letter 'l')
 00:00010182 13C100000407    	   132: .2	move.b	D1,VDC_CURRENT_SPRITE
 00:00010188 13FC005A00000423	   133: 	move.b	#90,VDC_SPRITE_Y_LSB		; base position for each letter
                             	   134: 
 00:00010190 103900000421    	   135: 	move.b	VDC_SPRITE_X_LSB,D0		; store x for current sprite in D0
-00:00010196 903900003000    	   136: 	sub.b	LOGO_ANIMATION,D0		; subtract logo_an x value from D0
+00:00010196 903900004000    	   136: 	sub.b	LOGO_ANIMATION,D0		; subtract logo_an x value from D0
                             	   137: 
 00:0001019C B03C0008        	   138: 	cmp.b	#8,D0
 00:000101A0 64000008        	   139: 	bcc	.3				; if more than 8, jump to .3
@@ -383,7 +383,7 @@ Symbols by name:
 CORE_CR                          E:00000481
 CORE_INPUT0                      E:00000488
 CORE_ROMS                        E:00000482
-LOGO_ANIMATION                   E:00003000
+LOGO_ANIMATION                   E:00004000
 MIX_SID0_LEFT                    E:00000580
 SID0_F                           E:00000500
 SID0_V                           E:0000051B
@@ -451,7 +451,7 @@ Symbols by value:
 0000053B SID1_V
 00000580 MIX_SID0_LEFT
 00001000 VDC_TILESET1
-00003000 LOGO_ANIMATION
+00004000 LOGO_ANIMATION
 00010020 _start
 00010108 loop
 00010112 exc_addr_error

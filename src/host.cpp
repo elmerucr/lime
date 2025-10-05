@@ -201,6 +201,7 @@ void host_t::video_update_screen()
 	if (system->current_mode == DEBUG_MODE) {
 		system->debugger->redraw();
 		SDL_UpdateTexture(debugger_texture, nullptr, (void *)system->debugger->buffer, DEBUGGER_XRES*sizeof(uint32_t));
+		//SDL_SetTextureScaleMode(debugger_texture, SDL_ScaleModeLinear);
 		SDL_RenderCopy(video_renderer, debugger_texture, nullptr, nullptr);
 		if (viewer_visible) {
 			SDL_UpdateTexture(viewer_texture, nullptr, (void *)video_viewer_framebuffer, VDC_XRES*sizeof(uint32_t));
@@ -299,6 +300,16 @@ void host_t::video_init()
 	SDL_GetRendererOutputSize(video_renderer, &w, &h);
 	printf("[SDL] Renderer Output Size: %i x %i\n", w, h);
 
+	if ((w % DEBUGGER_XRES) == 0) {
+		printf("[SDL] Width of renderer fits debugger xres of %i\n", DEBUGGER_XRES);
+	} else {
+		printf("[SDL] Width of renderer doesn't fit debugger xres of %i\n", DEBUGGER_XRES);
+		video_scaling--;
+		if (video_scaling == 0 ) video_scaling = 1;
+		SDL_SetWindowSize(video_window, video_scaling * VDC_XRES, video_scaling * VDC_YRES);
+		SDL_GetWindowSize(video_window, &video_window_width, &video_window_height);
+		printf("[SDL] Display new window dimension: %u x %u pixels\n", video_window_width, video_window_height);
+	}
     // set clear color black
     SDL_SetRenderDrawColor(video_renderer, 0, 0, 0, 255);
 

@@ -7,7 +7,7 @@
 
 	include	"definitions.i"
 
-LOGO_ANIMATION	equ	$3000
+LOGO_ANIMATION	equ	$4000
 
 
 	org	$00010000	; rom based at $10000
