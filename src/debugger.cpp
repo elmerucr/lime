@@ -70,12 +70,12 @@ debugger_t::debugger_t(system_t *s)
 
 	buffer = new uint32_t[DEBUGGER_XRES * DEBUGGER_YRES];
 
-	terminal = new terminal_t(system, DEBUGGER_XRES / 8, 18, PUNCH_LIGHTBLUE, (PUNCH_BLUE & 0x00ffffff) | 0xd0000000);
+	terminal = new terminal_t(system, DEBUGGER_XRES / 8, 18, PUNCH_LIGHTBLUE, (PUNCH_BLUE & 0x00ffffff) | 0xe0000000);
 	terminal->clear();
 	print_version();
 	terminal->activate_cursor();
 
-	status1 = new terminal_t(system, 60, 25, PICOTRON_V5_1A, (LIME_COLOR_00 & 0x00ffffff) | 0xd0000000);
+	status1 = new terminal_t(system, 60, 25, PICOTRON_V5_1A, (LIME_COLOR_00 & 0x00ffffff) | 0xe0000000);
 	exception_status = new terminal_t(system, 20, 5, PICOTRON_V5_1A, 0xff000000);
 	vdc_status = new terminal_t(system, 16, 6, PICOTRON_V5_1A, 0xff000000);
 }
@@ -94,7 +94,7 @@ void debugger_t::redraw()
 	// clear buffer
 	for (int y=0; y<DEBUGGER_YRES; y++) {
 		for (int x=0; x<DEBUGGER_XRES; x++) {
-			buffer[(y * DEBUGGER_XRES) + x] = (LIME_COLOR_00 & 0x00ffffff) | 0xd0000000;
+			buffer[(y * DEBUGGER_XRES) + x] = (LIME_COLOR_00 & 0x00ffffff) | 0xe0000000;
 		}
 	}
 
@@ -596,7 +596,7 @@ void debugger_t::process_command(char *c)
 			}
 			terminal->bg_color = system->core->vdc->palette[i & 0xff];
 			terminal->printf("  ");
-			terminal->bg_color = (PUNCH_BLUE & 0x00ffffff) | 0xd0000000;
+			terminal->bg_color = (PUNCH_BLUE & 0x00ffffff) | 0xe0000000;
 		}
 		terminal->printf(
 			"\n\ndgc  %02x  %02x  %02x  %02x\n    ",
@@ -609,7 +609,7 @@ void debugger_t::process_command(char *c)
 			terminal->bg_color = system->core->vdc->palette[terminal_graphics_colors[i]];
 			terminal->printf("    ");
 		}
-		terminal->bg_color = (PUNCH_BLUE & 0x00ffffff) | 0xd0000000;
+		terminal->bg_color = (PUNCH_BLUE & 0x00ffffff) | 0xe0000000;
 	} else if (strcmp(token0, "reset") == 0) {
 		terminal->printf("\nreset lime (y/n)");
 		redraw();
@@ -780,7 +780,7 @@ void debugger_t::memory_binary_dump(uint32_t address)
 		terminal->bg_color = system->core->vdc->palette[terminal_graphics_colors[res[i]]];
 		terminal->printf(" ");
 	}
-	terminal->bg_color = (PUNCH_BLUE & 0x00ffffff) | 0xd0000000;
+	terminal->bg_color = (PUNCH_BLUE & 0x00ffffff) | 0xe0000000;
 
 	for (int i=0; i<32; i++) {
 		terminal->cursor_left();

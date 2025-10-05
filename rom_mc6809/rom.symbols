@@ -29,11 +29,11 @@ TIMER_CR	equ	1089
 CORE_CR	equ	1153
 MIX_ANA1_LEFT	equ	1414
 TIMER0_BPM	equ	1104
-core_interrupt	equ	64909
+core_interrupt	equ	64910
 TIMER5_BPM	equ	1114
 VECTOR_TIMER1_INDIRECT	equ	530
 RAM_START	equ	12288
-timer_interrupt	equ	64908
+timer_interrupt	equ	64909
 VDC_SPRITE_Y_MSB	equ	1058
 SID1_V	equ	1339
 VDC_SPRITE_FLAGS1	equ	1061
@@ -80,7 +80,7 @@ VDC_PALETTE_BLUE	equ	1035
 MIX_SID0_LEFT	equ	1408
 ROM_START	equ	65024
 VDC_CURRENT_LAYER	equ	1030
-rnd_impl	equ	64969
+rnd_impl	equ	64970
 VDC_LAYER_COLOR3	equ	1051
 sound_reset	equ	64704
 VDC_LAYER_COLOR2	equ	1050
@@ -88,7 +88,7 @@ VDC_LAYER_COLOR1	equ	1049
 VDC_LAYER_COLOR0	equ	1048
 VECTOR_VDC_INDIRECT	equ	544
 MIX_ANA0_RIGHT	equ	1413
-core_int_end	equ	64968
+core_int_end	equ	64969
 VECTOR_TIMER6_INDIRECT	equ	540
 logo_animation	equ	0
 MIX_ANA1_RIGHT	equ	1415
@@ -102,7 +102,7 @@ MIX_SID1_RIGHT	equ	1411
 VDC_SPRITE_Y_LSB	equ	1059
 SID0_V	equ	1307
 reset	equ	64537
-logo_tiles	equ	64995
+logo_tiles	equ	64996
 rnd	equ	65517
 VDC_SR	equ	1024
 rndx	equ	255

@@ -162,11 +162,11 @@ FC34 B60482                           lda     CORE_ROMS               ; turn off
 FC37 84FD                             anda    #%11111101
 FC39 B70482                           sta     CORE_ROMS
                       
-FC3C 8EFDE3                           ldx     #logo_tiles
+FC3C 8EFDE4                           ldx     #logo_tiles
 FC3F 108E11C0                         ldy     #$11c0
 FC43 A680             2               lda     ,x+
 FC45 A7A0                             sta     ,y+
-FC47 8CFE23                           cmpx    #logo_tiles+64
+FC47 8CFE24                           cmpx    #logo_tiles+64
 FC4A 26F7                             bne     2b
                       
                       ; init logo
@@ -183,13 +183,13 @@ FC62 8CFD1D                           cmpx    #logo_data+56           ; did we r
 FC65 26E9                             bne     3b                      ; no, continue at 1
                       
                       ; set variable for letter wobble
-FC67 8640                             lda     #$40
+FC67 8668                             lda     #$68
 FC69 9700                             sta     logo_animation
                       
                       ; set jump vectors
 FC6B 8EFD1D                           ldx     #exc_irq
 FC6E BF0208                           stx     VECTOR_IRQ_INDIRECT
-FC71 8EFD8C                           ldx     #timer_interrupt
+FC71 8EFD8D                           ldx     #timer_interrupt
 FC74 108E0210                         ldy     #VECTOR_TIMER0_INDIRECT
 FC78 AFA1             1               stx     ,y++
 FC7A 108C0220                         cmpy    #VECTOR_TIMER0_INDIRECT+16
@@ -197,8 +197,8 @@ FC7E 26F8                             bne     1b
 FC80 8EFD51                           ldx     #vdc_interrupt
 FC83 BF0220                           stx     VECTOR_VDC_INDIRECT
                       
-                      ; set raster irq on scanline 159
-FC86 869F                             lda     #$9f
+                      ; set raster irq on scanline 179
+FC86 86B3                             lda     #$b3
 FC88 B7040F                           sta     VDC_IRQ_SCANLINE_LSB
 FC8B 8601                             lda     #%00000001
 FC8D B70401                           sta     VDC_CR          ; enable irq's for vdc
@@ -255,14 +255,14 @@ FCDF B7053B                           sta     SID1_V                  ; sid 1 vo
 FCE2 3726                             pulu    y,b,a
 FCE4 39                               rts
                       
-FCE5 0070004A07001C   logo_data       fcb     0,112,0,74,%111,0,$1c           ; icon top left
-FCEC 0078004A07001D                   fcb     0,120,0,74,%111,0,$1d           ; icon top right
-FCF3 0070005207001E                   fcb     0,112,0,82,%111,0,$1e           ; icon bottom left
-FCFA 0078005207001F                   fcb     0,120,0,82,%111,0,$1f           ; icon bottom right
-FD01 006B005A07006C                   fcb     0,107,0,90,%111,0,$6c           ; l
-FD08 0070005A070069                   fcb     0,112,0,90,%111,0,$69           ; i
-FD0F 0076005A07006D                   fcb     0,118,0,90,%111,0,$6d           ; m
-FD16 007E005A070065                   fcb     0,126,0,90,%111,0,$65           ; e
+FCE5 0098004A07001C   logo_data       fcb     0,152,0,74,%111,0,$1c           ; icon top left
+FCEC 00A0004A07001D                   fcb     0,160,0,74,%111,0,$1d           ; icon top right
+FCF3 0098005207001E                   fcb     0,152,0,82,%111,0,$1e           ; icon bottom left
+FCFA 00A0005207001F                   fcb     0,160,0,82,%111,0,$1f           ; icon bottom right
+FD01 0093005A07006C                   fcb     0,147,0,90,%111,0,$6c           ; l
+FD08 0098005A070069                   fcb     0,152,0,90,%111,0,$69           ; i
+FD0F 009E005A07006D                   fcb     0,158,0,90,%111,0,$6d           ; m
+FD16 00A6005A070065                   fcb     0,166,0,90,%111,0,$65           ; e
                       
 FD1D B60440           exc_irq         lda     TIMER_SR                ; load timer status register
 FD20 2716                             beq     exc_vdc
@@ -284,71 +284,71 @@ FD43 6E94                             jmp     [,x]
 FD45 B60480           exc_core        lda     CORE_SR                 ; triggered when binary inserted
 FD48 2706                             beq     exc_irq_end
 FD4A B70480                           sta     CORE_SR
-FD4D 7EFD8D                           jmp     core_interrupt
+FD4D 7EFD8E                           jmp     core_interrupt
 FD50 3B               exc_irq_end     rti
                       
 FD51 B60407           vdc_interrupt   lda     VDC_CURRENT_SPRITE
 FD54 3402                             pshs    a
 FD56 9600                             lda     logo_animation
 FD58 4C                               inca
-FD59 8190                             cmpa    #$90
-FD5B 2606                             bne     1f                      ; didn't reach #$90
+FD59 81B8                             cmpa    #$b8
+FD5B 2607                             bne     1f                      ; didn't reach #$90
 FD5D 8601                             lda     #%00000001              ; we did reach #$90
 FD5F B70481                           sta     CORE_CR                 ; activate irq's for binary insert
                                                                       ; this makes sure letters wobble at least 1 time
-FD62 4F                               clra
+FD62 8668                             lda     #$68
                       
-FD63 9700             1               sta     logo_animation
+FD64 9700             1               sta     logo_animation
                       
-FD65 C604                             ldb     #$04                    ; set current sprite to 4
-FD67 F70407           2               stb     VDC_CURRENT_SPRITE
+FD66 C604                             ldb     #$04                    ; set current sprite to 4
+FD68 F70407           2               stb     VDC_CURRENT_SPRITE
                       
-FD6A 865A                             lda     #90                     ; set default y value
-FD6C B70423                           sta     VDC_SPRITE_Y_LSB
+FD6B 865A                             lda     #90                     ; set default y value
+FD6D B70423                           sta     VDC_SPRITE_Y_LSB
                       
-FD6F B60421                           lda     VDC_SPRITE_X_LSB        ; load its x register
-FD72 9000                             suba    logo_animation          ; subtract the ani var
-FD74 8008                             suba    #$08
-FD76 2203                             bhi     3f                      ; if difference larger than 8 keep its y value
-FD78 7A0423                           dec     VDC_SPRITE_Y_LSB
-FD7B 5C               3               incb
-FD7C C108                             cmpb    #$08
-FD7E 26E7                             bne     2b
+FD70 B60421                           lda     VDC_SPRITE_X_LSB        ; load its x register
+FD73 9000                             suba    logo_animation          ; subtract the ani var
+FD75 8008                             suba    #$08
+FD77 2203                             bhi     3f                      ; if difference larger than 8 keep its y value
+FD79 7A0423                           dec     VDC_SPRITE_Y_LSB
+FD7C 5C               3               incb
+FD7D C108                             cmpb    #$08
+FD7F 26E7                             bne     2b
                       
-FD80 B60488                           lda     CORE_INPUT0             ; use controller input to change screen background color
-FD83 B70404                           sta     VDC_BG_COLOR
-FD86 3502                             puls    a
-FD88 B70407                           sta     VDC_CURRENT_SPRITE
-FD8B 3B                               rti
+FD81 B60488                           lda     CORE_INPUT0             ; use controller input to change screen background color
+FD84 B70404                           sta     VDC_BG_COLOR
+FD87 3502                             puls    a
+FD89 B70407                           sta     VDC_CURRENT_SPRITE
+FD8C 3B                               rti
                       
-FD8C 3B               timer_interrupt rti
+FD8D 3B               timer_interrupt rti
                       
                       ; handle loading of binary and jump to code if successful
-FD8D B60484           core_interrupt  lda     CORE_FILE_DATA          ; first value $00?
-FD90 2636                             bne     core_int_end            ; no
-FD92 B60484           1               lda     CORE_FILE_DATA          ; yes, start chunk
-FD95 F60484                           ldb     CORE_FILE_DATA
-FD98 1F02                             tfr     d,y                     ; y holds size
-FD9A B60484                           lda     CORE_FILE_DATA
-FD9D F60484                           ldb     CORE_FILE_DATA
-FDA0 1F01                             tfr     d,x                     ; x holds memory location
-FDA2 B60484           2               lda     CORE_FILE_DATA          ; get a byte
-FDA5 A780                             sta     ,x+
-FDA7 313F                             leay    -1,y
-FDA9 26F7                             bne     2b                      ; finished?
-FDAB B60484                           lda     CORE_FILE_DATA
-FDAE 27E2                             beq     1b                      ; is $00 start another chunk
-FDB0 81FF                             cmpa    #$ff
-FDB2 2614                             bne     core_int_end            ; not equal
-FDB4 B60484                           lda     CORE_FILE_DATA
-FDB7 260F                             bne     core_int_end            ; not equal to zero
-FDB9 B60484                           lda     CORE_FILE_DATA
-FDBC 260A                             bne     core_int_end            ; not equal to zero
-FDBE B60484                           lda     CORE_FILE_DATA
-FDC1 F60484                           ldb     CORE_FILE_DATA          ; d now contains execution address
-FDC4 DD01                             std     execution_addr          ; store it
-FDC6 0C03                             inc     binary_ready            ; %00000001
-FDC8 3B               core_int_end    rti
+FD8E B60484           core_interrupt  lda     CORE_FILE_DATA          ; first value $00?
+FD91 2636                             bne     core_int_end            ; no
+FD93 B60484           1               lda     CORE_FILE_DATA          ; yes, start chunk
+FD96 F60484                           ldb     CORE_FILE_DATA
+FD99 1F02                             tfr     d,y                     ; y holds size
+FD9B B60484                           lda     CORE_FILE_DATA
+FD9E F60484                           ldb     CORE_FILE_DATA
+FDA1 1F01                             tfr     d,x                     ; x holds memory location
+FDA3 B60484           2               lda     CORE_FILE_DATA          ; get a byte
+FDA6 A780                             sta     ,x+
+FDA8 313F                             leay    -1,y
+FDAA 26F7                             bne     2b                      ; finished?
+FDAC B60484                           lda     CORE_FILE_DATA
+FDAF 27E2                             beq     1b                      ; is $00 start another chunk
+FDB1 81FF                             cmpa    #$ff
+FDB3 2614                             bne     core_int_end            ; not equal
+FDB5 B60484                           lda     CORE_FILE_DATA
+FDB8 260F                             bne     core_int_end            ; not equal to zero
+FDBA B60484                           lda     CORE_FILE_DATA
+FDBD 260A                             bne     core_int_end            ; not equal to zero
+FDBF B60484                           lda     CORE_FILE_DATA
+FDC2 F60484                           ldb     CORE_FILE_DATA          ; d now contains execution address
+FDC5 DD01                             std     execution_addr          ; store it
+FDC7 0C03                             inc     binary_ready            ; %00000001
+FDC9 3B               core_int_end    rti
                       
                       ; prng / rnd routine, value contained in ac
                       ; see:
@@ -358,66 +358,66 @@ FDC8 3B               core_int_end    rti
                       ;
                       ;
                       ;
-FDC9 0CFF             rnd_impl        inc     rndx
-FDCB 96FC                             lda     rnda
-FDCD 98FE                             eora    rndc
-FDCF 98FF                             eora    rndx
-FDD1 97FC                             sta     rnda
-FDD3 9BFD                             adda    rndb
-FDD5 97FD                             sta     rndb
-FDD7 44                               lsra
-FDD8 9BFE                             adda    rndc
-FDDA 98FC                             eora    rnda
-FDDC 97FE                             sta     rndc
-FDDE 39                               rts
+FDCA 0CFF             rnd_impl        inc     rndx
+FDCC 96FC                             lda     rnda
+FDCE 98FE                             eora    rndc
+FDD0 98FF                             eora    rndx
+FDD2 97FC                             sta     rnda
+FDD4 9BFD                             adda    rndb
+FDD6 97FD                             sta     rndb
+FDD8 44                               lsra
+FDD9 9BFE                             adda    rndc
+FDDB 98FC                             eora    rnda
+FDDD 97FE                             sta     rndc
+FDDF 39                               rts
                       
-FDDF 6E9F0208         1               jmp     [VECTOR_IRQ_INDIRECT]
+FDE0 6E9F0208         1               jmp     [VECTOR_IRQ_INDIRECT]
                       
-FDE3 0000             logo_tiles      fcb     %00000000,%00000000     ; tile 1 (icon upper left)
-FDE5 0100                             fcb     %00000001,%00000000
-FDE7 0780                             fcb     %00000111,%10000000
-FDE9 07A0                             fcb     %00000111,%10100000
-FDEB 1EF8                             fcb     %00011110,%11111000
-FDED 1EAF                             fcb     %00011110,%10101111
-FDEF 1EAA                             fcb     %00011110,%10101010
-FDF1 1EAF                             fcb     %00011110,%10101111
+FDE4 0000             logo_tiles      fcb     %00000000,%00000000     ; tile 1 (icon upper left)
+FDE6 0100                             fcb     %00000001,%00000000
+FDE8 0780                             fcb     %00000111,%10000000
+FDEA 07A0                             fcb     %00000111,%10100000
+FDEC 1EF8                             fcb     %00011110,%11111000
+FDEE 1EAF                             fcb     %00011110,%10101111
+FDF0 1EAA                             fcb     %00011110,%10101010
+FDF2 1EAF                             fcb     %00011110,%10101111
                       
-FDF3 0000                             fcb     %00000000,%00000000     ; tile 2 (icon upper right)
-FDF5 0000                             fcb     %00000000,%00000000
-FDF7 0000                             fcb     %00000000,%00000000
-FDF9 0000                             fcb     %00000000,%00000000
-FDFB 0000                             fcb     %00000000,%00000000
-FDFD 0000                             fcb     %00000000,%00000000
-FDFF C000                             fcb     %11000000,%00000000
-FE01 B000                             fcb     %10110000,%00000000
+FDF4 0000                             fcb     %00000000,%00000000     ; tile 2 (icon upper right)
+FDF6 0000                             fcb     %00000000,%00000000
+FDF8 0000                             fcb     %00000000,%00000000
+FDFA 0000                             fcb     %00000000,%00000000
+FDFC 0000                             fcb     %00000000,%00000000
+FDFE 0000                             fcb     %00000000,%00000000
+FE00 C000                             fcb     %11000000,%00000000
+FE02 B000                             fcb     %10110000,%00000000
                       
-FE03 1EFA                             fcb     %00011110,%11111010     ; tile 3 (icon bottom left)
-FE05 07AA                             fcb     %00000111,%10101010
-FE07 07AB                             fcb     %00000111,%10101011
-FE09 01EB                             fcb     %00000001,%11101011
-FE0B 007E                             fcb     %00000000,%01111110
-FE0D 0017                             fcb     %00000000,%00010111
-FE0F 0001                             fcb     %00000000,%00000001
-FE11 0000                             fcb     %00000000,%00000000
+FE04 1EFA                             fcb     %00011110,%11111010     ; tile 3 (icon bottom left)
+FE06 07AA                             fcb     %00000111,%10101010
+FE08 07AB                             fcb     %00000111,%10101011
+FE0A 01EB                             fcb     %00000001,%11101011
+FE0C 007E                             fcb     %00000000,%01111110
+FE0E 0017                             fcb     %00000000,%00010111
+FE10 0001                             fcb     %00000000,%00000001
+FE12 0000                             fcb     %00000000,%00000000
                       
-FE13 EC00                             fcb     %11101100,%00000000     ; tile 4 (icon bottom right)
-FE15 EE00                             fcb     %11101110,%00000000
-FE17 AB80                             fcb     %10101011,%10000000
-FE19 ABA0                             fcb     %10101011,%10100000
-FE1B AAF4                             fcb     %10101010,%11110100
-FE1D FF50                             fcb     %11111111,%01010000
-FE1F 5500                             fcb     %01010101,%00000000
-FE21 0000                             fcb     %00000000,%00000000
+FE14 EC00                             fcb     %11101100,%00000000     ; tile 4 (icon bottom right)
+FE16 EE00                             fcb     %11101110,%00000000
+FE18 AB80                             fcb     %10101011,%10000000
+FE1A ABA0                             fcb     %10101011,%10100000
+FE1C AAF4                             fcb     %10101010,%11110100
+FE1E FF50                             fcb     %11111111,%01010000
+FE20 5500                             fcb     %01010101,%00000000
+FE22 0000                             fcb     %00000000,%00000000
                       
 FFED                                  org     $fff0 - (vectors - rnd)
                       
-FFED 7EFDC9           rnd             jmp     rnd_impl
+FFED 7EFDCA           rnd             jmp     rnd_impl
                       
 FFF0 0000             vectors         fdb     $0000
 FFF2 0000                             fdb     $0000
 FFF4 0000                             fdb     $0000
 FFF6 0000                             fdb     $0000
-FFF8 FDDF                             fdb     1b              ; irq vector
+FFF8 FDE0                             fdb     1b              ; irq vector
 FFFA 0000                             fdb     $0000
 FFFC 0000                             fdb     $0000
 FFFE FC19                             fdb     reset           ; reset vector

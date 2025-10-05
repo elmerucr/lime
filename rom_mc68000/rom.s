@@ -65,10 +65,10 @@ _start
 	bne	.3
 
 ; set variable for letter wobble
-	move.b	#$40,LOGO_ANIMATION.w
+	move.b	#$68,LOGO_ANIMATION.w
 
-; set raster irq on scanline 159
-	move.b	#$9f,VDC_IRQ_SCANLINE_LSB		; rasterline 159
+; set raster irq on scanline 179
+	move.b	#$b3,VDC_IRQ_SCANLINE_LSB		; rasterline 179
 	move.b	#%00000001,VDC_CR			; enable irq's for vdc
 
 
@@ -120,11 +120,11 @@ exc_lvl6_irq_auto				; coupled to vdc
 
 	move.b	LOGO_ANIMATION,D0
 	addq.b	#$1,D0
-	cmp.b	#$90,D0
+	cmp.b	#$b8,D0
 	bne	.1
 	move.b	#%00000001,CORE_CR		; activate irq's for binary insert
 						; this makes sure letters wobble at least 1 time
-	clr.b	D0
+	move.b	#$48,D0
 
 .1	move.b	D0,LOGO_ANIMATION
 
@@ -145,6 +145,8 @@ exc_lvl6_irq_auto				; coupled to vdc
 	bne	.2				; not yet, jump to .2
 
 .end	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w
+	;add.w	#1,$410
+	;add.b	#1,$413
 	move.b	(SP)+,VDC_CURRENT_SPRITE
 	movem.l	(SP)+,D0-D1
 	rte
@@ -168,14 +170,14 @@ sound_reset
 	rts
 
 logo_data
-	dc.b	0,112,0,74,%111,0,$1c	; icon top left
-	dc.b	0,120,0,74,%111,0,$1d	; icon top right
-	dc.b	0,112,0,82,%111,0,$1e	; icon bottom left
-	dc.b	0,120,0,82,%111,0,$1f	; icon bottom right
-	dc.b	0,107,0,90,%111,0,$6c	; l
-	dc.b	0,112,0,90,%111,0,$69	; i
-	dc.b	0,118,0,90,%111,0,$6d	; m
-	dc.b	0,126,0,90,%111,0,$65	; e
+	dc.b	0,152,0,74,%111,0,$1c	; icon top left
+	dc.b	0,160,0,74,%111,0,$1d	; icon top right
+	dc.b	0,152,0,82,%111,0,$1e	; icon bottom left
+	dc.b	0,160,0,82,%111,0,$1f	; icon bottom right
+	dc.b	0,147,0,90,%111,0,$6c	; l
+	dc.b	0,152,0,90,%111,0,$69	; i
+	dc.b	0,158,0,90,%111,0,$6d	; m
+	dc.b	0,166,0,90,%111,0,$65	; e
 
 logo_tiles
 	dc.b	%00000000,%00000000	; tile 1 (icon upper left)

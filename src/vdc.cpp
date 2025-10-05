@@ -89,7 +89,7 @@ void vdc_t::reset()
 	generate_interrupts = false;
 }
 
-void vdc_t::draw_layer(layer_t *l, uint8_t sl)
+void vdc_t::draw_layer(layer_t *l, uint16_t sl)
 {
 	if (l->flags0 & 0b1) {
 		// Determine tileset
@@ -105,14 +105,14 @@ void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 			uint8_t y_in_tile = y % 8;
 
 			for (uint16_t scr_x = 0; scr_x < VDC_XRES; scr_x++) {
-				uint8_t x = (l->x + scr_x) & 0xff;
+				uint16_t x = (l->x + scr_x) & 0x1ff;
 
 				if (l->flags1 & 0b00010000) {
 					x >>= 1;
 				}
 
 				uint8_t px = x % 4;
-				uint8_t tile_index = ram[(l->address + ((y >> 3) << 5) + (x >> 3)) & 0xffff];
+				uint8_t tile_index = ram[(l->address + ((y >> 3) << 6) + (x >> 3)) & 0xffff];
 
 				uint8_t result =
 					(ram[tileset + (tile_index << 4) + (y_in_tile << 1) + ((x & 0x4) ? 1 : 0)] &
@@ -126,7 +126,7 @@ void vdc_t::draw_layer(layer_t *l, uint8_t sl)
 	}
 }
 
-void vdc_t::draw_sprite(sprite_t *s, uint8_t sl, layer_t *l)
+void vdc_t::draw_sprite(sprite_t *s, uint16_t sl, layer_t *l)
 {
 	if (s->flags0 & 0b1) {
 		// Determine tileset
@@ -251,10 +251,9 @@ uint8_t vdc_t::io_read8(uint16_t address)
 
 		// layers
 		case 0x10:
-			// reserved
-			return 0;
+			return (layer[current_layer].x & 0xff00) >> 8;
 		case 0x11:
-			return layer[current_layer].x;
+			return layer[current_layer].x & 0xff;
 		case 0x12:
 			// reserved
 			return 0;
@@ -279,10 +278,9 @@ uint8_t vdc_t::io_read8(uint16_t address)
 
 		// sprites
 		case 0x20:
-			// reserved
-			return 0;
+			return (sprite[current_sprite].x & 0xff00) >> 8;
 		case 0x21:
-			return sprite[current_sprite].x;
+			return sprite[current_sprite].x & 0xff;
 		case 0x22:
 			// reserved
 			return 0;
@@ -370,10 +368,10 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 
 		// layers
 		case 0x10:
-			// reserved
+			layer[current_layer].x = (layer[current_layer].x & 0x00ff) | (value << 8);
 			break;
 		case 0x11:
-			layer[current_layer].x = value;
+			layer[current_layer].x = (layer[current_layer].x & 0xff00) | value;
 			break;
 		case 0x12:
 			// reserved
@@ -408,10 +406,10 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 
 		// sprites
 		case 0x20:
-			// reserved
+			sprite[current_sprite].x = (sprite[current_sprite].x & 0x00ff) | (value << 8);
 			break;
 		case 0x21:
-			sprite[current_sprite].x = value;
+			sprite[current_sprite].x = (sprite[current_sprite].x & 0xff00) | value;
 			break;
 		case 0x22:
 			// reserved

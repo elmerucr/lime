@@ -40,8 +40,8 @@
 #include "font_cbm_8x8.hpp"
 
 struct layer_t {
-	uint8_t x{0};
-	uint8_t y{0};
+	uint16_t x{0};
+	uint8_t  y{0};
 
 	// -----------------------------------------------------------------
 	// flags0
@@ -78,8 +78,8 @@ struct layer_t {
 
 struct sprite_t {
 	// x and y positions
-	uint8_t x{0};
-	uint8_t y{0};
+	uint16_t x{0};
+	uint8_t  y{0};
 
 	// -----------------------------------------------------------------
 	// flags0
@@ -129,8 +129,8 @@ private:
 	uint8_t current_palette;
 
 	void draw_scanline(uint16_t scanline);
-	void draw_layer(layer_t *l, uint8_t sl);
-	void draw_sprite(sprite_t *s, uint8_t sl, layer_t *t);
+	void draw_layer(layer_t *l, uint16_t sl);
+	void draw_sprite(sprite_t *s, uint16_t sl, layer_t *t);
 
 	exceptions_ic *exceptions;
 	sn74ls148_t *sn74ls148;

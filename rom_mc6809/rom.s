@@ -68,7 +68,7 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		bne	3b			; no, continue at 1
 
 ; set variable for letter wobble
-		lda	#$40
+		lda	#$68
 		sta	logo_animation
 
 ; set jump vectors
@@ -82,8 +82,8 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldx	#vdc_interrupt
 		stx	VECTOR_VDC_INDIRECT
 
-; set raster irq on scanline 159
-		lda	#$9f
+; set raster irq on scanline 179
+		lda	#$b3
 		sta	VDC_IRQ_SCANLINE_LSB
 		lda	#%00000001
 		sta	VDC_CR		; enable irq's for vdc
@@ -140,14 +140,14 @@ sound_reset	pshu	y,b,a
 		pulu	y,b,a
 		rts
 
-logo_data	fcb	0,112,0,74,%111,0,$1c		; icon top left
-		fcb	0,120,0,74,%111,0,$1d		; icon top right
-		fcb	0,112,0,82,%111,0,$1e		; icon bottom left
-		fcb	0,120,0,82,%111,0,$1f		; icon bottom right
-		fcb	0,107,0,90,%111,0,$6c		; l
-		fcb	0,112,0,90,%111,0,$69		; i
-		fcb	0,118,0,90,%111,0,$6d		; m
-		fcb	0,126,0,90,%111,0,$65		; e
+logo_data	fcb	0,152,0,74,%111,0,$1c		; icon top left
+		fcb	0,160,0,74,%111,0,$1d		; icon top right
+		fcb	0,152,0,82,%111,0,$1e		; icon bottom left
+		fcb	0,160,0,82,%111,0,$1f		; icon bottom right
+		fcb	0,147,0,90,%111,0,$6c		; l
+		fcb	0,152,0,90,%111,0,$69		; i
+		fcb	0,158,0,90,%111,0,$6d		; m
+		fcb	0,166,0,90,%111,0,$65		; e
 
 exc_irq		lda	TIMER_SR		; load timer status register
 		beq	exc_vdc
@@ -176,12 +176,12 @@ vdc_interrupt	lda	VDC_CURRENT_SPRITE
 		pshs	a
 		lda	logo_animation
 		inca
-		cmpa	#$90
+		cmpa	#$b8
 		bne	1f			; didn't reach #$90
 		lda	#%00000001		; we did reach #$90
 		sta	CORE_CR			; activate irq's for binary insert
 						; this makes sure letters wobble at least 1 time
-		clra
+		lda	#$68
 
 1		sta	logo_animation
 
