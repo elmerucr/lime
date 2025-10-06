@@ -86,7 +86,7 @@ struct sprite_t {
 	//
 	// bit 7 6 5 4 3 2 1 0
 	//             | | | |
-	//             | | | +- unactive (0b0) / active (1)
+	//             | | | +- unactive (0) / active (1)
 	//             | | +--- tileset 0 (0) / tileset 1 (1)
 	//             | +----- 0b00 patterns code to opaque (0) or transparent (1)
 	//             +------- x pos relative to screen (0) or associated layer (1)
