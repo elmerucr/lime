@@ -79,7 +79,7 @@ struct layer_t {
 struct sprite_t {
 	// x and y positions
 	uint16_t x{0};
-	uint8_t  y{0};
+	uint16_t y{0};
 
 	// -----------------------------------------------------------------
 	// flags0

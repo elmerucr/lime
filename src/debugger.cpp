@@ -949,7 +949,7 @@ void debugger_t::enter_dgc_line(char *buffer)
 			terminal->bg_color = system->core->vdc->palette[terminal_graphics_colors[i]];
 			terminal->printf("    ");
 		}
-		terminal->bg_color = PUNCH_BLUE;
+		terminal->bg_color = (PUNCH_BLUE & 0x00ffffff) | 0xe0000000;
 	}
 }
 

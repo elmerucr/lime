@@ -145,8 +145,8 @@ exc_lvl6_irq_auto				; coupled to vdc
 	bne	.2				; not yet, jump to .2
 
 .end	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w
-	;add.w	#1,$410
-	;add.b	#1,$413
+	add.w	#1,$410	; TODO
+	;add.w	#1,$422
 	move.b	(SP)+,VDC_CURRENT_SPRITE
 	movem.l	(SP)+,D0-D1
 	rte

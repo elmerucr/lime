@@ -129,43 +129,50 @@ void vdc_t::draw_layer(layer_t *l, uint16_t sl)
 void vdc_t::draw_sprite(sprite_t *s, uint16_t sl, layer_t *l)
 {
 	if (s->flags0 & 0b1) {
-		// Determine tileset
+		// Determine tileset and assign appropriate address
 		uint16_t tileset = (s->flags0 & 0b10) ? VDC_TILESET1_ADDRESS : VDC_TILESET0_ADDRESS;
 
 		// Subtract sprite y position from scanline, remainder is y position in sprite
-		uint8_t y = sl - s->y;
+		uint16_t y = sl - s->y;
 
-		// Determine vertical size
+		// Determine vertical size, and adjust y accordingly
 		if (s->flags1 & 0b01000000) {
 			y >>= 1;
 		}
 
 		// if y < 8, it's in range of the sprite
 		if (y < 8) {
-			// test if position is relative to layer
-			uint8_t adj_x = s->x - ((s->flags0 & 0b1000) ? l->x : 0);
+			// if position is relative to layer, adjust x
+			uint16_t adj_x = s->x - ((s->flags0 & 0b1000) ? l->x : 0);
 
-			uint8_t start_x, end_x;
+			adj_x &= 0x1ff;
 
-			uint8_t width = 8;
+			uint16_t start_x, end_x;
+
+			uint16_t width = 8;
 
 			if (s->flags1 & 0b00010000) {
 				width <<= 1;
 			}
 
-			if (s->x < VDC_XRES) {
+			if (adj_x < VDC_XRES) {
+				// sprite is on the left of the right edge
 				start_x = adj_x;
 				end_x = ((adj_x + width) > VDC_XRES) ? VDC_XRES : (adj_x + width);
-			} else if (adj_x >= (256 - width)) {
+			} else if (adj_x >= (0x200 - width)) {
+				//
 				start_x = 0;
-				end_x = adj_x + width;
+				end_x = (adj_x + width) & 0x1ff;
+			} else {
+				// not visible
+				start_x = end_x = 0;
 			}
 
 			// test flip vertical
 			if (s->flags1 & 0b00000010) y = 7 - y;
 
-			for (uint8_t scr_x=start_x; scr_x<end_x; scr_x++) {
-				uint8_t x = scr_x - adj_x;
+			for (uint16_t scr_x = start_x; scr_x < end_x; scr_x++) {
+				uint16_t x = scr_x - adj_x;
 
 				// Check for double width
 				if (s->flags1 & 0b00010000) {
@@ -282,10 +289,9 @@ uint8_t vdc_t::io_read8(uint16_t address)
 		case 0x21:
 			return sprite[current_sprite].x & 0xff;
 		case 0x22:
-			// reserved
-			return 0;
+			return (sprite[current_sprite].y & 0xff00) >> 8;
 		case 0x23:
-			return sprite[current_sprite].y;
+			return sprite[current_sprite].y & 0xff;
 		case 0x24:
 			return sprite[current_sprite].flags0;
 		case 0x25:
@@ -412,10 +418,10 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			sprite[current_sprite].x = (sprite[current_sprite].x & 0xff00) | value;
 			break;
 		case 0x22:
-			// reserved
+			sprite[current_sprite].y = (sprite[current_sprite].y & 0x00ff) | (value << 8);
 			break;
 		case 0x23:
-			sprite[current_sprite].y = value;
+			sprite[current_sprite].y = (sprite[current_sprite].y & 0xff00) |  value;
 			break;
 		case 0x24:
 			sprite[current_sprite].flags0 = value & 0b00001111;
