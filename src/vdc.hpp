@@ -41,7 +41,7 @@
 
 struct layer_t {
 	uint16_t x{0};
-	uint8_t  y{0};
+	uint16_t y{0};
 
 	// -----------------------------------------------------------------
 	// flags0
@@ -85,11 +85,12 @@ struct sprite_t {
 	// flags0
 	//
 	// bit 7 6 5 4 3 2 1 0
-	//             | | | |
-	//             | | | +- unactive (0) / active (1)
-	//             | | +--- tileset 0 (0) / tileset 1 (1)
-	//             | +----- 0b00 patterns code to opaque (0) or transparent (1)
-	//             +------- x pos relative to screen (0) or associated layer (1)
+	//         | |   | | |
+	//         | |   | | +- unactive (0) / active (1)
+	//         | |   | +--- tileset 0 (0) / tileset 1 (1)
+	//         | |   +----- 0b00 patterns code to opaque (0) or transparent (1)
+	//         | +--------- x pos relative to screen (0) or associated layer (1)
+	//         +----------- y pos relative to screen (0) or associated layer (1)
 	// -----------------------------------------------------------------
 	uint8_t flags0{0b00000000};
 

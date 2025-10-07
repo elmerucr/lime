@@ -15,13 +15,13 @@ Lime is a virtual computer system that draws inspiration from computing platform
 
 ### Startup screen
 
-![icon](./docs/20250110_screenshot_startup.png)
+![icon](./docs/20251007_screenshot_startup.png)
 
 ### Debug screen
 
 ![icon](./docs/20251007_screenshot_debug_mc68000.png)
 
-![icon](./docs/20250920_screenshot_debug_mc6809.png)
+![icon](./docs/20251007_screenshot_debug_mc6809.png)
 
 ## Memory Map
 
@@ -42,11 +42,11 @@ Lime is a virtual computer system that draws inspiration from computing platform
 0x000600 - 0x0007ff unused / reserved (512b)
 0x000800 - 0x0017ff tileset bank 0 (2kb)
 0x001000 - 0x001fff overlapping tileset bank 1 / tileset rom (2kb)
-0x002000 - 0x0023ff layer 0 (1kb)
-0x002400 - 0x0027ff layer 1 (1kb)
-0x002800 - 0x002bff layer 2 (1kb)
-0x002c00 - 0x002fff layer 3 (1kb)
-0x003000 - 0x00ffff available ram (52kb)
+0x002000 - 0x0027ff layer 0 (2kb)
+0x002800 - 0x002fff layer 1 (2kb)
+0x003000 - 0x0037ff layer 2 (2kb)
+0x003800 - 0x003fff layer 3 (2kb)
+0x004000 - 0x00ffff available ram (48kb)
 0x010000 - 0x01ffff system rom (64kb)
 0x020000 - 0xffffff available ram (16256kb)
 ```

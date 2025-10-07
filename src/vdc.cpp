@@ -132,8 +132,11 @@ void vdc_t::draw_sprite(sprite_t *s, uint16_t sl, layer_t *l)
 		// Determine tileset and assign appropriate address
 		uint16_t tileset = (s->flags0 & 0b10) ? VDC_TILESET1_ADDRESS : VDC_TILESET0_ADDRESS;
 
+		// if sprite y position relative to layer, adjust
+		uint16_t y = s->y - ((s->flags0 & 0b100000) ? l->y : 0);
+
 		// Subtract sprite y position from scanline, remainder is y position in sprite
-		uint16_t y = sl - s->y;
+		y = (sl - y) & 0xff;
 
 		// Determine vertical size, and adjust y accordingly
 		if (s->flags1 & 0b01000000) {
@@ -143,7 +146,7 @@ void vdc_t::draw_sprite(sprite_t *s, uint16_t sl, layer_t *l)
 		// if y < 8, it's in range of the sprite
 		if (y < 8) {
 			// if position is relative to layer, adjust x
-			uint16_t adj_x = s->x - ((s->flags0 & 0b1000) ? l->x : 0);
+			uint16_t adj_x = s->x - ((s->flags0 & 0b10000) ? l->x : 0);
 
 			adj_x &= 0x1ff;
 
@@ -262,10 +265,9 @@ uint8_t vdc_t::io_read8(uint16_t address)
 		case 0x11:
 			return layer[current_layer].x & 0xff;
 		case 0x12:
-			// reserved
-			return 0;
+			return (layer[current_layer].y & 0xff00) >> 8;
 		case 0x13:
-			return layer[current_layer].y;
+			return layer[current_layer].y & 0xff;
 		case 0x14:
 			return layer[current_layer].flags0;
 		case 0x15:
@@ -380,10 +382,10 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			layer[current_layer].x = (layer[current_layer].x & 0xff00) | value;
 			break;
 		case 0x12:
-			// reserved
+			layer[current_layer].y = (layer[current_layer].y & 0x00ff) | (value << 8);
 			break;
 		case 0x13:
-			layer[current_layer].y = value;
+			layer[current_layer].y = (layer[current_layer].y & 0xff00) | value;
 			break;
 		case 0x14:
 			layer[current_layer].flags0 = value & 0b00000111;
@@ -424,7 +426,7 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			sprite[current_sprite].y = (sprite[current_sprite].y & 0xff00) |  value;
 			break;
 		case 0x24:
-			sprite[current_sprite].flags0 = value & 0b00001111;
+			sprite[current_sprite].flags0 = value & 0b00110111;
 			break;
 		case 0x25:
 			sprite[current_sprite].flags1 = value & 0b01010111;
