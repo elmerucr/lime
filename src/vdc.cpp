@@ -133,18 +133,19 @@ void vdc_t::draw_sprite(sprite_t *s, uint16_t sl, layer_t *l)
 		uint16_t tileset = (s->flags0 & 0b10) ? VDC_TILESET1_ADDRESS : VDC_TILESET0_ADDRESS;
 
 		// if sprite y position relative to layer, adjust
-		uint16_t y = s->y - ((s->flags0 & 0b100000) ? l->y : 0);
+		uint16_t adj_y = s->y - ((s->flags0 & 0b100000) ? l->y : 0);
 
-		// Subtract sprite y position from scanline, remainder is y position in sprite
-		y = (sl - y) & 0xff;
+		// Subtract sprite y position from scanline, remainder is y position
+		// in sprite. It wraps around 256 (height of 32 tiles of 8x8)
+		uint16_t y_in_sprite = (sl - adj_y) & 0xff;
 
 		// Determine vertical size, and adjust y accordingly
 		if (s->flags1 & 0b01000000) {
-			y >>= 1;
+			y_in_sprite >>= 1;
 		}
 
-		// if y < 8, it's in range of the sprite
-		if (y < 8) {
+		// if y_in_sprite < 8, it's in range of the sprite (values 0 to 7 are valid)
+		if (y_in_sprite < 8) {
 			// if position is relative to layer, adjust x
 			uint16_t adj_x = s->x - ((s->flags0 & 0b10000) ? l->x : 0);
 
@@ -172,7 +173,7 @@ void vdc_t::draw_sprite(sprite_t *s, uint16_t sl, layer_t *l)
 			}
 
 			// test flip vertical
-			if (s->flags1 & 0b00000010) y = 7 - y;
+			if (s->flags1 & 0b00000010) y_in_sprite = 7 - y_in_sprite;
 
 			for (uint16_t scr_x = start_x; scr_x < end_x; scr_x++) {
 				uint16_t x = scr_x - adj_x;
@@ -186,10 +187,10 @@ void vdc_t::draw_sprite(sprite_t *s, uint16_t sl, layer_t *l)
 				if (s->flags1 & 0b00000001) x = 7 - x;
 
 				// test flip xy flag, if 1, swap x and y
-				if (s->flags1 & 0b00000100) { uint8_t t = x; x = y; y = t; }
+				if (s->flags1 & 0b00000100) { uint8_t t = x; x = y_in_sprite; y_in_sprite = t; }
 
 				// look up color value (result) from tile
-				uint8_t result = (ram[tileset + (s->index << 4) + (y << 1) + ((x & 0x4) ? 1 : 0)] &
+				uint8_t result = (ram[tileset + (s->index << 4) + (y_in_sprite << 1) + ((x & 0x4) ? 1 : 0)] &
 					(0b11 << (2 * (3 - (x%4))))) >> (2 * (3 - (x%4)));
 
 				// if NOT (transparent AND 0b00) then pixel must be written
@@ -198,7 +199,7 @@ void vdc_t::draw_sprite(sprite_t *s, uint16_t sl, layer_t *l)
 				}
 
 				// restore y, if xy flip was done before
-				if (s->flags1 & 0b00000100) y = x;
+				if (s->flags1 & 0b00000100) y_in_sprite = x;
 			}
 		}
 	}

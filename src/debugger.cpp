@@ -75,7 +75,7 @@ debugger_t::debugger_t(system_t *s)
 	print_version();
 	terminal->activate_cursor();
 
-	status1 = new terminal_t(system, 60, 25, PICOTRON_V5_1A, (LIME_COLOR_00 & 0x00ffffff) | 0xe0000000);
+	status1 = new terminal_t(system, 80, 25, PICOTRON_V5_1A, (LIME_COLOR_00 & 0x00ffffff) | 0xe0000000);
 	exception_status = new terminal_t(system, 20, 5, PICOTRON_V5_1A, 0xff000000);
 	vdc_status = new terminal_t(system, 16, 6, PICOTRON_V5_1A, 0xff000000);
 }
@@ -118,14 +118,14 @@ void debugger_t::redraw()
 		uint32_t isp = system->core->mc68000->getISP();
 		uint32_t usp = system->core->mc68000->getUSP();
 		status1->printf(
-			"\n-----------------------Motorola 68000-----------------------"
-			"   D0:%08x   D4:%08x    A0:%08x   A4:%08x\n"
-			"   D1:%08x   D5:%08x    A1:%08x   A5:%08x\n"
-			"   D2:%08x   D6:%08x    A2:%08x   A6:%08x\n"
-			"   D3:%08x   D7:%08x    A3:%08x   A7:%08x\n\n"
-			"     PC:%08x    SR:%04x (%s)    IPL:%i\n\n"
-			"    SSP:%08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n"
-			"    USP:%08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n",
+			"---------------------------------Motorola 68000---------------------------------\n"
+			"             D0:%08x   D4:%08x    A0:%08x   A4:%08x\n"
+			"             D1:%08x   D5:%08x    A1:%08x   A5:%08x\n"
+			"             D2:%08x   D6:%08x    A2:%08x   A6:%08x\n"
+			"             D3:%08x   D7:%08x    A3:%08x   A7:%08x\n\n"
+			"               PC:%08x    SR:%04x (%s)    IPL:%i\n\n"
+			"              SSP:%08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n"
+			"              USP:%08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n",
 
 			system->core->mc68000->getD(0),
 			system->core->mc68000->getD(4),
@@ -174,11 +174,11 @@ void debugger_t::redraw()
 		);
 
 		status1->printf(
-			"\n------------------------disassembler------------------------"
+			"\n----------------------------------disassembler----------------------------------\n"
 		);
 		uint32_t pc = system->core->mc68000->getPC();
 		uint32_t new_pc;
-		for (int i=0; i<5; i++) {
+		for (int i=0; i<4; i++) {
 			new_pc = pc + system->core->mc68000->disassemble(text_buffer, pc);
 			if (system->core->mc68000->debugger.breakpoints.isSetAt(pc)) {
 				status1->fg_color = 0xffe04040;	// orange
@@ -200,7 +200,7 @@ void debugger_t::redraw()
 		uint16_t usp = system->core->mc6809->get_us() & 0xffff;
 
 		system->core->mc6809->status(text_buffer, 1024);
-		status1->printf("\n-----------------------Motorola 6809------------------------%s", text_buffer);
+		status1->printf("-----------------------Motorola 6809--------------------------------------------\n%s", text_buffer);
 		status1->printf(
 			"\n\n      system stack: %04x %02x %02x %02x %02x %02x %02x %02x %02x",
 			ssp, system->core->read8(ssp), system->core->read8(ssp+1), system->core->read8(ssp+2),
@@ -213,7 +213,7 @@ void debugger_t::redraw()
 			system->core->read8(usp+3), system->core->read8(usp+4), system->core->read8(usp+5),
 			system->core->read8(usp+6), system->core->read8(usp+7)
 		);
-		status1->printf("\n\n------------------------disassembler------------------------");
+		status1->printf("\n\n------------------------disassembler--------------------------------------------");
 		uint16_t pc = system->core->mc6809->get_pc();
 		for (int i=0; i<9; i++) {
 			pc += disassemble_instruction_status1(pc);

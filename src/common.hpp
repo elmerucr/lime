@@ -13,7 +13,7 @@
 // ---------------------------------------------------------------------
 #define LIME_MAJOR_VERSION		0
 #define LIME_MINOR_VERSION		10
-#define LIME_BUILD				20251007
+#define LIME_BUILD				20251008
 #define LIME_YEAR				2025
 
 // ---------------------------------------------------------------------
@@ -23,7 +23,7 @@
 #define	VDC_RAM_MASK				(VDC_RAM-1)
 #define VDC_XRES					320
 #define VDC_YRES					180
-#define VDC_SCANLINES				278
+#define VDC_SCANLINES				(180+80)
 
 #define VDC_TILESET0_ADDRESS		0x0800
 #define VDC_TILESET1_ADDRESS		0x1000
@@ -40,7 +40,7 @@
 // ---------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------
-#define CORE_CYCLES_PER_SCANLINE	60
+#define CORE_CYCLES_PER_SCANLINE	64
 #define CORE_CYCLES_PER_FRAME		(CORE_CYCLES_PER_SCANLINE*VDC_SCANLINES)
 #define CORE_CLOCK_SPEED			(CORE_CYCLES_PER_FRAME*FPS)
 
