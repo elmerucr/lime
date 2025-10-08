@@ -76,8 +76,9 @@ debugger_t::debugger_t(system_t *s)
 	terminal->activate_cursor();
 
 	status1 = new terminal_t(system, 80, 25, PICOTRON_V5_1A, (LIME_COLOR_00 & 0x00ffffff) | 0xe0000000);
-	exception_status = new terminal_t(system, 20, 5, PICOTRON_V5_1A, 0xff000000);
-	vdc_status = new terminal_t(system, 16, 6, PICOTRON_V5_1A, 0xff000000);
+	mc6809_status = new terminal_t(system, 60, 2, PICOTRON_V5_1A, 0xff000000);
+	exception_status = new terminal_t(system, 22, 5, PICOTRON_V5_1A, 0xff000000);
+	vdc_status = new terminal_t(system, 20, 6, PICOTRON_V5_1A, 0xff000000);
 }
 
 debugger_t::~debugger_t()
@@ -85,6 +86,7 @@ debugger_t::~debugger_t()
 	delete vdc_status;
 	delete exception_status;
 	delete status1;
+	delete mc6809_status;
 	delete terminal;
 	delete [] buffer;
 }
@@ -113,6 +115,7 @@ void debugger_t::redraw()
 
 	// update status text
 	status1->clear();
+	mc6809_status->clear();
 	if (system->core->mc68000_active) {
 		system->core->mc68000->disassembleSR(text_buffer);
 		uint32_t isp = system->core->mc68000->getISP();
@@ -200,19 +203,29 @@ void debugger_t::redraw()
 		uint16_t usp = system->core->mc6809->get_us() & 0xffff;
 
 		system->core->mc6809->status(text_buffer, 1024);
-		status1->printf("-----------------------Motorola 6809--------------------------------------------\n%s", text_buffer);
+		mc6809_status->printf("%s", text_buffer);
+		status1->printf("---------------------------------Motorola 6809----------------------------------\n");
 		status1->printf(
-			"\n\n      system stack: %04x %02x %02x %02x %02x %02x %02x %02x %02x",
+			"\n\n\n                   system stack: %04x %02x %02x %02x %02x %02x %02x %02x %02x",
 			ssp, system->core->read8(ssp), system->core->read8(ssp+1), system->core->read8(ssp+2),
 			system->core->read8(ssp+3), system->core->read8(ssp+4), system->core->read8(ssp+5),
 			system->core->read8(ssp+6), system->core->read8(ssp+7)
 		);
 		status1->printf(
-			"\n        user stack: %04x %02x %02x %02x %02x %02x %02x %02x %02x",
+			"\n                     user stack: %04x %02x %02x %02x %02x %02x %02x %02x %02x",
 			usp, system->core->read8(usp), system->core->read8(usp+1), system->core->read8(usp+2),
 			system->core->read8(usp+3), system->core->read8(usp+4), system->core->read8(usp+5),
 			system->core->read8(usp+6), system->core->read8(usp+7)
 		);
+
+		for (int y = 0; y < mc6809_status->height; y++) {
+			for (int x = 0; x < mc6809_status->width; x++) {
+				status1->tiles[((2 + y) * status1->width) + 13 + x] =
+					mc6809_status->tiles[(y * mc6809_status->width) + x];
+			}
+		}
+
+
 		status1->printf("\n\n------------------------disassembler--------------------------------------------");
 		uint16_t pc = system->core->mc6809->get_pc();
 		for (int i=0; i<9; i++) {
@@ -245,20 +258,20 @@ void debugger_t::redraw()
 	// copy exception_status into status1
 	for (int y = 0; y < exception_status->height; y++) {
 		for (int x = 0; x < exception_status->width; x++) {
-			status1->tiles[((19 + y) * status1->width) + 23 + x] =
+			status1->tiles[((19 + y) * status1->width) + 30 + x] =
 				exception_status->tiles[(y * exception_status->width) + x];
 		}
 	}
 
 	vdc_status->clear();
-	vdc_status->printf("----vdc/cpu-----");
-	vdc_status->printf("scanline %3i/%3i  cycles %3i/%3i",
+	vdc_status->printf("------vdc/cpu-------");
+	vdc_status->printf("   scanline %3i/%3i      cycles %3i/%3i",
 		system->core->vdc->get_current_scanline(),
 		VDC_SCANLINES - 1,
 		(system->core->vdc->get_cycles_run() << system->core->cpu_multiplier) + system->core->cpu_to_core_clock->get_mod(),
 		CORE_CYCLES_PER_SCANLINE << system->core->cpu_multiplier
 	);
-	vdc_status->printf("\n rasterline %3i\n        irq %s",
+	vdc_status->printf("\n\n rasterline     %3i\n        irq     %s",
 		system->core->vdc->get_irq_scanline(),
 		system->core->vdc->get_generate_interrupts() ? "yes" : " no"
 	);
@@ -266,7 +279,7 @@ void debugger_t::redraw()
 	// copy vdc_status into status1
 	for (int y = 0; y < vdc_status->height; y++) {
 		for (int x = 0; x < vdc_status->width; x++) {
-			status1->tiles[((19 + y) * status1->width) + 43 + x] =
+			status1->tiles[((19 + y) * status1->width) + 59 + x] =
 				vdc_status->tiles[(y * vdc_status->width) + x];
 		}
 	}
