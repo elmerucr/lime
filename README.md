@@ -19,9 +19,9 @@ Lime is a virtual computer system that draws inspiration from computing platform
 
 ### Debug screen
 
-![icon](./docs/20251007_screenshot_debug_mc68000.png)
+![icon](./docs/20251009_screenshot_debug_mc68000.png)
 
-![icon](./docs/20251007_screenshot_debug_mc6809.png)
+![icon](./docs/20251009_screenshot_debug_mc6809.png)
 
 ## Memory Map
 
