@@ -33,12 +33,14 @@ terminal_t::~terminal_t()
 
 void terminal_t::clear()
 {
+	deactivate_cursor();
 	for (int i=0; i < total_tiles; i++) {
 		tiles[i] = ' ';
 		fg_colors[i] = fg_color;
 		bg_colors[i] = bg_color;
 	}
 	cursor_position = 0;
+	activate_cursor();
 }
 
 void terminal_t::putsymbol_at_cursor(char symbol)

@@ -93,6 +93,11 @@ enum events_output_state host_t::events_process_events()
                 } else if ((event.key.keysym.sym == SDLK_q) && alt_pressed) {
                     events_wait_until_key_released(SDLK_q);
 					return_value = QUIT_EVENT;
+                } else if ((event.key.keysym.sym == SDLK_c) && alt_pressed) {
+					if (system->current_mode == DEBUG_MODE) {
+						system->debugger->terminal->clear();
+						system->debugger->prompt();
+					}
                 } else if (event.key.keysym.sym == SDLK_F9) {
                     events_wait_until_key_released(SDLK_F9);
                     system->switch_mode();
@@ -345,10 +350,10 @@ void host_t::video_init()
 	viewer_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VDC_XRES, VDC_YRES);
     SDL_SetTextureBlendMode(viewer_texture, SDL_BLENDMODE_BLEND);
 	viewer_texture_placement = {
-		.x = DEBUGGER_XRES - (((16 * 8 * VDC_XRES) / VDC_YRES) + 8),
+		.x = DEBUGGER_XRES - (((15 * 8 * VDC_XRES) / VDC_YRES) + 8),
 		.y = DEBUGGER_YRES - ((15 * 8) + 16),
-		.w = (16 * 8 * VDC_XRES) / VDC_YRES,
-		.h = 16 * 8
+		.w = (15 * 8 * VDC_XRES) / VDC_YRES,
+		.h = 15 * 8
 	};
 
 	SDL_RenderSetLogicalSize(video_renderer, DEBUGGER_XRES, DEBUGGER_YRES);
