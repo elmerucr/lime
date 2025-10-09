@@ -346,7 +346,7 @@ void host_t::video_init()
     SDL_SetTextureBlendMode(viewer_texture, SDL_BLENDMODE_BLEND);
 	viewer_texture_placement = {
 		.x = DEBUGGER_XRES - (((16 * 8 * VDC_XRES) / VDC_YRES) + 8),
-		.y = DEBUGGER_YRES - ((16 * 8) + 16),
+		.y = DEBUGGER_YRES - ((15 * 8) + 16),
 		.w = (16 * 8 * VDC_XRES) / VDC_YRES,
 		.h = 16 * 8
 	};

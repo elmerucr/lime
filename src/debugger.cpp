@@ -75,7 +75,7 @@ debugger_t::debugger_t(system_t *s)
 	print_version();
 	terminal->activate_cursor();
 
-	status1 = new terminal_t(system, 80, 25, PICOTRON_V5_1A, (LIME_COLOR_00 & 0x00ffffff) | 0xe0000000);
+	status1 = new terminal_t(system, 80, 27, PICOTRON_V5_1A, (LIME_COLOR_00 & 0x00ffffff) | 0xe0000000);
 	mc6809_status = new terminal_t(system, 60, 2, PICOTRON_V5_1A, 0xff000000);
 	exception_status = new terminal_t(system, 22, 5, PICOTRON_V5_1A, 0xff000000);
 	vdc_status = new terminal_t(system, 20, 6, PICOTRON_V5_1A, 0xff000000);
@@ -106,7 +106,7 @@ void debugger_t::redraw()
 		for (int x = 0; x < (terminal->width << 3); x++) {
 			uint8_t symbol = terminal->tiles[((y>>3) * terminal->width) + (x >> 3)];
 	 		uint8_t x_in_char = x % 8;
-			buffer[((y + 208) * DEBUGGER_XRES) + x + 0] =
+			buffer[((y + 216) * DEBUGGER_XRES) + x + 0] =
 				(debugger_cbm_font.original_data[(symbol << 3) + y_in_char] & (0b1 << (7 - x_in_char))) ?
 				terminal->fg_colors[((y>>3) * terminal->width) + (x >> 3)] :
 				terminal->bg_colors[((y>>3) * terminal->width) + (x >> 3)] ;
@@ -181,7 +181,7 @@ void debugger_t::redraw()
 		);
 		uint32_t pc = system->core->mc68000->getPC();
 		uint32_t new_pc;
-		for (int i=0; i<4; i++) {
+		for (int i=0; i<5; i++) {
 			new_pc = pc + system->core->mc68000->disassemble(text_buffer, pc);
 			if (system->core->mc68000->debugger.breakpoints.isSetAt(pc)) {
 				status1->fg_color = 0xffe04040;	// orange
@@ -226,7 +226,7 @@ void debugger_t::redraw()
 		}
 
 
-		status1->printf("\n\n------------------------disassembler--------------------------------------------");
+		status1->printf("\n\n------------------------disassembler--------------------------------------------\n");
 		uint16_t pc = system->core->mc6809->get_pc();
 		for (int i=0; i<9; i++) {
 			pc += disassemble_instruction_status1(pc);
@@ -234,10 +234,10 @@ void debugger_t::redraw()
 		}
 	}
 
-		status1->printf("\n--------timer---------\nt     s  bpm   cycles  ");
+		status1->printf("\n   ---------timer----------\n    t     s  bpm   cycles");
 		for (int i=0; i<4; i++) {
 			int j = i + (timers_4_7 ? 4 : 0);
-			status1->printf("\n%1x %s %s %05u %08x",
+			status1->printf("\n    %1x %s %s %05u %08x",
 				j,
 				system->core->timer->io_read_byte(0x01) & (1 << j) ? " on" : "off",
 				system->core->timer->io_read_byte(0x00) & (1 << j) ? "*" : "-",
@@ -258,7 +258,7 @@ void debugger_t::redraw()
 	// copy exception_status into status1
 	for (int y = 0; y < exception_status->height; y++) {
 		for (int x = 0; x < exception_status->width; x++) {
-			status1->tiles[((19 + y) * status1->width) + 30 + x] =
+			status1->tiles[((20 + y) * status1->width) + 31 + x] =
 				exception_status->tiles[(y * exception_status->width) + x];
 		}
 	}
@@ -279,7 +279,7 @@ void debugger_t::redraw()
 	// copy vdc_status into status1
 	for (int y = 0; y < vdc_status->height; y++) {
 		for (int x = 0; x < vdc_status->width; x++) {
-			status1->tiles[((19 + y) * status1->width) + 59 + x] =
+			status1->tiles[((20 + y) * status1->width) + 56 + x] =
 				vdc_status->tiles[(y * vdc_status->width) + x];
 		}
 	}
