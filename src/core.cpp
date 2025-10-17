@@ -142,6 +142,7 @@ uint8_t core_t::read8(uint32_t address)
 						// status register
 						return irq_line ? 0b0 : 0b1;
 					case 0x01:
+						// control register
 						return
 							(generate_interrupts   ? 0b00000001 : 0b00000000) ;
 					case 0x02:
@@ -212,12 +213,14 @@ void core_t::write8(uint32_t address, uint8_t value)
 			case CORE_SUB_PAGE:
 				switch (address & 0x3f) {
 					case 0x00:
+						// status register
 						if ((value & 0b1) && !irq_line) {
 							exceptions->release(dev_number_exceptions);
 							irq_line = true;
 						}
 						break;
 					case 0x01:
+						// control register
 						if (value & 0b00000001) {
 							generate_interrupts = true;
 							if (bin_attached == true) {
@@ -227,6 +230,14 @@ void core_t::write8(uint32_t address, uint8_t value)
 							}
 						} else {
 							generate_interrupts = false;
+						}
+						if ((value & 0b11000000) == 0b10000000) {
+							mc68000_active = true;
+							reset();
+						}
+						if ((value & 0b11000000) == 0b01000000) {
+							mc68000_active = false;
+							reset();
 						}
 						break;
 					case 0x02:
