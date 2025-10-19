@@ -123,6 +123,85 @@ enum output_states core_t::run(bool debug)
 	return output_state;
 }
 
+uint8_t core_t::io_read8(uint32_t address)
+{
+	switch (address & 0x3f) {
+		case 0x00:
+			// status register
+			return irq_line ? 0b0 : 0b1;
+		case 0x01:
+			// control register
+			return
+				(generate_interrupts   ? 0b00000001 : 0b00000000) ;
+		case 0x02:
+			// core roms
+			return
+				(system_rom_visible    ? 0b00000001 : 0b00000000) |
+				(character_rom_visible ? 0b00000010 : 0b00000000) ;
+		case 0x03:
+			return cpu_multiplier;
+		case 0x04:
+			return file_data[file_pointer++];
+		case 0x08:
+			// Controller is NES style
+			return
+				((system->host->keyboard_state[SCANCODE_UP]     & 0b1) ? 0b00000001 : 0) |	// up
+				((system->host->keyboard_state[SCANCODE_DOWN]   & 0b1) ? 0b00000010 : 0) |	// down
+				((system->host->keyboard_state[SCANCODE_LEFT]   & 0b1) ? 0b00000100 : 0) |	// left
+				((system->host->keyboard_state[SCANCODE_RIGHT]  & 0b1) ? 0b00001000 : 0) |	// right
+				((system->host->keyboard_state[SCANCODE_Z]      & 0b1) ? 0b00010000 : 0) |	// A
+				((system->host->keyboard_state[SCANCODE_X]      & 0b1) ? 0b00100000 : 0) |	// B
+				((system->host->keyboard_state[SCANCODE_RSHIFT] & 0b1) ? 0b01000000 : 0) |	// Select
+				((system->host->keyboard_state[SCANCODE_RETURN] & 0b1) ? 0b10000000 : 0) ;	// Start
+		default:
+			return 0x00;
+	}
+}
+
+void core_t::io_write8(uint32_t address, uint8_t value)
+{
+	switch (address & 0x3f) {
+	case 0x00:
+		// status register
+		if ((value & 0b1) && !irq_line) {
+			exceptions->release(dev_number_exceptions);
+			irq_line = true;
+		}
+		break;
+	case 0x01:
+		// control register
+		if (value & 0b00000001) {
+			generate_interrupts = true;
+			if (bin_attached == true) {
+				bin_attached = false;
+				exceptions->pull(dev_number_exceptions);
+				irq_line = false;
+			}
+		} else {
+			generate_interrupts = false;
+		}
+		if ((value & 0b11000000) == 0b10000000) {
+			mc68000_active = true;
+			reset();
+		}
+		if ((value & 0b11000000) == 0b01000000) {
+			mc68000_active = false;
+			reset();
+		}
+		break;
+	case 0x02:
+		system_rom_visible    = (value & 0b00000001) ? true : false;
+		character_rom_visible = (value & 0b00000010) ? true : false;
+		break;
+	case 0x03:
+		cpu_multiplier = value & 0b11;
+		break;
+	default:
+		//
+		break;
+	}
+}
+
 uint8_t core_t::read8(uint32_t address)
 {
 	address &= VDC_RAM_MASK;
@@ -137,37 +216,7 @@ uint8_t core_t::read8(uint32_t address)
 			case TIMER_SUB_PAGE:
 				return timer->io_read_byte(address);
 			case CORE_SUB_PAGE:
-				switch (address & 0x3f) {
-					case 0x00:
-						// status register
-						return irq_line ? 0b0 : 0b1;
-					case 0x01:
-						// control register
-						return
-							(generate_interrupts   ? 0b00000001 : 0b00000000) ;
-					case 0x02:
-						// core roms
-						return
-							(system_rom_visible    ? 0b00000001 : 0b00000000) |
-							(character_rom_visible ? 0b00000010 : 0b00000000) ;
-					case 0x03:
-						return cpu_multiplier;
-					case 0x04:
-						return file_data[file_pointer++];
-					case 0x08:
-						// Controller is NES style
-						return
-							((system->host->keyboard_state[SCANCODE_UP]     & 0b1) ? 0b00000001 : 0) |	// up
-							((system->host->keyboard_state[SCANCODE_DOWN]   & 0b1) ? 0b00000010 : 0) |	// down
-							((system->host->keyboard_state[SCANCODE_LEFT]   & 0b1) ? 0b00000100 : 0) |	// left
-							((system->host->keyboard_state[SCANCODE_RIGHT]  & 0b1) ? 0b00001000 : 0) |	// right
-							((system->host->keyboard_state[SCANCODE_Z]      & 0b1) ? 0b00010000 : 0) |	// A
-							((system->host->keyboard_state[SCANCODE_X]      & 0b1) ? 0b00100000 : 0) |	// B
-							((system->host->keyboard_state[SCANCODE_RSHIFT] & 0b1) ? 0b01000000 : 0) |	// Select
-							((system->host->keyboard_state[SCANCODE_RETURN] & 0b1) ? 0b10000000 : 0) ;	// Start
-					default:
-						return 0x00;
-				}
+				return io_read8(address);
 			default:
 				return 0x00;
 		}
@@ -211,47 +260,8 @@ void core_t::write8(uint32_t address, uint8_t value)
 				timer->io_write_byte(address, value);
 				break;
 			case CORE_SUB_PAGE:
-				switch (address & 0x3f) {
-					case 0x00:
-						// status register
-						if ((value & 0b1) && !irq_line) {
-							exceptions->release(dev_number_exceptions);
-							irq_line = true;
-						}
-						break;
-					case 0x01:
-						// control register
-						if (value & 0b00000001) {
-							generate_interrupts = true;
-							if (bin_attached == true) {
-								bin_attached = false;
-								exceptions->pull(dev_number_exceptions);
-								irq_line = false;
-							}
-						} else {
-							generate_interrupts = false;
-						}
-						if ((value & 0b11000000) == 0b10000000) {
-							mc68000_active = true;
-							reset();
-						}
-						if ((value & 0b11000000) == 0b01000000) {
-							mc68000_active = false;
-							reset();
-						}
-						break;
-					case 0x02:
-						system_rom_visible    = (value & 0b00000001) ? true : false;
-						character_rom_visible = (value & 0b00000010) ? true : false;
-						break;
-					case 0x03:
-						cpu_multiplier = value & 0b11;
-						break;
-					default:
-						//
-						break;
-					}
-					break;
+				io_write8(address, value);
+				break;
 			default:
 				//
 				break;

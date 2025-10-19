@@ -31,6 +31,15 @@
 // | | +------------
 // | +-------------- 1 reset into mc6809 mode (exclusive or with bit 7)
 // +---------------- 1 reset into mc68000 mode (exclusive or with bit 6)
+//
+// Register 2
+// (READ/WRITE)
+// bit 0: system rom visible (depends on specific mode)
+// bit 1: character rom visible to cpu
+// bits 2-7: unused
+//
+// Register 3
+//
 // ---------------------------------------------------------------------
 
 #ifndef CORE_HPP
@@ -85,7 +94,7 @@ private:
 	bool bin_attached;
 
 	FILE *f{NULL};
-	uint8_t file_data[65536];
+	uint8_t file_data[256 * 65536];		// 16mb should fit anything for both mc6809 and mc68000
 	uint16_t file_pointer;
 public:
 	core_t(system_t *s);
@@ -118,6 +127,12 @@ public:
 
 	void reset();
 
+	// core behaves as a device itself and has its own read and write
+	// io functions
+	uint8_t io_read8(uint32_t address);
+	void io_write8(uint32_t address, uint8_t value);
+
+	// read8 and write8 are used for memeory access by the cpu
 	uint8_t read8(uint32_t address);
 	void write8(uint32_t address, uint8_t value);
 
