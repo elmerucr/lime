@@ -94,7 +94,7 @@ private:
 	bool bin_attached;
 
 	FILE *f{NULL};
-	uint8_t file_data[256 * 65536];		// 16mb should fit anything for both mc6809 and mc68000
+	uint8_t *file_data;
 	uint16_t file_pointer;
 public:
 	core_t(system_t *s);

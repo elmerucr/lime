@@ -51,10 +51,14 @@ core_t::core_t(system_t *s)
 
 	dev_number_sn74ls148 = sn74ls148->connect_device(2, "core");
 	printf("[core] Connecting to sn74ls148 at ipl 2 getting dev %i\n", dev_number_sn74ls148);
+
+	// 16mb should fit anything for both mc6809 and mc68000
+	file_data = new uint8_t[0x1000000];
 }
 
 core_t::~core_t()
 {
+	delete [] file_data;
 	delete font;
 	delete core_to_sid_clock;
 	delete cpu_to_core_clock;
@@ -165,6 +169,7 @@ void core_t::io_write8(uint32_t address, uint8_t value)
 		// status register
 		if ((value & 0b1) && !irq_line) {
 			exceptions->release(dev_number_exceptions);
+			sn74ls148->release_line(dev_number_sn74ls148);
 			irq_line = true;
 		}
 		break;
@@ -175,6 +180,7 @@ void core_t::io_write8(uint32_t address, uint8_t value)
 			if (bin_attached == true) {
 				bin_attached = false;
 				exceptions->pull(dev_number_exceptions);
+				sn74ls148->pull_line(dev_number_sn74ls148);
 				irq_line = false;
 			}
 		} else {
@@ -308,22 +314,26 @@ void core_t::attach_bin(char *path)
 		fseek(f, 0L, SEEK_END);
 		long pos = ftell(f);
 		printf("[core] %s - %lu bytes\n", path, pos);
-		if (pos > 65535) {
-			printf("[core] Can't load: file too large\n");
+		if (pos > 0x1000000) {
+			printf("[core] Can't load: file larger than 16mb\n");
 			fclose(f);
 		} else {
 			// go back to beginning of file, read data
 			rewind(f);
 			size_t bytes_read = fread(file_data, pos, 1, f);
 			fclose(f);
-			for (int i=pos; i<65536; i++) {
+
+			// fill remaining buffer space with 0x00
+			for (int i=pos; i < 0x1000000; i++) {
 				file_data[i] = 0x00;
 			}
+
 			file_pointer = 0;
 			printf("[core] Attaching file\n");
 			bin_attached = true;
 			if (generate_interrupts) {
 				exceptions->pull(dev_number_exceptions);
+				sn74ls148->pull_line(dev_number_sn74ls148);
 				irq_line = false;
 				bin_attached = false;
 			}

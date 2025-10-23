@@ -15,7 +15,7 @@ LOGO_ANIMATION	equ	$4000
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
 
-	dc.b	"rom mc68000 0.3 20250929"
+	dc.b	"rom mc68000 0.4 20251023"
 
 	align	2
 
@@ -23,6 +23,7 @@ _start
 	; fill vector table
 	move.l	#exc_addr_error,VEC_ADDR_ERROR.w
 	move.l	#exc_lvl1_irq_auto,VEC_LVL1_IRQ_AUTO.w
+	move.l	#exc_lvl2_irq_auto,VEC_LVL2_IRQ_AUTO.w
 	move.l	#exc_lvl4_irq_auto,VEC_LVL4_IRQ_AUTO.w
 	move.l	#exc_lvl6_irq_auto,VEC_LVL6_IRQ_AUTO.w
 	move.l	#timer_default_handler,VEC_TIMER0.w
@@ -72,7 +73,7 @@ _start
 	move.b	#%00000001,VDC_CR			; enable irq's for vdc
 
 
-	move.w	#$0200,SR				; set status register (User Mode, ipl = 0)
+	move.w	#$0000,SR				; set status register (User Mode, ipl = 0)
 
 	jsr	sound_reset
 
@@ -87,6 +88,18 @@ exc_addr_error
 
 exc_lvl1_irq_auto
 	rte
+
+exc_lvl2_irq_auto
+	move.b	D0,-(SP)
+
+	move.b	CORE_SR,D0				; did core cause an irq?
+	beq	.1					; no
+	move.b	D0,CORE_SR				; yes, acknowledge
+	clr.b	VDC_CURRENT_SPRITE
+	addq.b	#1,VDC_SPRITE_COLOR1
+
+	move.b	(SP)+,D0
+.1	rte
 
 exc_lvl4_irq_auto					; coupled to timer
 	movem.l	D0-D1/A0,-(SP)
