@@ -1,7 +1,15 @@
 cmake_minimum_required(VERSION 3.10)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -O0")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -14,9 +22,9 @@ include_directories(
     src/
 	src/mc6809
 	src/Moira
-    src/resid-0.16/
-	rom_mc68000/
-	rom_mc6809/
+    src/resid-0.16
+	rom_mc68000
+	rom_mc6809
 )
 
 add_subdirectory(src/)
