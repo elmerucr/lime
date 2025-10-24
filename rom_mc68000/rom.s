@@ -15,7 +15,7 @@ LOGO_ANIMATION	equ	$4000
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
 
-	dc.b	"rom mc68000 0.4 20251023"
+	dc.b	"rom mc68000 0.4 20251025"
 
 	align	2
 
@@ -45,6 +45,15 @@ _start
 	cmpa	#VDC_TILESET1+$1000,A0
 	bne	.1
 	and.b	#%11111101,CORE_ROMS.w			; turn off rom font
+
+; make layer0 visible and clear
+init_layer0
+	clr.b	VDC_CURRENT_LAYER.w	; make layer 0 current
+	move.b	#7,VDC_LAYER_FLAGS0.w
+	movea.l	#VDC_LAYER0,A0
+.1	move.b	#' ',(A0)+
+	cmpa.l	#VDC_LAYER0+$800,A0
+	bne	.1
 
 ; copy logo tiles
 	movea.l	#logo_tiles,A0
@@ -158,8 +167,8 @@ exc_lvl6_irq_auto				; coupled to vdc
 	bne	.2				; not yet, jump to .2
 
 .end	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w
-	add.w	#1,$410	; TODO remove
-	add.w	#1,$412	; TODO remove
+	;add.w	#1,$410	; TODO remove
+	;add.w	#1,$412	; TODO remove
 	move.b	(SP)+,VDC_CURRENT_SPRITE
 	movem.l	(SP)+,D0-D1
 	rte

@@ -11,10 +11,10 @@
 // ---------------------------------------------------------------------
 // Version information
 // ---------------------------------------------------------------------
-#define LIME_MAJOR_VERSION		0
-#define LIME_MINOR_VERSION		10
-#define LIME_BUILD				20251024
-#define LIME_YEAR				2025
+#define LIME_MAJOR_VERSION			0
+#define LIME_MINOR_VERSION			10
+#define LIME_BUILD					20251024
+#define LIME_YEAR					2025
 
 // ---------------------------------------------------------------------
 // vdc (video display controller)
