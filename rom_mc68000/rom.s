@@ -7,70 +7,47 @@
 
 	include	"definitions.i"
 
-LOGO_ANIMATION	equ	$4000
-
+LOGO_ANIMATION	equ	$4000	; 1 byte
 
 	org	$00010000	; rom based at $10000
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-
 	dc.b	"rom mc68000 0.4 20251026"
 
 	align	2
 
 _start
-	jsr	fill_vector_table
-
-	; set usp
-	move.l	#$00010000,A0
+	move.l	#$00010000,A0			; set usp
 	move.l	A0,USP
 
+	jsr	init_vector_table
 	jsr	vdc_init_layer0
 	jsr	vdc_copy_rom_font
-
-; copy logo tiles
-	movea.l	#logo_tiles,A0
-	movea.w	#$11c0,A1		; use 4 tiles $1c to $1f
-.1	move.b	(A0)+,(A1)+
-	cmpa.l	#logo_tiles+64,A0
-	bne	.1
-
-; init logo
-	movea.l	#logo_data,A0
-	clr.b	D0
-.2	move.b	D0,VDC_CURRENT_SPRITE
-	movea.l	#VDC_SPRITE_X_MSB,A1
-.3	move.b	(A0)+,(A1)+
-	cmpa.l	#VDC_SPRITE_X_MSB+7,A1
-	bne	.3
-	addq	#1,D0
-	cmpa.l	#logo_data+56,A0
-	bne	.2
-
-; set variable for letter wobble
-	move.b	#$68,LOGO_ANIMATION.w
-
-; set raster irq on scanline 179
-	move.b	#$b3,VDC_IRQ_SCANLINE_LSB		; rasterline 179
-	move.b	#%00000001,VDC_CR			; enable irq's for vdc
-
-
-	move.w	#$0000,SR				; set status register (User Mode, ipl = 0)
-
+	jsr	vdc_copy_logo_tiles
+	jsr	vdc_init_logo
 	jsr	sound_reset
 
+	move.b	#$68,LOGO_ANIMATION.w		; init variable for letter wobble
+	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
+	move.b	#%00000001,VDC_CR		; enable irq's for vdc
+
+	move.w	#$0000,SR			; set status register (User Mode, ipl = 0)
+
 	move.b	#0,D0
+
 loop	cmp.b	#4,D0
 	addq.b	#1,D0
+	bra	loop				; loop forever, wait for events
 
-	bra	loop					; loop forever, wait for events
 
 exc_addr_error
-	bra	exc_addr_error				; TODO: bsod when this happens?
+	bra	exc_addr_error			; TODO: bsod when this happens?
+
 
 exc_lvl1_irq_auto
 	rte
+
 
 exc_lvl2_irq_auto
 	move.b	D0,-(SP)
@@ -83,6 +60,7 @@ exc_lvl2_irq_auto
 
 	move.b	(SP)+,D0
 .1	rte
+
 
 exc_lvl4_irq_auto					; coupled to timer
 	movem.l	D0-D1/A0,-(SP)
@@ -105,6 +83,7 @@ exc_lvl4_irq_auto					; coupled to timer
 
 .3	movem.l	(SP)+,D0-D1/A0
 	rte
+
 
 exc_lvl6_irq_auto				; coupled to vdc
 	movem.l	D0-D1,-(SP)
@@ -141,31 +120,41 @@ exc_lvl6_irq_auto				; coupled to vdc
 	bne	.2				; not yet, jump to .2
 
 .end	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w
-	;add.w	#1,$410	; TODO remove
-	;add.w	#1,$412	; TODO remove
+
 	move.b	(SP)+,VDC_CURRENT_SPRITE
 	movem.l	(SP)+,D0-D1
 	rte
+
 
 timer_default_handler
 	move.b	#$12,VDC_BG_COLOR.w
 	rts
 
+
 sound_reset
+	movem.l	D0/A0,-(SP)
+
 	movea.l	#SID0_F,A0
+
 .1	clr.b	(A0)+
 	cmpa.l	#SID0_F+$40,A0
 	bne	.1
+
 	move.b	#$7f,D0
 	movea.l	#MIX_SID0_LEFT,A0
+
 .2	move.b	D0,(A0)+
 	cmpa.l	#MIX_SID0_LEFT+$8,A0
 	bne	.2
+
 	move.b	#$f,SID0_V
 	move.b	#$f,SID1_V
+
+	movem.l	(SP)+,D0/A0
 	rts
 
-fill_vector_table
+
+init_vector_table
 	move.l	#exc_addr_error,VEC_ADDR_ERROR.w
 	move.l	#exc_lvl1_irq_auto,VEC_LVL1_IRQ_AUTO.w
 	move.l	#exc_lvl2_irq_auto,VEC_LVL2_IRQ_AUTO.w
@@ -181,36 +170,72 @@ fill_vector_table
 	move.l	#timer_default_handler,VEC_TIMER7.w
 	rts
 
-; make layer0 visible and clear
-vdc_init_layer0
-	move.l	A0,-(SP)
+
+vdc_init_layer0				; make layer0 visible and clear
+	movem.l	D0/A0-A1,-(SP)
 	move.b	VDC_CURRENT_LAYER.w,-(SP)
 	clr.b	VDC_CURRENT_LAYER.w	; make layer 0 current
 	move.b	#7,VDC_LAYER_FLAGS0.w
+	move.l	#$20202020,D0
 	movea.l	#VDC_LAYER0,A0
+	movea.l	#VDC_LAYER0+$800,A1
 
-.1	move.b	#' ',(A0)+
-	cmpa.l	#VDC_LAYER0+$800,A0
+.1	move.l	D0,(A0)+
+	cmpa.l	A1,A0
 	bne	.1
 
 	move.b	(SP)+,VDC_CURRENT_LAYER.w
-	move.l	(SP)+,A0
+	movem.l	(SP)+,D0/A0-A1
 	rts
 
+
 vdc_copy_rom_font
-	move.l	A0,-(SP)
+	movem.l	A0-A1,-(SP)
 	move.b	CORE_ROMS.w,-(SP)
 
 	or.b	#%00000010,CORE_ROMS.w			; make rom font visible to cpu
-	movea	#VDC_TILESET1,A0
+	movea.l	#VDC_TILESET1,A0
+	movea.l	#VDC_TILESET1+$1000,A1
 
 .1	move.l	(A0),(A0)+				; copy rom font to underlying ram
-	cmpa	#VDC_TILESET1+$1000,A0
+	cmpa	A1,A0
 	bne	.1
 
 	move.b	(SP)+,CORE_ROMS.w
-	move.l	(SP)+,A0
+	movem.l	(SP)+,A0-A1
 	rts
+
+
+vdc_copy_logo_tiles
+	movem.l	A0-A1,-(SP)
+	movea.l	#logo_tiles,A0
+	movea.w	#$11c0,A1		; start at tile $1c
+
+.1	move.b	(A0)+,(A1)+
+	cmpa.l	#logo_tiles+64,A0	; 64 bytes = 4 tiles
+	bne	.1
+
+	movem.l	(SP)+,A0-A1
+	rts
+
+
+vdc_init_logo
+	movem.l	D0/A0-A1,-(SP)
+
+	movea.l	#logo_data,A0
+	clr.b	D0
+.1	move.b	D0,VDC_CURRENT_SPRITE
+	movea.l	#VDC_SPRITE_X_MSB,A1
+.2	move.b	(A0)+,(A1)+
+	cmpa.l	#VDC_SPRITE_X_MSB+7,A1
+	bne	.2
+	addq	#1,D0
+	cmpa.l	#logo_data+56,A0
+	bne	.1
+
+	movem.l	(SP)+,D0/A0-A1
+	rts
+
 
 logo_data
 	dc.b	0,152,0,74,%111,0,$1c	; icon top left
@@ -221,6 +246,7 @@ logo_data
 	dc.b	0,152,0,90,%111,0,$69	; i
 	dc.b	0,158,0,90,%111,0,$6d	; m
 	dc.b	0,166,0,90,%111,0,$65	; e
+
 
 logo_tiles
 	dc.b	%00000000,%00000000	; tile 1 (icon upper left)
