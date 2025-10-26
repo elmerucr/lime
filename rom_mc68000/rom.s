@@ -15,64 +15,38 @@ LOGO_ANIMATION	equ	$4000
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
 
-	dc.b	"rom mc68000 0.4 20251025"
+	dc.b	"rom mc68000 0.4 20251026"
 
 	align	2
 
 _start
-	; fill vector table
-	move.l	#exc_addr_error,VEC_ADDR_ERROR.w
-	move.l	#exc_lvl1_irq_auto,VEC_LVL1_IRQ_AUTO.w
-	move.l	#exc_lvl2_irq_auto,VEC_LVL2_IRQ_AUTO.w
-	move.l	#exc_lvl4_irq_auto,VEC_LVL4_IRQ_AUTO.w
-	move.l	#exc_lvl6_irq_auto,VEC_LVL6_IRQ_AUTO.w
-	move.l	#timer_default_handler,VEC_TIMER0.w
-	move.l	#timer_default_handler,VEC_TIMER1.w
-	move.l	#timer_default_handler,VEC_TIMER2.w
-	move.l	#timer_default_handler,VEC_TIMER3.w
-	move.l	#timer_default_handler,VEC_TIMER4.w
-	move.l	#timer_default_handler,VEC_TIMER5.w
-	move.l	#timer_default_handler,VEC_TIMER6.w
-	move.l	#timer_default_handler,VEC_TIMER7.w
+	jsr	fill_vector_table
 
 	; set usp
 	move.l	#$00010000,A0
 	move.l	A0,USP
 
-	or.b	#%00000010,CORE_ROMS.w			; make rom font visible to cpu
-	movea	#VDC_TILESET1,A0
-.1	move.l	(A0),(A0)+				; copy rom font to underlying ram
-	cmpa	#VDC_TILESET1+$1000,A0
-	bne	.1
-	and.b	#%11111101,CORE_ROMS.w			; turn off rom font
-
-; make layer0 visible and clear
-init_layer0
-	clr.b	VDC_CURRENT_LAYER.w	; make layer 0 current
-	move.b	#7,VDC_LAYER_FLAGS0.w
-	movea.l	#VDC_LAYER0,A0
-.1	move.b	#' ',(A0)+
-	cmpa.l	#VDC_LAYER0+$800,A0
-	bne	.1
+	jsr	vdc_init_layer0
+	jsr	vdc_copy_rom_font
 
 ; copy logo tiles
 	movea.l	#logo_tiles,A0
-	movea.w	#$11c0,A1
-.2	move.b	(A0)+,(A1)+
+	movea.w	#$11c0,A1		; use 4 tiles $1c to $1f
+.1	move.b	(A0)+,(A1)+
 	cmpa.l	#logo_tiles+64,A0
-	bne	.2
+	bne	.1
 
 ; init logo
 	movea.l	#logo_data,A0
 	clr.b	D0
-.3	move.b	D0,VDC_CURRENT_SPRITE
+.2	move.b	D0,VDC_CURRENT_SPRITE
 	movea.l	#VDC_SPRITE_X_MSB,A1
-.4	move.b	(A0)+,(A1)+
+.3	move.b	(A0)+,(A1)+
 	cmpa.l	#VDC_SPRITE_X_MSB+7,A1
-	bne	.4
+	bne	.3
 	addq	#1,D0
 	cmpa.l	#logo_data+56,A0
-	bne	.3
+	bne	.2
 
 ; set variable for letter wobble
 	move.b	#$68,LOGO_ANIMATION.w
@@ -189,6 +163,53 @@ sound_reset
 	bne	.2
 	move.b	#$f,SID0_V
 	move.b	#$f,SID1_V
+	rts
+
+fill_vector_table
+	move.l	#exc_addr_error,VEC_ADDR_ERROR.w
+	move.l	#exc_lvl1_irq_auto,VEC_LVL1_IRQ_AUTO.w
+	move.l	#exc_lvl2_irq_auto,VEC_LVL2_IRQ_AUTO.w
+	move.l	#exc_lvl4_irq_auto,VEC_LVL4_IRQ_AUTO.w
+	move.l	#exc_lvl6_irq_auto,VEC_LVL6_IRQ_AUTO.w
+	move.l	#timer_default_handler,VEC_TIMER0.w
+	move.l	#timer_default_handler,VEC_TIMER1.w
+	move.l	#timer_default_handler,VEC_TIMER2.w
+	move.l	#timer_default_handler,VEC_TIMER3.w
+	move.l	#timer_default_handler,VEC_TIMER4.w
+	move.l	#timer_default_handler,VEC_TIMER5.w
+	move.l	#timer_default_handler,VEC_TIMER6.w
+	move.l	#timer_default_handler,VEC_TIMER7.w
+	rts
+
+; make layer0 visible and clear
+vdc_init_layer0
+	move.l	A0,-(SP)
+	move.b	VDC_CURRENT_LAYER.w,-(SP)
+	clr.b	VDC_CURRENT_LAYER.w	; make layer 0 current
+	move.b	#7,VDC_LAYER_FLAGS0.w
+	movea.l	#VDC_LAYER0,A0
+
+.1	move.b	#' ',(A0)+
+	cmpa.l	#VDC_LAYER0+$800,A0
+	bne	.1
+
+	move.b	(SP)+,VDC_CURRENT_LAYER.w
+	move.l	(SP)+,A0
+	rts
+
+vdc_copy_rom_font
+	move.l	A0,-(SP)
+	move.b	CORE_ROMS.w,-(SP)
+
+	or.b	#%00000010,CORE_ROMS.w			; make rom font visible to cpu
+	movea	#VDC_TILESET1,A0
+
+.1	move.l	(A0),(A0)+				; copy rom font to underlying ram
+	cmpa	#VDC_TILESET1+$1000,A0
+	bne	.1
+
+	move.b	(SP)+,CORE_ROMS.w
+	move.l	(SP)+,A0
 	rts
 
 logo_data

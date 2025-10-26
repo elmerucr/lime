@@ -101,9 +101,9 @@ void stats_t::process_parameters()
 		status_bar_framecounter = 0;
 
 		snprintf(statistics_string, 256,
-			"\n  frametime: %5.2f ms     host cpu:%6.2f %%\n"
-			"       core: %5.2f ms  audiobuffer: %5.2f ms\n"
-			"        cpu: %5.2f MHz   framerate:%6.2f fps",
+			"\n frametime: %6.1f ms      host cpu:%6.1f %%\n"
+			"      core: %6.1f ms   audiobuffer: %5.1f ms\n"
+			"       cpu: %6.1f MHz    framerate:%6.1f fps",
 			(smoothed_core_per_frame+smoothed_idle_per_frame)/1000, cpu_percentage,
 			smoothed_core_per_frame/1000, smoothed_audio_queue_size_ms,
 			smoothed_cpu_mhz, smoothed_framerate);
