@@ -8,6 +8,7 @@
 	include	"definitions.i"
 
 LOGO_ANIMATION	equ	$4000	; 1 byte
+BINARY_READY	equ	$4001	; 1 byte
 
 	org	$00010000	; rom based at $10000
 
@@ -34,11 +35,12 @@ _start
 
 	move.w	#$0000,SR			; set status register (User Mode, ipl = 0)
 
-	move.b	#0,D0
+	clr.b	BINARY_READY.w
 
-loop	cmp.b	#4,D0
-	addq.b	#1,D0
-	bra	loop				; loop forever, wait for events
+loop	tst.b	BINARY_READY.w
+	beq	loop				; loop forever, wait for events
+
+_jump
 
 
 exc_addr_error
