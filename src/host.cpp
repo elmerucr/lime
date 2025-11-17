@@ -285,6 +285,41 @@ void host_t::video_init()
         SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
     );
 
+    SDL_Surface *icon = SDL_CreateRGBSurface(0, 64, 64, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+	//SDL_CreateSurface(64, 64, SDL_PIXELFORMAT_ARGB8888);
+    if (icon->pixels) {
+        const uint8_t pixels[] = {
+            "                "
+            "   *            "
+            "  *./           "
+            "  *.//          "
+            " *./../         "
+            " *.///..        "
+            " *./////.       "
+            " *.///../.      "
+            " *./..//./.     "
+            "  *.////././    "
+            "  *.///.///./   "
+            "   *.//.///.//  "
+            "    *../////..* "
+            "     **.....**  "
+            "       *****    "
+            "                "
+        };
+        for (unsigned int y = 0; y < 64; y++) {
+            for (unsigned int x = 0; x < 64; x++) {
+                switch (pixels[(16 * (y >> 2)) + (x >> 2)]) {
+                    case '*': ((uint32_t *)icon->pixels)[(y * 64) + x] = 0xff'34'68'56; break;
+                    case '/': ((uint32_t *)icon->pixels)[(y * 64) + x] = 0xff'88'c0'70; break;
+                    case '.': ((uint32_t *)icon->pixels)[(y * 64) + x] = 0xff'e0'f8'd0; break;
+                    default : ((uint32_t *)icon->pixels)[(y * 64) + x] = 0x00'00'00'00; break;
+                }
+            }
+        }
+        SDL_SetWindowIcon(video_window, icon);
+        SDL_FreeSurface(icon);
+    }
+
 	SDL_GetWindowSize(video_window, &video_window_width, &video_window_height);
 	printf("[SDL] Display window dimension: %u x %u pixels\n", video_window_width, video_window_height);
 
