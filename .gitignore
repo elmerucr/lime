@@ -1,7 +1,7 @@
-.vscode
 .DS_Store
-rom_mc6809/mk_rom
-rom_mc68000/mk_rom
+.vscode/
 build/
 Debug/
 Release/
+rom_mc68000/mk_rom
+rom_mc6809/mk_rom
