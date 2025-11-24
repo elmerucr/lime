@@ -569,7 +569,7 @@ void debugger_t::process_command(char *c)
 			for (int i=0; i<lines_remaining; i++) {
 				terminal->putchar('\n');
 				memory_binary_dump(temp_pc);
-				temp_pc = (temp_pc + 2) & 0xffff;
+				temp_pc = (temp_pc + 2) & 0xffffff;
 			}
 		} else {
 			if (!hex_string_to_int(token1, &temp_pc)) {
@@ -578,8 +578,8 @@ void debugger_t::process_command(char *c)
 			} else {
 				for (int i=0; i<lines_remaining; i++) {
 					terminal->putchar('\n');
-					memory_binary_dump(temp_pc & 0xffff);
-					temp_pc = (temp_pc + 2) & 0xffff;
+					memory_binary_dump(temp_pc & 0xffffff);
+					temp_pc = (temp_pc + 2) & 0xffffff;
 				}
 			}
 		}
