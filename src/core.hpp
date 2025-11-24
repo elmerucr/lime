@@ -138,7 +138,7 @@ public:
 
 	enum output_states run(bool debug);
 
-	void attach_bin(char *path);
+	void attach_bin(const char *path);
 };
 
 #endif

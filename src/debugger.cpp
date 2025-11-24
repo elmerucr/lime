@@ -469,9 +469,9 @@ void debugger_t::process_command(char *c)
 				terminal->printf("\nmc6809 mode");
 			}
 			system->core->reset();
-			system->host->events_wait_until_key_released(SDLK_y);
+			system->host->events_wait_until_key_released(SDL_SCANCODE_Y);
 		} else {
-			system->host->events_wait_until_key_released(SDLK_n);
+			system->host->events_wait_until_key_released(SDL_SCANCODE_N);
 		}
 	} else if (strcmp(token0, "d") == 0) {
 	 	have_prompt = false;
@@ -512,10 +512,10 @@ void debugger_t::process_command(char *c)
 		system->host->video_update_screen();
 		if (system->host->events_yes_no()) {
 			system->running = false;
-			system->host->events_wait_until_key_released(SDLK_y);
+			system->host->events_wait_until_key_released(SDL_SCANCODE_Y);
 			have_prompt = false;
 		} else {
-			system->host->events_wait_until_key_released(SDLK_n);
+			system->host->events_wait_until_key_released(SDL_SCANCODE_N);
 		}
 	} else if (strcmp(token0, "m") == 0) {
 		have_prompt = false;
@@ -629,13 +629,13 @@ void debugger_t::process_command(char *c)
 		system->host->video_update_screen();
 		if (system->host->events_yes_no()) {
 			system->core->reset();
-			system->host->events_wait_until_key_released(SDLK_y);
+			system->host->events_wait_until_key_released(SDL_SCANCODE_Y);
 		} else {
-			system->host->events_wait_until_key_released(SDLK_n);
+			system->host->events_wait_until_key_released(SDL_SCANCODE_N);
 		}
 	} else if (strcmp(token0, "run") == 0) {
 		have_prompt = false;
-		system->host->events_wait_until_key_released(SDLK_RETURN);
+		system->host->events_wait_until_key_released(SDL_SCANCODE_RETURN);
 		system->switch_to_run_mode();
 	} else if (strcmp(token0, "ver") == 0) {
 		print_version();

@@ -23,23 +23,30 @@ host_t::host_t(system_t *s)
 
     system = s;
 
-    SDL_Init(SDL_INIT_EVERYTHING);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS);
 
 	// each call to SDL_PollEvent invokes SDL_PumpEvents() that updates this array
-    sdl_keyboard_state = SDL_GetKeyboardState(NULL);
+	int no_of_keys;
+    sdl_keyboard_state = SDL_GetKeyboardState(&no_of_keys);
+	if (!sdl_keyboard_state) {
+		printf("[SDL] Error getting keyboard state: %s\n", SDL_GetError());
+	}
+
 	for (int i=0; i<128; i++) keyboard_state[i] = 0;
 
-	SDL_version compiled;
-	SDL_VERSION(&compiled);
-	printf("[SDL] Compiled against SDL version %d.%d.%d\n", compiled.major, compiled.minor, compiled.patch);
+	// SDL_version compiled;
+	// SDL_VERSION(&compiled);
+	// printf("[SDL] Compiled against SDL version %d.%d.%d\n", compiled.major, compiled.minor, compiled.patch);
 
-	SDL_version linked;
-	SDL_GetVersion(&linked);
-	printf("[SDL] Linked against SDL version %d.%d.%d\n", linked.major, linked.minor, linked.patch);
+	// SDL_version linked;
+	// SDL_GetVersion(&linked);
+	// printf("[SDL] Linked against SDL version %d.%d.%d\n", linked.major, linked.minor, linked.patch);
 
-	char *base_path = SDL_GetBasePath();
+	printf("[SDL] Version %i.%i.%i\n", SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_MICRO_VERSION);
+
+	const char *base_path = SDL_GetBasePath();
 	printf("[SDL] Base path is: %s\n", base_path);
-	SDL_free(base_path);
+	//SDL_free(base_path);
 
 	sdl_preference_path = SDL_GetPrefPath("elmerucr", "lime");
 	printf("[SDL] Preference path is: %s\n", sdl_preference_path);
@@ -63,7 +70,6 @@ host_t::~host_t()
 {
 	delete osd;
 	delete [] video_viewer_framebuffer;
-    // delete [] video_framebuffer;
 
 	video_stop();
 	audio_stop();
@@ -76,42 +82,40 @@ enum events_output_state host_t::events_process_events()
 
 	SDL_Event event;
 
-	//bool shift_pressed = sdl2_keyboard_state[SDL_SCANCODE_LSHIFT] | sdl2_keyboard_state[SDL_SCANCODE_RSHIFT];
-	bool alt_pressed = sdl_keyboard_state[SDL_SCANCODE_LALT] | sdl_keyboard_state[SDL_SCANCODE_RALT];
-	//bool gui_pressed   = sdl2_keyboard_state[SDL_SCANCODE_LGUI] | sdl2_keyboard_state[SDL_SCANCODE_RGUI];
+	bool alt_pressed = sdl_keyboard_state[SDL_SCANCODE_LALT] || sdl_keyboard_state[SDL_SCANCODE_RALT];
 
 	while (SDL_PollEvent(&event)) {
 		switch(event.type) {
-			case SDL_KEYDOWN:
+			case SDL_EVENT_KEY_DOWN:
 				return_value = KEYPRESS_EVENT;
-			    if ((event.key.keysym.sym == SDLK_f) && alt_pressed) {
-					events_wait_until_key_released(SDLK_f);
+			    if ((event.key.scancode == SDL_SCANCODE_F) && alt_pressed) {
+					events_wait_until_key_released(SDL_SCANCODE_F);
 					video_toggle_fullscreen();
-				} else if ((event.key.keysym.sym == SDLK_r) && alt_pressed) {
-					events_wait_until_key_released(SDLK_r);
+				} else if ((event.key.scancode == SDL_SCANCODE_R) && alt_pressed) {
+					events_wait_until_key_released(SDL_SCANCODE_R);
 					system->core->reset();
-                } else if ((event.key.keysym.sym == SDLK_q) && alt_pressed) {
-                    events_wait_until_key_released(SDLK_q);
+                } else if ((event.key.scancode == SDL_SCANCODE_Q) && alt_pressed) {
+                    events_wait_until_key_released(SDL_SCANCODE_Q);
 					return_value = QUIT_EVENT;
-                } else if ((event.key.keysym.sym == SDLK_c) && alt_pressed) {
+                } else if ((event.key.scancode == SDL_SCANCODE_C) && alt_pressed) {
 					if (system->current_mode == DEBUG_MODE) {
 						system->debugger->terminal->clear();
 						system->debugger->prompt();
 					}
-                } else if (event.key.keysym.sym == SDLK_F9) {
-                    events_wait_until_key_released(SDLK_F9);
+                } else if (event.key.scancode == SDL_SCANCODE_F9) {
+                    events_wait_until_key_released(SDL_SCANCODE_F9);
                     system->switch_mode();
-                } else if (event.key.keysym.sym == SDLK_F10) {
+                } else if (event.key.scancode == SDL_SCANCODE_F10) {
 					osd_visible = !osd_visible;
 				}
                 break;
-			case SDL_DROPFILE:
+			case SDL_EVENT_DROP_FILE:
 				{
-					char *path = event.drop.file;
+					const char *path = event.drop.data;
 					system->core->attach_bin(path);
 				}
 				break;
-            case SDL_QUIT:
+            case SDL_EVENT_QUIT:
 				return_value = QUIT_EVENT;
                 break;
             default:
@@ -201,35 +205,34 @@ void host_t::video_update_screen()
 	SDL_RenderClear(video_renderer);
 
 	SDL_UpdateTexture(vdc_texture, nullptr, (void *)system->core->vdc->buffer, VDC_XRES*sizeof(uint32_t));
-	SDL_RenderCopy(video_renderer, vdc_texture, nullptr, nullptr);
+	SDL_RenderTexture(video_renderer, vdc_texture, nullptr, nullptr);
 
 	if (system->current_mode == DEBUG_MODE) {
 		system->debugger->redraw();
 		SDL_UpdateTexture(debugger_texture, nullptr, (void *)system->debugger->buffer, DEBUGGER_XRES*sizeof(uint32_t));
-		//SDL_SetTextureScaleMode(debugger_texture, SDL_ScaleModeLinear);
-		SDL_RenderCopy(video_renderer, debugger_texture, nullptr, nullptr);
+		SDL_RenderTexture(video_renderer, debugger_texture, nullptr, nullptr);
 		if (viewer_visible) {
 			SDL_UpdateTexture(viewer_texture, nullptr, (void *)video_viewer_framebuffer, VDC_XRES*sizeof(uint32_t));
-			SDL_RenderCopy(video_renderer, viewer_texture, nullptr, &viewer_texture_placement);
+			SDL_RenderTexture(video_renderer, viewer_texture, nullptr, &viewer_texture_placement);
 		}
 	}
 
 	if (osd_visible) {
 		osd->redraw();
 		SDL_UpdateTexture(osd_texture, nullptr, (void *)osd->buffer, osd->width*8*sizeof(uint32_t));
-		SDL_RenderCopy(video_renderer, osd_texture, nullptr, &osd_placement);
+		SDL_RenderTexture(video_renderer, osd_texture, nullptr, &osd_placement);
 	}
 
     SDL_RenderPresent(video_renderer);
 }
 
-void host_t::events_wait_until_key_released(SDL_KeyCode key)
+void host_t::events_wait_until_key_released(SDL_Scancode key)
 {
 	SDL_Event event;
 	bool wait = true;
 	while (wait) {
 	    SDL_PollEvent(&event);
-	    if ((event.type == SDL_KEYUP) && (event.key.keysym.sym == key)) wait = false;
+	    if ((event.type == SDL_EVENT_KEY_UP) && (event.key.scancode == key)) wait = false;
 	    std::this_thread::sleep_for(std::chrono::microseconds(40000));
 	}
 }
@@ -237,12 +240,7 @@ void host_t::events_wait_until_key_released(SDL_KeyCode key)
 void host_t::video_toggle_fullscreen()
 {
 	video_fullscreen = !video_fullscreen;
-	if (video_fullscreen) {
-		SDL_SetWindowFullscreen(video_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-	} else {
-		SDL_SetWindowFullscreen(video_window, SDL_WINDOW_RESIZABLE);
-	}
-	// video_set_dimensions();
+	SDL_SetWindowFullscreen(video_window, video_fullscreen);
 }
 
 void host_t::video_init()
@@ -255,38 +253,36 @@ void host_t::video_init()
 	}
 	printf("\n[SDL] Display now using backend '%s'\n", SDL_GetCurrentVideoDriver());
 
+	int num_displays = 0;
+	SDL_DisplayID *displays = SDL_GetDisplays(&num_displays);
+	printf("[SDL] Number of displays: %i\n", num_displays);
+	const SDL_DisplayMode *mode = SDL_GetDesktopDisplayMode(*displays);
+	printf("[SDL] Desktop display mode: %ix%i\n", mode->w, mode->h);
 
-	SDL_GetCurrentDisplayMode(0, &video_displaymode);
-	printf("[SDL] Display current desktop dimension: %i x %i\n", video_displaymode.w, video_displaymode.h);
-
-	if ((VDC_YRES * video_displaymode.w / video_displaymode.h) > VDC_XRES) {
-		// wider than 3:2 aspect ration
-		video_scaling = video_displaymode.h / VDC_YRES;
-		if ((video_displaymode.h % VDC_YRES) == 0) {
+	if ((VDC_YRES * mode->w / mode->h) > VDC_XRES) {
+		// display is wider than aspect ratio
+		video_scaling = mode->h / VDC_YRES;
+		if ((mode->h % VDC_YRES) == 0) {
 			video_scaling--;
 		}
 	} else {
-		video_scaling = video_displaymode.w / VDC_XRES;
-		if ((video_displaymode.w % VDC_XRES) == 0) {
+		video_scaling = mode->w / VDC_XRES;
+		if ((mode->w % VDC_XRES) == 0) {
 			video_scaling--;
 		}
 	}
+	SDL_free(displays);
 
-	if (video_scaling < 1) video_scaling = 1;
+	if (video_scaling < 1) {
+		video_scaling = 1;
+	}
 
     printf("[SDL] Video scaling will be %i time%s\n", video_scaling, (video_scaling == 1) ? "" : "s");
 
-    video_window = SDL_CreateWindow(
-        nullptr,
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        video_scaling * VDC_XRES,
-        video_scaling * VDC_YRES,
-        SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI
-    );
+	video_window = SDL_CreateWindow(nullptr, video_scaling * VDC_XRES, video_scaling * VDC_YRES, SDL_WINDOW_HIGH_PIXEL_DENSITY);
+	SDL_SetWindowPosition(video_window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
-    SDL_Surface *icon = SDL_CreateRGBSurface(0, 64, 64, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
-	//SDL_CreateSurface(64, 64, SDL_PIXELFORMAT_ARGB8888);
+    SDL_Surface *icon = SDL_CreateSurface(64, 64, SDL_PIXELFORMAT_ARGB8888);
     if (icon->pixels) {
         const uint8_t pixels[] = {
             "                "
@@ -317,7 +313,7 @@ void host_t::video_init()
             }
         }
         SDL_SetWindowIcon(video_window, icon);
-        SDL_FreeSurface(icon);
+        SDL_DestroySurface(icon);
     }
 
 	SDL_GetWindowSize(video_window, &video_window_width, &video_window_height);
@@ -326,73 +322,64 @@ void host_t::video_init()
 	osd = new osd_t(system);
 
 	// create renderer and link it to window
-	printf("[SDL] Display refresh rate of current display is %iHz\n", video_displaymode.refresh_rate);
-	if (video_displaymode.refresh_rate == FPS) {
-		printf("[SDL] This is equal to the FPS of lime, trying for vsync\n");
-		SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
-		video_renderer = SDL_CreateRenderer(video_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-	} else {
-		printf("[SDL] This differs from the FPS of lime, going for software FPS\n");
-		video_renderer = SDL_CreateRenderer(video_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
+	video_renderer = SDL_CreateRenderer(video_window, nullptr);
+	if (video_renderer) {
+		printf("[SDL] Created a \"%s\" renderer\n", SDL_GetRendererName(video_renderer));
 	}
 
 	int w, h;
-	SDL_GetRendererOutputSize(video_renderer, &w, &h);
-	printf("[SDL] Renderer Output Size: %i x %i\n", w, h);
+	SDL_GetRenderOutputSize(video_renderer, &w, &h);
+	printf("[SDL] Renderer outputs at %ix%i\n", w, h);
 
-	if ((w % DEBUGGER_XRES) == 0) {
-		printf("[SDL] Width of renderer fits debugger xres of %i\n", DEBUGGER_XRES);
+	printf("[SDL] Display refresh rate of current display is %.2fHz\n", mode->refresh_rate);
+	if ((mode->refresh_rate > ((float)FPS - .1)) && (mode->refresh_rate < ((float)FPS + .1))) {
+		printf("[SDL] This is equal to the fps of lime, trying for vsync\n");
+		SDL_SetRenderVSync(video_renderer, 1);
 	} else {
-		printf("[SDL] Width of renderer doesn't fit debugger xres of %i\n", DEBUGGER_XRES);
-		video_scaling--;
-		if (video_scaling == 0 ) video_scaling = 1;
-		SDL_SetWindowSize(video_window, video_scaling * VDC_XRES, video_scaling * VDC_YRES);
-		SDL_GetWindowSize(video_window, &video_window_width, &video_window_height);
-		printf("[SDL] Display new window dimension: %u x %u pixels\n", video_window_width, video_window_height);
+		printf("[SDL] This differs from the FPS of lime, going for software FPS\n");
+		SDL_SetRenderVSync(video_renderer, 0);
 	}
-    // set clear color black
-    SDL_SetRenderDrawColor(video_renderer, 0, 0, 0, 255);
 
-	SDL_RendererInfo current_renderer;
-	SDL_GetRendererInfo(video_renderer, &current_renderer);
-	vsync = (current_renderer.flags & SDL_RENDERER_PRESENTVSYNC) ? true : false;
+    int i;
+    SDL_GetRenderVSync(video_renderer, &i);
+	if (i) {
+        printf("[SDL] vsync every %i frame(s)\n", i);
+    } else {
+        printf("[SDL] vsync is off\n");
+    }
+	vsync = (i == 1) ? true : false;
 
-	printf("[SDL] Renderer Name: %s\n", current_renderer.name);
-	printf("[SDL] Renderer %saccelerated\n",
-	       (current_renderer.flags & SDL_RENDERER_ACCELERATED) ? "" : "not ");
-	printf("[SDL] Renderer vsync is %s\n", vsync ? "enabled" : "disabled");
-	printf("[SDL] Renderer does%s support rendering to target texture\n", current_renderer.flags & SDL_RENDERER_TARGETTEXTURE ? "" : "n't");
-
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");	// nearest pixel
     vdc_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VDC_XRES, VDC_YRES);
+    SDL_SetTextureScaleMode(vdc_texture, SDL_SCALEMODE_PIXELART);
 	SDL_SetTextureBlendMode(vdc_texture, SDL_BLENDMODE_BLEND);
 
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");	// bilinear filtering hint
 	debugger_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, DEBUGGER_XRES, DEBUGGER_YRES);
+	SDL_SetTextureScaleMode(debugger_texture, SDL_SCALEMODE_PIXELART);
 	SDL_SetTextureBlendMode(debugger_texture, SDL_BLENDMODE_BLEND);
 
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");	// nearest pixel
 	osd_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, osd->width*8, osd->height*8);
-    SDL_SetTextureBlendMode(osd_texture, SDL_BLENDMODE_BLEND);
+	SDL_SetTextureScaleMode(osd_texture, SDL_SCALEMODE_PIXELART);
+	SDL_SetTextureBlendMode(osd_texture, SDL_BLENDMODE_BLEND);
 	osd_placement = {
- 		.x = (DEBUGGER_XRES / 2) - ((osd->width / 2) * 8),
- 		.y = DEBUGGER_YRES - ((osd->height) * 8),
- 		.w = osd->width * 8,
- 		.h = osd->height * 8
+ 		.x = (float)(DEBUGGER_XRES / 2) - ((osd->width / 2) * 8),
+ 		.y = (float)DEBUGGER_YRES - ((osd->height) * 8),
+ 		.w = (float)osd->width * 8,
+ 		.h = (float)osd->height * 8
 	};
 
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");	// bilinear filtering hint
 	viewer_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VDC_XRES, VDC_YRES);
     SDL_SetTextureBlendMode(viewer_texture, SDL_BLENDMODE_BLEND);
 	viewer_texture_placement = {
-		.x = DEBUGGER_XRES - (((15 * 8 * VDC_XRES) / VDC_YRES) + 8),
-		.y = DEBUGGER_YRES - ((15 * 8) + 16),
-		.w = (15 * 8 * VDC_XRES) / VDC_YRES,
-		.h = 15 * 8
+		.x = (float)DEBUGGER_XRES - (((15 * 8 * VDC_XRES) / VDC_YRES) + 8),
+		.y = (float)DEBUGGER_YRES - ((15 * 8) + 16),
+		.w = (float)(15 * 8 * VDC_XRES) / VDC_YRES,
+		.h = (float)15 * 8
 	};
 
-	SDL_RenderSetLogicalSize(video_renderer, DEBUGGER_XRES, DEBUGGER_YRES);
-    SDL_ShowCursor(SDL_DISABLE);	// make sure cursor isn't visible
+    SDL_SetRenderDrawColor(video_renderer, 0, 0, 0, 255);	// set clear color black
+
+	SDL_SetRenderLogicalPresentation(video_renderer, DEBUGGER_XRES, DEBUGGER_YRES, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+	SDL_HideCursor();				// make sure cursor isn't visible
 }
 
 void host_t::video_stop()
@@ -417,10 +404,10 @@ bool host_t::events_yes_no()
 	bool return_value = true;
 	while (checking) {
 		SDL_PollEvent(&event);
-		if (event.type == SDL_KEYDOWN) {
-			if (event.key.keysym.sym == SDLK_y) {
+		if (event.type == SDL_EVENT_KEY_DOWN) {
+			if (event.key.scancode == SDL_SCANCODE_Y) {
 				checking = false;
-			} else if (event.key.keysym.sym == SDLK_n) {
+			} else if (event.key.scancode == SDL_SCANCODE_N) {
 				return_value = false;
 				checking = false;
 			}
@@ -429,14 +416,6 @@ bool host_t::events_yes_no()
 	}
 	return return_value;
 }
-
-// void host_t::video_toggle_fullscreen_stretched()
-// {
-// 	if (video_fullscreen) {
-// 		video_fullscreen_stretched = !video_fullscreen_stretched;
-// 		video_set_dimensions();
-// 	}
-// }
 
 void host_t::audio_init()
 {
@@ -451,52 +430,39 @@ void host_t::audio_init()
 	printf("\n");
 
 	// What's this all about???
-	SDL_zero(audio_spec_want);
+	SDL_zero(audio_spec);
 
 	/*
 	 * Define audio specification
 	 */
-	audio_spec_want.freq = SAMPLE_RATE;
-	audio_spec_want.format = AUDIO_F32SYS;
-	audio_spec_want.channels = 2;
-	audio_spec_want.samples = 512;
-	audio_spec_want.callback = nullptr;
+	audio_spec.freq = SAMPLE_RATE;
+	audio_spec.format = SDL_AUDIO_F32;
+	audio_spec.channels = 2;
 
 	/*
 	 * Open audio device, allowing any changes to the specification
 	 */
-	audio_device = SDL_OpenAudioDevice(NULL, 0, &audio_spec_want, &audio_spec_have,
-						 SDL_AUDIO_ALLOW_ANY_CHANGE);
-	if(!audio_device) {
-		printf("[SDL] failed to open audio device: %s\n", SDL_GetError());
+    audio_stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &audio_spec, nullptr, nullptr);
+    if (!audio_stream) {
+        SDL_Log("[SDL] Couldn't create audio stream: %s", SDL_GetError());
 		// this is not enough and even wrong...
 		// consider a system without audio support?
-		SDL_Quit();
-	}
+        return SDL_Quit();
+    }
 
 	printf("[SDL] audio now using backend '%s'\n", SDL_GetCurrentAudioDriver());
-	printf("[SDL] audio information:        want\thave\n");
-	printf("[SDL]         frequency         %d\t%d\n", audio_spec_want.freq, audio_spec_have.freq);
-	printf("[SDL]         format\n"
-	       "[SDL]          float            %s\t%s\n",
-	       SDL_AUDIO_ISFLOAT(audio_spec_want.format) ? "yes" : "no",
-	       SDL_AUDIO_ISFLOAT(audio_spec_have.format) ? "yes" : "no");
-	printf("[SDL]          signed           %s\t%s\n",
-	       SDL_AUDIO_ISSIGNED(audio_spec_want.format) ? "yes" : "no",
-	       SDL_AUDIO_ISSIGNED(audio_spec_have.format) ? "yes" : "no");
-	printf("[SDL]          big endian       %s\t%s\n",
-	       SDL_AUDIO_ISBIGENDIAN(audio_spec_want.format) ? "yes" : "no",
-	       SDL_AUDIO_ISBIGENDIAN(audio_spec_have.format) ? "yes" : "no");
-	printf("[SDL]          bitsize          %d\t%d\n",
-	       SDL_AUDIO_BITSIZE(audio_spec_want.format),
-	       SDL_AUDIO_BITSIZE(audio_spec_have.format));
-	printf("[SDL]          channels         %d\t%d\n", audio_spec_want.channels, audio_spec_have.channels);
-	printf("[SDL]          samples          %d\t%d\n", audio_spec_want.samples, audio_spec_have.samples);
+	printf("[SDL] audio information / format:\n");
+	printf("[SDL]  frequency  : %d\n", audio_spec.freq);
+	printf("[SDL]  float      : %s\n", SDL_AUDIO_ISFLOAT(audio_spec.format) ? "yes" : "no");
+	printf("[SDL]  signed     : %s\n", SDL_AUDIO_ISSIGNED(audio_spec.format) ? "yes" : "no");
+	printf("[SDL]  big endian : %s\n", SDL_AUDIO_ISBIGENDIAN(audio_spec.format) ? "yes" : "no");
+	printf("[SDL]  bitsize    : %d\n", SDL_AUDIO_BITSIZE(audio_spec.format));
+	printf("[SDL]  channels   : %d\n", audio_spec.channels);
 
-	audio_bytes_per_sample = SDL_AUDIO_BITSIZE(audio_spec_have.format) / 8;
+	audio_bytes_per_sample = SDL_AUDIO_BITSIZE(audio_spec.format) / 8;
 	printf("[SDL] audio is using %d bytes per sample per channel\n", audio_bytes_per_sample);
 
-	audio_bytes_per_ms = (double)SAMPLE_RATE * audio_spec_have.channels * audio_bytes_per_sample / 1000;
+	audio_bytes_per_ms = (double)SAMPLE_RATE * audio_spec.channels * audio_bytes_per_sample / 1000;
 	printf("[SDL] audio is using %f bytes per ms\n", audio_bytes_per_ms);
 
 	audio_running = false;
@@ -509,7 +475,7 @@ void host_t::audio_start()
 	if (!audio_running) {
 		printf("[SDL] start audio\n");
 		// Unpause audiodevice, and process audiostream
-		SDL_PauseAudioDevice(audio_device, 0);
+    	SDL_ResumeAudioStreamDevice(audio_stream);
 		audio_running = true;
 	}
 }
@@ -519,70 +485,7 @@ void host_t::audio_stop()
 	if (audio_running) {
 		printf("[SDL] stop audio\n");
 		// Pause audiodevice
-		SDL_PauseAudioDevice(audio_device, 1);
+		SDL_PauseAudioStreamDevice(audio_stream);
 		audio_running = false;
 	}
 }
-
-
-// void host_t::video_set_dimensions()
-// {
-// 	if (video_fullscreen) {
-// 		SDL_SetWindowFullscreen(video_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-// 		SDL_GetWindowSize(video_window, &video_window_width, &video_window_height);
-// 		SDL_RenderSetLogicalSize(video_renderer, video_window_width, video_window_height);
-// 		if (video_fullscreen_stretched) {
-// 			video_placement = {
-// 				.x = (video_window_width - (3 * video_window_height) / 2) / 2,
-// 				.y = 0,
-// 				.w = (3 * video_window_height) / 2,
-// 				.h = video_window_height
-// 			};
-// 			viewer_placement = {
-// 				.x = ((8 * 43 * video_window_height) / SCREEN_HEIGHT) + (video_window_width - (3 * video_window_height) / 2) / 2,
-// 				.y = (8 * 27 * video_window_height) / SCREEN_HEIGHT,
-// 				.w = 15 * 8 * (video_window_height) / SCREEN_HEIGHT,
-// 				.h = 10 * 8 * video_window_height / SCREEN_HEIGHT
-// 			};
-// 		} else {
-// 			// not stretched
-// 			video_placement = {
-// 				.x = (video_window_width - (video_scaling * SCREEN_WIDTH)) / 2,
-// 				.y = (video_window_height - (video_scaling * SCREEN_HEIGHT)) / 2,
-// 				.w = video_scaling * SCREEN_WIDTH,
-// 				.h = video_scaling * SCREEN_HEIGHT
-// 			};
-// 			viewer_placement = {
-// 				.x = ((video_window_width - (video_scaling * SCREEN_WIDTH)) / 2) + (8 * 43 * video_scaling),
-// 				.y = ((video_window_height - (video_scaling * SCREEN_HEIGHT)) / 2) + (8 * 27 * video_scaling),
-// 				.w = 15 * 8 * video_scaling,
-// 				.h = 10 * 8 * video_scaling
-// 			};
-// 		}
-// 		printf("[SDL] Fullscreen size: %i x %i\n", video_window_width, video_window_height);
-// 	} else {
-// 		SDL_SetWindowFullscreen(video_window, SDL_WINDOW_RESIZABLE);
-// 		SDL_GetWindowSize(video_window, &video_window_width, &video_window_height);
-// 		SDL_RenderSetLogicalSize(video_renderer, video_window_width, video_window_height);
-// 		video_placement = {
-// 			.x = 0,
-// 			.y = 0,
-// 			.w = video_window_width,
-// 			.h = video_window_height
-// 		};
-// 		viewer_placement = {
-// 			.x = 43 * 8 * video_scaling,
-// 			.y = 27 * 8 * video_scaling,
-// 			.w = 15 * 8 * video_scaling,
-// 			.h = 10 * 8 * video_scaling
-// 		};
-// 		printf("[SDL] Window size: %i x %i\n", video_window_width, video_window_height);
-// 	}
-
-// 	osd_placement = {
-// 		.x = (video_window_width - (video_scaling * osd->width * 8)) / 2,
-// 		.y = (video_window_height - (video_scaling * osd->height * 8)),
-// 		.w = video_scaling * osd->width * 8,
-// 		.h = video_scaling * osd->height * 8
-// 	};
-// }

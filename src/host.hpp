@@ -8,7 +8,7 @@
 #ifndef HOST_HPP
 #define HOST_HPP
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include "common.hpp"
 #include "system.hpp"
 #include "osd.hpp"
@@ -96,14 +96,14 @@ enum scancodes {
 class host_t {
 private:
     system_t		*system;
-    const uint8_t	*sdl_keyboard_state;
+    const bool		*sdl_keyboard_state = nullptr;
 
 	/*
 	 * Audio related
 	 */
+	SDL_AudioStream *audio_stream = nullptr;
 	SDL_AudioDeviceID audio_device;
-	SDL_AudioSpec audio_spec_want;
-	SDL_AudioSpec audio_spec_have;
+	SDL_AudioSpec audio_spec;
 	double audio_bytes_per_ms;
 	uint8_t audio_bytes_per_sample;
 	bool audio_running{false};
@@ -112,7 +112,6 @@ private:
 	void audio_stop();
 
     // video related
-	SDL_DisplayMode	video_displaymode;
     int				video_scaling{1};
     SDL_Window		*video_window;
 	int				video_window_width;
@@ -129,10 +128,10 @@ private:
 	SDL_Texture		*osd_texture;
 	bool			osd_visible{false};
 	osd_t			*osd;
-	SDL_Rect		osd_placement;
+	SDL_FRect		osd_placement;
 
 	SDL_Texture		*viewer_texture;
-	SDL_Rect		viewer_texture_placement;
+	SDL_FRect		viewer_texture_placement;
 
     // inline uint32_t video_blend(uint32_t c0, uint32_t c1) {
 	// 	const uint8_t video_scanline_alpha = 176;
@@ -150,8 +149,8 @@ public:
 	char *sdl_preference_path;
 
 	// Audio related
-	inline void queue_audio(void *buffer, unsigned size) { SDL_QueueAudio(audio_device, buffer, size); }
-	inline unsigned int get_queued_audio_size_bytes() { return SDL_GetQueuedAudioSize(audio_device); }
+	inline void queue_audio(void *buffer, unsigned size) { SDL_PutAudioStreamData(audio_stream, buffer, size); }
+	inline unsigned int get_queued_audio_size_bytes() { return SDL_GetAudioStreamAvailable(audio_stream); }
 	inline uint8_t get_bytes_per_sample() { return audio_bytes_per_sample; }
 	inline double get_bytes_per_ms() { return audio_bytes_per_ms; }
 
@@ -159,14 +158,10 @@ public:
 	void video_init();
 	void video_stop();
     void video_toggle_fullscreen();
-    // void video_toggle_fullscreen_stretched();
-	// void video_set_dimensions();
 	void video_update_screen();
 	void video_set_window_title(const char *t);
-    // bool video_scanlines{true};
 	bool viewer_visible{true};
 
-    // uint32_t *video_framebuffer;	// used for scanline effect
 	uint32_t *video_viewer_framebuffer;
 
 	inline bool vsync_enabled() { return vsync; }
@@ -174,7 +169,7 @@ public:
 
     enum events_output_state events_process_events();
 	uint8_t keyboard_state[128];
-    void events_wait_until_key_released(SDL_KeyCode key);
+    void events_wait_until_key_released(SDL_Scancode key);
 	bool events_yes_no();	// return true on 'y' and false on 'n'
 };
 

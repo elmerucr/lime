@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.24)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -14,10 +14,14 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 project(lime)
 
-find_package(SDL2 REQUIRED)
+add_subdirectory(external/SDL)
+
+# Statically link SDL3
+set(SDL_SHARED OFF CACHE BOOL "Build SDL shared library" FORCE)
+set(SDL_STATIC ON CACHE BOOL "Build SDL static library" FORCE)
 
 include_directories(
-    ${SDL2_INCLUDE_DIRS}
+	external/SDL/include
     src/
 	src/mc6809
 	src/Moira
@@ -30,5 +34,4 @@ add_subdirectory(src/)
 
 add_executable(${PROJECT_NAME} src/main.cpp)
 
-# target_link_libraries(${PROJECT_NAME} system ${SDL2_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} PRIVATE system SDL2::SDL2-static)
+target_link_libraries(${PROJECT_NAME} PRIVATE system SDL3::SDL3)

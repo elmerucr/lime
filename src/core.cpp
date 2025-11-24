@@ -307,7 +307,7 @@ void core_t::reset()
 	}
 }
 
-void core_t::attach_bin(char *path)
+void core_t::attach_bin(const char *path)
 {
 	if (chdir(path)) {
 		f = fopen(path, "r");

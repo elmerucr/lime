@@ -12,8 +12,8 @@
 // Version information
 // ---------------------------------------------------------------------
 #define LIME_MAJOR_VERSION			0
-#define LIME_MINOR_VERSION			10
-#define LIME_BUILD					20251118
+#define LIME_MINOR_VERSION			11
+#define LIME_BUILD					20251124
 #define LIME_YEAR					2025
 
 // ---------------------------------------------------------------------
