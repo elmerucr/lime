@@ -14,14 +14,24 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 project(lime)
 
-add_subdirectory(external/SDL)
+# Create an option to switch between a system sdl library and a vendored SDL library
+option(MYGAME_VENDORED "Use vendored libraries" ON)
 
-# Statically link SDL3
-set(SDL_SHARED OFF CACHE BOOL "Build SDL shared library" FORCE)
-set(SDL_STATIC ON CACHE BOOL "Build SDL static library" FORCE)
+if(MYGAME_VENDORED)
+    # This assumes you have added SDL as a submodule in vendored/SDL
+    add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
+	# Statically link SDL3
+	set(SDL_SHARED OFF CACHE BOOL "Build SDL shared library" FORCE)
+	set(SDL_STATIC ON CACHE BOOL "Build SDL static library" FORCE)
+else()
+    # 1. Look for a SDL3 package,
+    # 2. look for the SDL3-shared component, and
+    # 3. fail if the shared component cannot be found.
+    find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
+endif()
 
 include_directories(
-	external/SDL/include
+	vendored/SDL/include
     src/
 	src/mc6809
 	src/Moira
@@ -34,4 +44,4 @@ add_subdirectory(src/)
 
 add_executable(${PROJECT_NAME} src/main.cpp)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE system SDL3::SDL3)
+target_link_libraries(${PROJECT_NAME} PRIVATE system SDL3::SDL3-static)

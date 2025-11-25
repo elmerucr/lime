@@ -279,7 +279,8 @@ void host_t::video_init()
 
     printf("[SDL] Video scaling will be %i time%s\n", video_scaling, (video_scaling == 1) ? "" : "s");
 
-	video_window = SDL_CreateWindow(nullptr, video_scaling * VDC_XRES, video_scaling * VDC_YRES, SDL_WINDOW_HIGH_PIXEL_DENSITY);
+	video_window = SDL_CreateWindow(nullptr, video_scaling * VDC_XRES, video_scaling * VDC_YRES, SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_RESIZABLE);
+	SDL_SetWindowAspectRatio(video_window, 16.0/9.0, 16.0/9.0);
 	SDL_SetWindowPosition(video_window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
     SDL_Surface *icon = SDL_CreateSurface(64, 64, SDL_PIXELFORMAT_ARGB8888);

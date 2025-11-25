@@ -2,7 +2,7 @@
 .vscode/
 build/
 Debug/
-external/SDL
 Release/
 rom_mc68000/mk_rom
 rom_mc6809/mk_rom
+vendored/SDL
