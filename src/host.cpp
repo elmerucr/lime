@@ -94,6 +94,9 @@ enum events_output_state host_t::events_process_events()
 				} else if ((event.key.scancode == SDL_SCANCODE_R) && alt_pressed) {
 					events_wait_until_key_released(SDL_SCANCODE_R);
 					system->core->reset();
+				} else if ((event.key.scancode == SDL_SCANCODE_S) && alt_pressed) {
+					//events_wait_until_key_released(SDL_SCANCODE_S);
+					video_toggle_scanlines();
                 } else if ((event.key.scancode == SDL_SCANCODE_Q) && alt_pressed) {
                     events_wait_until_key_released(SDL_SCANCODE_Q);
 					return_value = QUIT_EVENT;
@@ -202,9 +205,40 @@ enum events_output_state host_t::events_process_events()
 
 void host_t::video_update_screen()
 {
+	void *pixels;
+	int pitch;
+
 	SDL_RenderClear(video_renderer);
 
-	SDL_UpdateTexture(vdc_texture, nullptr, (void *)system->core->vdc->buffer, VDC_XRES*sizeof(uint32_t));
+	//SDL_UpdateTexture(vdc_texture, nullptr, (void *)system->core->vdc->buffer, VDC_XRES*sizeof(uint32_t));
+	SDL_LockTexture(vdc_texture, nullptr, &pixels, &pitch);
+	pitch /= vdc_texture_bytes_per_pixel;
+	// for (int y = 0; y < VDC_YRES; y++) {
+	// 	int i = (y == (VDC_YRES - 1) ? 0 : 1);
+	// 	for (int x = 0; x < VDC_XRES; x++) {
+	// 		uint32_t cur_pix = system->core->vdc->buffer[((y + 0) * VDC_XRES) + x];
+	// 		uint32_t nxt_pix = system->core->vdc->buffer[((y + i) * VDC_XRES) + x];
+	// 		((uint32_t *)pixels)[(((2 * y) + 0) * pitch) + x] = cur_pix;
+	// 		((uint32_t *)pixels)[(((2 * y) + 1) * pitch) + x] = video_scanlines ? video_blend(cur_pix, nxt_pix) : cur_pix;
+	// 	}
+	// }
+	uint32_t *cur_pix_src = system->core->vdc->buffer;
+	uint32_t *nxt_pix_src = cur_pix_src + VDC_XRES;
+	uint32_t *cur_pix_dst = (uint32_t *)pixels;
+	uint32_t *nxt_pix_dst = cur_pix_dst + pitch;
+	for (int y = 0; y < VDC_YRES; y++) {
+		if (y == (VDC_YRES - 1)) nxt_pix_src = cur_pix_src;
+		for (int x = 0; x < VDC_XRES; x++) {
+			*cur_pix_dst++ = *cur_pix_src;
+			*nxt_pix_dst++ = video_scanlines ? video_blend(*cur_pix_src, *nxt_pix_src) : *cur_pix_src;
+			cur_pix_src++;
+			nxt_pix_src++;
+		}
+		cur_pix_dst += pitch;
+		nxt_pix_dst += pitch;
+	}
+	SDL_UnlockTexture(vdc_texture);
+
 	SDL_RenderTexture(video_renderer, vdc_texture, nullptr, nullptr);
 
 	if (system->current_mode == DEBUG_MODE) {
@@ -350,9 +384,10 @@ void host_t::video_init()
     }
 	vsync = (i == 1) ? true : false;
 
-    vdc_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VDC_XRES, VDC_YRES);
+    vdc_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VDC_XRES, 2 * VDC_YRES);
     SDL_SetTextureScaleMode(vdc_texture, SDL_SCALEMODE_PIXELART);
 	SDL_SetTextureBlendMode(vdc_texture, SDL_BLENDMODE_BLEND);
+	vdc_texture_bytes_per_pixel = (SDL_BITSPERPIXEL(vdc_texture->format) >> 3);
 
 	debugger_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, DEBUGGER_XRES, DEBUGGER_YRES);
 	SDL_SetTextureScaleMode(debugger_texture, SDL_SCALEMODE_PIXELART);
@@ -369,7 +404,8 @@ void host_t::video_init()
 	};
 
 	viewer_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VDC_XRES, VDC_YRES);
-    SDL_SetTextureBlendMode(viewer_texture, SDL_BLENDMODE_BLEND);
+    SDL_SetTextureScaleMode(viewer_texture, SDL_SCALEMODE_PIXELART);
+	SDL_SetTextureBlendMode(viewer_texture, SDL_BLENDMODE_BLEND);
 	viewer_texture_placement = {
 		.x = (float)DEBUGGER_XRES - (((15 * 8 * VDC_XRES) / VDC_YRES) + 8),
 		.y = (float)DEBUGGER_YRES - ((15 * 8) + 16),
