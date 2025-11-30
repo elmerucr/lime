@@ -121,17 +121,22 @@ private:
     bool			video_fullscreen{false};
 	//bool			video_fullscreen_stretched{false};
 	bool			video_scanlines = true;
-	uint8_t			video_scanline_alpha = 0xb0;
+	uint8_t			video_scanline_alpha = 0xbb;
 
     SDL_Texture		*vdc_texture;
 	uint8_t			vdc_texture_bytes_per_pixel;
 
 	SDL_Texture		*debugger_texture;
 
-	SDL_Texture		*osd_texture;
-	bool			osd_visible{false};
-	osd_t			*osd;
-	SDL_FRect		osd_placement;
+	SDL_Texture		*osd_stats_texture;
+	bool			osd_stats_visible{false};
+	osd_t			*osd_stats;
+	SDL_FRect		osd_stats_placement;
+
+	SDL_Texture		*osd_notify_texture;
+	uint16_t		osd_notify_frames_remaining = 0;
+	osd_t			*osd_notify;
+	SDL_FRect		osd_notify_placement;
 
 	SDL_Texture		*viewer_texture;
 	SDL_FRect		viewer_texture_placement;

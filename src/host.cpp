@@ -10,6 +10,7 @@
 #include "core.hpp"
 #include "vdc.hpp"
 #include "debugger.hpp"
+#include "stats.hpp"
 #include <thread>
 #include <chrono>
 
@@ -68,7 +69,8 @@ host_t::host_t(system_t *s)
 
 host_t::~host_t()
 {
-	delete osd;
+	delete osd_notify;
+	delete osd_stats;
 	delete [] video_viewer_framebuffer;
 
 	video_stop();
@@ -93,10 +95,28 @@ enum events_output_state host_t::events_process_events()
 					video_toggle_fullscreen();
 				} else if ((event.key.scancode == SDL_SCANCODE_R) && alt_pressed) {
 					events_wait_until_key_released(SDL_SCANCODE_R);
+					osd_notify_frames_remaining = 120;
+					osd_notify->terminal->clear();
+					for (int i=0; i<((79-12) / 2); i++) osd_notify->terminal->cursor_right();
+					osd_notify->terminal->printf("system reset");
 					system->core->reset();
 				} else if ((event.key.scancode == SDL_SCANCODE_S) && alt_pressed) {
-					//events_wait_until_key_released(SDL_SCANCODE_S);
 					video_toggle_scanlines();
+					osd_notify_frames_remaining = 120;
+					osd_notify->terminal->clear();
+					for (int i=0; i<((79-13) / 2); i++) osd_notify->terminal->cursor_right();
+					osd_notify->terminal->printf("scanlines %s", video_scanlines ? "on" : "off");
+					//events_wait_until_key_released(SDL_SCANCODE_S);
+				} else if ((event.key.scancode == SDL_SCANCODE_D) && alt_pressed) {
+					if (video_scanline_alpha > 0xf0) {
+						video_scanline_alpha = 0x00;
+					} else {
+						video_scanline_alpha += 0x11;
+					}
+					osd_notify_frames_remaining = 120;
+					osd_notify->terminal->clear();
+					for (int i=0; i<((79-24) / 2); i++) osd_notify->terminal->cursor_right();
+					osd_notify->terminal->printf("scanlines intensity 0x%02x", video_scanline_alpha);
                 } else if ((event.key.scancode == SDL_SCANCODE_Q) && alt_pressed) {
                     events_wait_until_key_released(SDL_SCANCODE_Q);
 					return_value = QUIT_EVENT;
@@ -109,7 +129,7 @@ enum events_output_state host_t::events_process_events()
                     events_wait_until_key_released(SDL_SCANCODE_F9);
                     system->switch_mode();
                 } else if (event.key.scancode == SDL_SCANCODE_F10) {
-					osd_visible = !osd_visible;
+					osd_stats_visible = !osd_stats_visible;
 				}
                 break;
 			case SDL_EVENT_DROP_FILE:
@@ -251,10 +271,20 @@ void host_t::video_update_screen()
 		}
 	}
 
-	if (osd_visible) {
-		osd->redraw();
-		SDL_UpdateTexture(osd_texture, nullptr, (void *)osd->buffer, osd->width*8*sizeof(uint32_t));
-		SDL_RenderTexture(video_renderer, osd_texture, nullptr, &osd_placement);
+	if (osd_stats_visible) {
+		osd_stats->terminal->printf("%s", system->stats->summary());
+		osd_stats->redraw();
+		SDL_UpdateTexture(osd_stats_texture, nullptr, (void *)osd_stats->buffer, osd_stats->width*8*sizeof(uint32_t));
+		SDL_RenderTexture(video_renderer, osd_stats_texture, nullptr, &osd_stats_placement);
+	}
+
+	if(osd_notify_frames_remaining > 0) {
+		// osd_notify->terminal->clear();
+		// osd_notify->terminal->printf("Hello there");
+		osd_notify->redraw();
+		SDL_UpdateTexture(osd_notify_texture, nullptr, (void *)osd_notify->buffer, osd_notify->width*8*sizeof(uint32_t));
+		SDL_RenderTexture(video_renderer, osd_notify_texture, nullptr, &osd_notify_placement);
+		osd_notify_frames_remaining--;
 	}
 
     SDL_RenderPresent(video_renderer);
@@ -354,7 +384,9 @@ void host_t::video_init()
 	SDL_GetWindowSize(video_window, &video_window_width, &video_window_height);
 	printf("[SDL] Display window dimension: %u x %u pixels\n", video_window_width, video_window_height);
 
-	osd = new osd_t(system);
+	osd_stats = new osd_t(system, 47, 3);
+	osd_notify = new osd_t(system, 79, 1);
+	osd_notify->terminal->clear();
 
 	// create renderer and link it to window
 	video_renderer = SDL_CreateRenderer(video_window, nullptr);
@@ -393,14 +425,24 @@ void host_t::video_init()
 	SDL_SetTextureScaleMode(debugger_texture, SDL_SCALEMODE_PIXELART);
 	SDL_SetTextureBlendMode(debugger_texture, SDL_BLENDMODE_BLEND);
 
-	osd_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, osd->width*8, osd->height*8);
-	SDL_SetTextureScaleMode(osd_texture, SDL_SCALEMODE_PIXELART);
-	SDL_SetTextureBlendMode(osd_texture, SDL_BLENDMODE_BLEND);
-	osd_placement = {
- 		.x = (float)(DEBUGGER_XRES / 2) - ((osd->width / 2) * 8),
- 		.y = (float)DEBUGGER_YRES - ((osd->height) * 8),
- 		.w = (float)osd->width * 8,
- 		.h = (float)osd->height * 8
+	osd_stats_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, osd_stats->width*8, osd_stats->height*8);
+	SDL_SetTextureScaleMode(osd_stats_texture, SDL_SCALEMODE_PIXELART);
+	SDL_SetTextureBlendMode(osd_stats_texture, SDL_BLENDMODE_BLEND);
+	osd_stats_placement = {
+ 		.x = (float)(DEBUGGER_XRES - (osd_stats->width * 8)) / 2,
+ 		.y = (float)DEBUGGER_YRES - ((osd_stats->height) * 8) - 4,
+ 		.w = (float)osd_stats->width * 8,
+ 		.h = (float)osd_stats->height * 8
+	};
+
+	osd_notify_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, osd_notify->width*8, osd_notify->height*8);
+	SDL_SetTextureScaleMode(osd_notify_texture, SDL_SCALEMODE_PIXELART);
+	SDL_SetTextureBlendMode(osd_notify_texture, SDL_BLENDMODE_BLEND);
+	osd_notify_placement = {
+ 		.x = (float)(DEBUGGER_XRES - (osd_notify->width * 8)) / 2,
+ 		.y = 4.0,
+ 		.w = (float)osd_notify->width * 8,
+ 		.h = (float)osd_notify->height * 8
 	};
 
 	viewer_texture = SDL_CreateTexture(video_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, VDC_XRES, VDC_YRES);
@@ -422,7 +464,7 @@ void host_t::video_init()
 void host_t::video_stop()
 {
 	SDL_DestroyTexture(viewer_texture);
-	SDL_DestroyTexture(osd_texture);
+	SDL_DestroyTexture(osd_stats_texture);
 	SDL_DestroyTexture(debugger_texture);
     SDL_DestroyTexture(vdc_texture);
     SDL_DestroyRenderer(video_renderer);

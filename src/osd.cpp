@@ -8,9 +8,19 @@
 #include "osd.hpp"
 #include "stats.hpp"
 
-osd_t::osd_t(system_t *s)
+osd_t::osd_t(system_t *s, uint8_t w, uint8_t h)
 {
 	system = s;
+	if (w == 0) {
+		width = 1;
+	} else {
+		width = w;
+	}
+	if (h == 0) {
+		height = 1;
+	} else {
+		height = h;
+	}
 
 	terminal = new terminal_t(system, width, height, fg, bg);
 	terminal->clear();
@@ -29,7 +39,7 @@ osd_t::~osd_t()
 
 void osd_t::redraw()
 {
-	terminal->printf("%s", system->stats->summary());
+	//terminal->printf("%s", system->stats->summary());
 	// update buffer
 	for (int y=0; y<height*8; y++) {
 		uint8_t y_in_char = y % 8;

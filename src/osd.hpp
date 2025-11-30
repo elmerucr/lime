@@ -25,15 +25,16 @@ private:
 	const uint32_t bg = (LIME_COLOR_01 & 0x00ffffff) | 0xe0000000;
 
 	font_cbm_8x8_t font;
-	terminal_t *terminal;
 public:
-	osd_t(system_t *s);
+	osd_t(system_t *s, uint8_t w, uint8_t h);
 	~osd_t();
 
-	const uint8_t width{47};	// in characters
-	const uint8_t height{3};	// in characters
+	uint8_t width;	// in characters
+	uint8_t height;	// in characters
 
 	uint32_t *buffer;
+
+	terminal_t *terminal;
 
 	void redraw();
 };
