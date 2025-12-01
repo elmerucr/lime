@@ -259,11 +259,11 @@ void sound_ic::run(uint32_t number_of_cycles)
 		sample_buffer_stereo[(2 * i) + 0] /= 32768 * 255;	// left
 		sample_buffer_stereo[(2 * i) + 1] /= 32768 * 255;	// right
 
-		if (sound_starting) {
-			sample_buffer_stereo[2 * i] *= (float)(4000-sound_starting) / 4000;
-			sample_buffer_stereo[(2 * i) + 1] *= (float)(4000-sound_starting) / 4000;
-			sound_starting--;
-		}
+		// if (sound_starting) {
+		// 	sample_buffer_stereo[2 * i] *= (float)(4000-sound_starting) / 4000;
+		// 	sample_buffer_stereo[(2 * i) + 1] *= (float)(4000-sound_starting) / 4000;
+		// 	sound_starting--;
+		// }
 
 		//settings->audio_record_push_sample(sample_buffer_stereo[ 2 * i     ]);
 		//settings->audio_record_push_sample(sample_buffer_stereo[(2 * i) + 1]);
@@ -281,5 +281,5 @@ void sound_ic::reset()
 		sid_shadow[i] = 0;
 	}
 
-	sound_starting = 4000;
+	//sound_starting = 4000;
 }

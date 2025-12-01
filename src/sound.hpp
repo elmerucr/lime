@@ -94,7 +94,7 @@ private:
 	uint8_t balance_registers[0x10];
 	float sample_buffer_stereo[131072];
 
-	uint16_t sound_starting;
+	//uint16_t sound_starting;
 
 	system_t *system;
 public:
