@@ -118,8 +118,6 @@ private:
 	int				video_window_height;
     SDL_Renderer	*video_renderer;
 	bool			vsync;
-    bool			video_fullscreen{false};
-	//bool			video_fullscreen_stretched{false};
 	bool			video_scanlines = true;
 	uint8_t			video_scanline_alpha = 0xbb;
 

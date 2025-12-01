@@ -4,7 +4,7 @@
 * Scanline intensity with <Alt+D>
 * osd notifications
 
-# Version 0.11.20251124
+# Version 0.11.20251125-alpha
 
 * Move from SDL2 to SDL3
 * Using SDL_SCALEMODE_PIXELART for texture rendering, new in SDL 3.4, for better retro pixel look when textures are not magnified with an integer scale

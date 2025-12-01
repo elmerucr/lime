@@ -16,13 +16,9 @@
 
 host_t::host_t(system_t *s)
 {
-    // one extra line, needed for proper scanline effect
-    // video_framebuffer = new uint32_t[SCREEN_WIDTH * (SCREEN_HEIGHT + 1)];
-	// for (int i=0; i<SCREEN_WIDTH * (SCREEN_HEIGHT + 1); i++) video_framebuffer[i] = 0;
+    system = s;
 
 	video_viewer_framebuffer = new uint32_t[VDC_XRES * VDC_YRES];
-
-    system = s;
 
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS);
 
@@ -33,15 +29,9 @@ host_t::host_t(system_t *s)
 		printf("[SDL] Error getting keyboard state: %s\n", SDL_GetError());
 	}
 
-	for (int i=0; i<128; i++) keyboard_state[i] = 0;
-
-	// SDL_version compiled;
-	// SDL_VERSION(&compiled);
-	// printf("[SDL] Compiled against SDL version %d.%d.%d\n", compiled.major, compiled.minor, compiled.patch);
-
-	// SDL_version linked;
-	// SDL_GetVersion(&linked);
-	// printf("[SDL] Linked against SDL version %d.%d.%d\n", linked.major, linked.minor, linked.patch);
+	for (int i=0; i<128; i++) {
+		keyboard_state[i] = 0;
+	}
 
 	printf("[SDL] Version %i.%i.%i\n", SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_MICRO_VERSION);
 
@@ -93,6 +83,9 @@ enum events_output_state host_t::events_process_events()
 			    if ((event.key.scancode == SDL_SCANCODE_F) && alt_pressed) {
 					events_wait_until_key_released(SDL_SCANCODE_F);
 					video_toggle_fullscreen();
+					// osd_notify_frames_remaining = 120;
+					// osd_notify->terminal->clear();
+					// osd_notify->terminal->printf("%s mode", video_fullscreen ? "fullscreen" : "  windowed");
 				} else if ((event.key.scancode == SDL_SCANCODE_R) && alt_pressed) {
 					events_wait_until_key_released(SDL_SCANCODE_R);
 					osd_notify_frames_remaining = 120;
@@ -115,8 +108,8 @@ enum events_output_state host_t::events_process_events()
 					}
 					osd_notify_frames_remaining = 120;
 					osd_notify->terminal->clear();
-					for (int i=0; i<((79-24) / 2); i++) osd_notify->terminal->cursor_right();
-					osd_notify->terminal->printf("scanlines intensity 0x%02x", video_scanline_alpha);
+					for (int i=0; i<((79-28) / 2); i++) osd_notify->terminal->cursor_right();
+					osd_notify->terminal->printf("scanlines intensity %2i of 15", video_scanline_alpha / 17);
                 } else if ((event.key.scancode == SDL_SCANCODE_Q) && alt_pressed) {
                     events_wait_until_key_released(SDL_SCANCODE_Q);
 					return_value = QUIT_EVENT;
@@ -138,6 +131,22 @@ enum events_output_state host_t::events_process_events()
 					system->core->attach_bin(path);
 				}
 				break;
+			// case SDL_EVENT_WINDOW_RESIZED:
+			// 	printf("[SDL] Window resize event\n");
+			// 	{
+			// 		uint32_t flags = SDL_GetWindowFlags(video_window);
+			// 		if (flags & SDL_WINDOW_FULLSCREEN) {
+			// 			const SDL_DisplayMode *mode = SDL_GetWindowFullscreenMode(video_window);
+			// 			if (mode != nullptr) {
+			// 				printf("[SDL] Window is in exclusive fullscreen mode\n");
+			// 			} else {
+			// 				printf("[SDL] Window is in borderless fullscreen desktop mode\n");
+			// 			}
+			// 		} else {
+			// 			printf("[SDL] Windowed\n");
+			// 		}
+			// 	}
+			// 	break;
             case SDL_EVENT_QUIT:
 				return_value = QUIT_EVENT;
                 break;
@@ -303,8 +312,8 @@ void host_t::events_wait_until_key_released(SDL_Scancode key)
 
 void host_t::video_toggle_fullscreen()
 {
-	video_fullscreen = !video_fullscreen;
-	SDL_SetWindowFullscreen(video_window, video_fullscreen);
+	bool video_fullscreen = (SDL_GetWindowFlags(video_window) & SDL_WINDOW_FULLSCREEN);
+	SDL_SetWindowFullscreen(video_window, !video_fullscreen);
 }
 
 void host_t::video_init()
