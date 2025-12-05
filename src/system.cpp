@@ -17,7 +17,7 @@ system_t::system_t(char *bin)
 {
 	system_start_time = std::chrono::steady_clock::now();
 
-	printf("[lime] %i.%i %i (C)%i elmerucr\n",
+	printf("lime %i.%i.%i (C)%i elmerucr\n",
 	       LIME_MAJOR_VERSION,
 	       LIME_MINOR_VERSION,
 	       LIME_BUILD, LIME_YEAR

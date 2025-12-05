@@ -2,7 +2,7 @@
 // analog.cpp
 // lime
 //
-// Copyright © 2021-2023 elmerucr. All rights reserved.
+// Copyright © 2021-2025 elmerucr. All rights reserved.
 // ---------------------------------------------------------------------
 
 #include "common.hpp"

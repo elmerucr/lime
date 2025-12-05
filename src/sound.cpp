@@ -280,6 +280,4 @@ void sound_ic::reset()
 	for (int i=0; i<32; i++) {
 		sid_shadow[i] = 0;
 	}
-
-	//sound_starting = 4000;
 }

@@ -39,8 +39,6 @@ osd_t::~osd_t()
 
 void osd_t::redraw()
 {
-	//terminal->printf("%s", system->stats->summary());
-	// update buffer
 	for (int y=0; y<height*8; y++) {
 		uint8_t y_in_char = y % 8;
 		for (int x=0; x<width*8; x++) {

@@ -72,15 +72,11 @@ private:
 
 	uint8_t sid_shadow[64];
 
-	/*
-	 * Used to rewire several lo/hi registers from sid to big endian
-	 * and make it more convenient.
-	 */
+	// Used to rewire several lo/hi registers from sid to big endian
+	// and make it more convenient.
 	uint8_t register_index[32];
 
-	/*
-	 * Analog
-	 */
+	// analog
 	analog_ic analog0;
 	analog_ic analog1;
 	int16_t sample_buffer_mono_analog0[65536] = { 0 };
@@ -88,13 +84,9 @@ private:
 	int16_t sample_buffer_mono_analog1[65536];
 	float f_sample_buffer_mono_analog1[65536] = { 0.0 };
 
-	/*
-	 * General
-	 */
+	// general
 	uint8_t balance_registers[0x10];
 	float sample_buffer_stereo[131072];
-
-	//uint16_t sound_starting;
 
 	system_t *system;
 public:

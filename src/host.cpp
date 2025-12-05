@@ -64,7 +64,7 @@ host_t::~host_t()
 	delete [] video_viewer_framebuffer;
 
 	video_stop();
-	audio_stop();
+	audio_cleanup();
     SDL_Quit();
 }
 
@@ -83,33 +83,31 @@ enum events_output_state host_t::events_process_events()
 			    if ((event.key.scancode == SDL_SCANCODE_F) && alt_pressed) {
 					events_wait_until_key_released(SDL_SCANCODE_F);
 					video_toggle_fullscreen();
-					// osd_notify_frames_remaining = 120;
-					// osd_notify->terminal->clear();
-					// osd_notify->terminal->printf("%s mode", video_fullscreen ? "fullscreen" : "  windowed");
 				} else if ((event.key.scancode == SDL_SCANCODE_R) && alt_pressed) {
 					events_wait_until_key_released(SDL_SCANCODE_R);
-					osd_notify_frames_remaining = 120;
+					osd_notify_frames_remaining = 90;
 					osd_notify->terminal->clear();
 					for (int i=0; i<((79-12) / 2); i++) osd_notify->terminal->cursor_right();
 					osd_notify->terminal->printf("system reset");
 					system->core->reset();
 				} else if ((event.key.scancode == SDL_SCANCODE_S) && alt_pressed) {
 					video_toggle_scanlines();
-					osd_notify_frames_remaining = 120;
+					osd_notify_frames_remaining = 90;
 					osd_notify->terminal->clear();
 					for (int i=0; i<((79-13) / 2); i++) osd_notify->terminal->cursor_right();
 					osd_notify->terminal->printf("scanlines %s", video_scanlines ? "on" : "off");
-					//events_wait_until_key_released(SDL_SCANCODE_S);
 				} else if ((event.key.scancode == SDL_SCANCODE_D) && alt_pressed) {
-					if (video_scanline_alpha > 0xf0) {
-						video_scanline_alpha = 0x00;
-					} else {
-						video_scanline_alpha += 0x11;
+					if (video_scanlines) {
+						if (video_scanlines_alpha > 0xf0) {
+							video_scanlines_alpha = 0x00;
+						} else {
+							video_scanlines_alpha += 0x11;
+						}
 					}
-					osd_notify_frames_remaining = 120;
+					osd_notify_frames_remaining = 90;
 					osd_notify->terminal->clear();
 					for (int i=0; i<((79-28) / 2); i++) osd_notify->terminal->cursor_right();
-					osd_notify->terminal->printf("scanlines intensity %2i of 15", video_scanline_alpha / 17);
+					osd_notify->terminal->printf("scanlines intensity %2i of 15", video_scanlines_alpha / 17);
                 } else if ((event.key.scancode == SDL_SCANCODE_Q) && alt_pressed) {
                     events_wait_until_key_released(SDL_SCANCODE_Q);
 					return_value = QUIT_EVENT;
@@ -288,8 +286,6 @@ void host_t::video_update_screen()
 	}
 
 	if(osd_notify_frames_remaining > 0) {
-		// osd_notify->terminal->clear();
-		// osd_notify->terminal->printf("Hello there");
 		osd_notify->redraw();
 		SDL_UpdateTexture(osd_notify_texture, nullptr, (void *)osd_notify->buffer, osd_notify->width*8*sizeof(uint32_t));
 		SDL_RenderTexture(video_renderer, osd_notify_texture, nullptr, &osd_notify_placement);
@@ -553,27 +549,12 @@ void host_t::audio_init()
 	audio_bytes_per_ms = (double)SAMPLE_RATE * audio_spec.channels * audio_bytes_per_sample / 1000;
 	printf("[SDL] audio is using %f bytes per ms\n", audio_bytes_per_ms);
 
-	audio_running = false;
-
-	audio_start();
+	printf("[SDL] start audio\n");
+    SDL_ResumeAudioStreamDevice(audio_stream);
 }
 
-void host_t::audio_start()
+void host_t::audio_cleanup()
 {
-	if (!audio_running) {
-		printf("[SDL] start audio\n");
-		// Unpause audiodevice, and process audiostream
-    	SDL_ResumeAudioStreamDevice(audio_stream);
-		audio_running = true;
-	}
-}
-
-void host_t::audio_stop()
-{
-	if (audio_running) {
-		printf("[SDL] stop audio\n");
-		// Pause audiodevice
-		SDL_PauseAudioStreamDevice(audio_stream);
-		audio_running = false;
-	}
+	printf("[SDL] cleanup audio\n");
+	SDL_PauseAudioStreamDevice(audio_stream);
 }

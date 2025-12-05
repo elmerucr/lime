@@ -15,8 +15,6 @@
 
 class keyboard_t {
 private:
-	//host_t *host;
-
 	bool generate_events{false};
 
 	bool key_down{false};

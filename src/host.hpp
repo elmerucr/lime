@@ -98,20 +98,16 @@ private:
     system_t		*system;
     const bool		*sdl_keyboard_state = nullptr;
 
-	/*
-	 * Audio related
-	 */
+	// Audio related
 	SDL_AudioStream *audio_stream = nullptr;
 	SDL_AudioDeviceID audio_device;
 	SDL_AudioSpec audio_spec;
 	double audio_bytes_per_ms;
 	uint8_t audio_bytes_per_sample;
-	bool audio_running{false};
 	void audio_init();
-	void audio_start();
-	void audio_stop();
+	void audio_cleanup();
 
-    // video related
+    // Video related
     int				video_scaling{1};
     SDL_Window		*video_window;
 	int				video_window_width;
@@ -119,7 +115,7 @@ private:
     SDL_Renderer	*video_renderer;
 	bool			vsync;
 	bool			video_scanlines = true;
-	uint8_t			video_scanline_alpha = 0xbb;
+	uint8_t			video_scanlines_alpha = 0xbb;
 
     SDL_Texture		*vdc_texture;
 	uint8_t			vdc_texture_bytes_per_pixel;
@@ -144,7 +140,7 @@ private:
 		return
 			((((c0 & 0x00ff00ff) + (c1 & 0x00ff00ff)) >> 1) & 0x00ff00ff) |
 			((((c0 & 0x0000ff00) + (c1 & 0x0000ff00)) >> 1) & 0x0000ff00) |
-			(video_scanline_alpha << 24);
+			(video_scanlines_alpha << 24);
 	}
 
 	char *home;
