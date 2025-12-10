@@ -108,6 +108,12 @@ enum events_output_state host_t::events_process_events()
 					osd_notify->terminal->clear();
 					for (int i=0; i<((79-28) / 2); i++) osd_notify->terminal->cursor_right();
 					osd_notify->terminal->printf("scanlines intensity %2i of 15", video_scanlines_alpha / 17);
+				} else if ((event.key.scancode == SDL_SCANCODE_A) && alt_pressed) {
+					system->core->vdc->change_crt_contrast();
+					osd_notify_frames_remaining = 90;
+					osd_notify->terminal->clear();
+					for (int i=0; i<((79-17) / 2); i++) osd_notify->terminal->cursor_right();
+					osd_notify->terminal->printf("contrast %2i of 15", system->core->vdc->get_crt_contrast() / 17);
                 } else if ((event.key.scancode == SDL_SCANCODE_Q) && alt_pressed) {
                     events_wait_until_key_released(SDL_SCANCODE_Q);
 					return_value = QUIT_EVENT;

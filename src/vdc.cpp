@@ -35,9 +35,9 @@ void vdc_t::reset()
 	// initial video buffer status, buffer invisible to system
 	for (int i = 0; i < (VDC_YRES * VDC_XRES); i++) {
 		if ((i % VDC_XRES) & 0b100) {
-			buffer[i] = palette[0b01];
+			buffer[i] = crt_palette[0b01];
 		} else {
-			buffer[i] = palette[0b00];
+			buffer[i] = crt_palette[0b00];
 		}
 	}
 
@@ -76,7 +76,7 @@ void vdc_t::reset()
 
 	current_layer = 0;
 	current_sprite = 0;
-	current_palette = 0;
+	current_palette_index = 0;
 
 	cycles_run = 0;
 	current_scanline = 0;
@@ -87,6 +87,8 @@ void vdc_t::reset()
 
 	irq_line = true;
 	generate_interrupts = false;
+
+	init_crt_palette();
 }
 
 void vdc_t::draw_layer(layer_t *l, uint16_t sl)
@@ -119,7 +121,7 @@ void vdc_t::draw_layer(layer_t *l, uint16_t sl)
 					(0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
 				// if NOT (transparent AND 0b00) then pixel must be written
 				if (!((l->flags0 & 0b100) && !result)) {
-					buffer[(VDC_XRES * sl) + scr_x] = palette[l->colors[result]];
+					buffer[(VDC_XRES * sl) + scr_x] = crt_palette[l->colors[result]];
 				}
 			}
 		}
@@ -195,7 +197,7 @@ void vdc_t::draw_sprite(sprite_t *s, uint16_t sl, layer_t *l)
 
 				// if NOT (transparent AND 0b00) then pixel must be written
 				if (!((s->flags0 & 0b100) && !result)) {
-					buffer[(VDC_XRES * sl) + scr_x] = palette[s->colors[result]];
+					buffer[(VDC_XRES * sl) + scr_x] = crt_palette[s->colors[result]];
 				}
 
 				// restore y, if xy flip was done before
@@ -209,7 +211,7 @@ void vdc_t::draw_scanline(uint16_t scanline)
 {
 	if (scanline < VDC_YRES) {
 		for (int x=0; x<VDC_XRES; x++) {
-			buffer[(VDC_XRES * scanline) + x] = palette[bg_color];
+			buffer[(VDC_XRES * scanline) + x] = crt_palette[bg_color];
 		}
 
 		for (int l=3; l>=0; l--) {
@@ -238,19 +240,19 @@ uint8_t vdc_t::io_read8(uint16_t address)
 		case 0x04:
 			return bg_color;
 		case 0x05:
-			return current_palette;
+			return current_palette_index;
 		case 0x06:
 			return current_layer;
 		case 0x07:
 			return current_sprite;
 		case 0x08:
-			return (palette[current_palette] & 0xff000000) >> 24;
+			return (palette[current_palette_index] & 0xff000000) >> 24;
 		case 0x09:
-			return (palette[current_palette] & 0x00ff0000) >> 16;
+			return (palette[current_palette_index] & 0x00ff0000) >> 16;
 		case 0x0a:
-			return (palette[current_palette] & 0x0000ff00) >>  8;
+			return (palette[current_palette_index] & 0x0000ff00) >>  8;
 		case 0x0b:
-			return (palette[current_palette] & 0x000000ff) >>  0;
+			return (palette[current_palette_index] & 0x000000ff) >>  0;
 		case 0x0c:
 			return (current_scanline & 0xff00) >> 8;
 		case 0x0d:
@@ -336,7 +338,7 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			bg_color = value;
 			break;
 		case 0x05:
-			current_palette = value;
+			current_palette_index = value;
 			break;
 		case 0x06:
 			current_layer = value &0b11;
@@ -348,18 +350,21 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			// don't change, is always 0xff
 			break;
 		case 0x09:
-			if (current_palette & 0x80) {
-				palette[current_palette] = (palette[current_palette] & 0xff00ffff) | (value << 16);
+			if (current_palette_index & 0x80) {
+				palette[current_palette_index] = (palette[current_palette_index] & 0xff00ffff) | (value << 16);
+				crt_palette_color(current_palette_index);
 			}
 			break;
 		case 0x0a:
-			if (current_palette & 0x80) {
-				palette[current_palette] = (palette[current_palette] & 0xffff00ff) | (value << 8);
+			if (current_palette_index & 0x80) {
+				palette[current_palette_index] = (palette[current_palette_index] & 0xffff00ff) | (value << 8);
+				crt_palette_color(current_palette_index);
 			}
 			break;
 		case 0x0b:
-			if (current_palette & 0x80) {
-				palette[current_palette] = (palette[current_palette] & 0xffffff00) | value;
+			if (current_palette_index & 0x80) {
+				palette[current_palette_index] = (palette[current_palette_index] & 0xffffff00) | value;
+				crt_palette_color(current_palette_index);
 			}
 			break;
 		case 0x0e:
@@ -479,4 +484,26 @@ bool vdc_t::run(uint32_t number_of_cycles)
 	}
 
 	return frame_done;
+}
+
+void vdc_t::crt_palette_color(uint8_t c)
+{
+	uint8_t high = 255 - ((255 - crt_contrast) / 4);
+	uint8_t low = (255 - crt_contrast) / 4;
+
+	uint8_t a = (palette[c] & 0xff000000) >> 24;
+	uint8_t r = (palette[c] & 0xff0000) >> 16;
+	uint8_t g = (palette[c] & 0xff00) >> 8;
+	uint8_t b = palette[c] & 0xff;
+	r = (((high - low) * r) / high) + low;
+	g = (((high - low) * g) / high) + low;
+	b = (((high - low) * b) / high) + low;
+	crt_palette[c] = (a << 24) | (r << 16) | (g << 8) | b;
+}
+
+void vdc_t::init_crt_palette()
+{
+	for (int i=0; i<256; i++) {
+		crt_palette_color(i);
+	}
 }

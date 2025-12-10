@@ -3,6 +3,7 @@
 * Scanline effect on/off with <Alt+S>
 * Scanline intensity with <Alt+D>
 * osd notifications
+* Contrast adjustable with <Alt+A>
 
 # Version 0.11.20251125-alpha
 
