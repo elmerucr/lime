@@ -4,6 +4,7 @@
 * Scanline intensity with <Alt+D>
 * osd notifications
 * Contrast adjustable with <Alt+A>
+* color per tile mode added for 0b11 bit patterns
 
 # Version 0.11.20251125-alpha
 

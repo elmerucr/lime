@@ -52,12 +52,12 @@ Source: "definitions.i"
                             	    37: VDC_LAYER_Y_LSB			equ	$0413
                             	    38: VDC_LAYER_FLAGS0		equ	$0414
                             	    39: VDC_LAYER_FLAGS1		equ	$0415
-                            	    40: VDC_LAYER_BASE_MSB		equ	$0416
-                            	    41: VDC_LAYER_BASE_LSB		equ	$0417
-                            	    42: VDC_LAYER_COLOR0		equ	$0418
-                            	    43: VDC_LAYER_COLOR1		equ	$0419
-                            	    44: VDC_LAYER_COLOR2		equ	$041a
-                            	    45: VDC_LAYER_COLOR3		equ	$041b
+                            	    40: VDC_LAYER_COLOR0		equ	$0418
+                            	    41: VDC_LAYER_COLOR1		equ	$0419
+                            	    42: VDC_LAYER_COLOR2		equ	$041a
+                            	    43: VDC_LAYER_COLOR3		equ	$041b
+                            	    44: VDC_LAYER_TILES_MSB		equ	$041c
+                            	    45: VDC_LAYER_TILES_LSB		equ	$041d
                             	    46: 
                             	    47: VDC_SPRITE_X_MSB		equ	$0420
                             	    48: VDC_SPRITE_X_LSB		equ	$0421
@@ -110,8 +110,8 @@ Source: "definitions.i"
 
 Source: "rom.s"
                             	     9: 
-                            	    10: LOGO_ANIMATION	equ	$4000	; 1 byte
-                            	    11: BINARY_READY	equ	$4001	; 1 byte
+                            	    10: LOGO_ANIMATION	equ	$6000	; 1 byte
+                            	    11: BINARY_READY	equ	$6001	; 1 byte
                             	    12: 
                             	    13: 	org	$00010000	; rom based at $10000
                             	    14: 
@@ -134,15 +134,15 @@ Source: "rom.s"
 00:00010040 4EB900010280    	    29: 	jsr	vdc_init_logo
 00:00010046 4EB900010152    	    30: 	jsr	sound_reset
                             	    31: 
-00:0001004C 11FC00684000    	    32: 	move.b	#$68,LOGO_ANIMATION.w		; init variable for letter wobble
+00:0001004C 11FC00686000    	    32: 	move.b	#$68,LOGO_ANIMATION.w		; init variable for letter wobble
 00:00010052 13FC00B30000040F	    33: 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
 00:0001005A 13FC000100000401	    34: 	move.b	#%00000001,VDC_CR		; enable irq's for vdc
                             	    35: 
 00:00010062 46FC0000        	    36: 	move.w	#$0000,SR			; set status register (User Mode, ipl = 0)
                             	    37: 
-00:00010066 42384001        	    38: 	clr.b	BINARY_READY.w
+00:00010066 42386001        	    38: 	clr.b	BINARY_READY.w
                             	    39: 
-00:0001006A 4A384001        	    40: loop	tst.b	BINARY_READY.w
+00:0001006A 4A386001        	    40: loop	tst.b	BINARY_READY.w
 00:0001006E 6700FFFA        	    41: 	beq	loop				; loop forever, wait for events
                             	    42: 
                             	    43: _jump
@@ -200,7 +200,7 @@ Source: "rom.s"
 00:000100D8 6700005E        	    95: 	beq	.end
 00:000100DC 11C00400        	    96: 	move.b	D0,VDC_SR.w			; acknowledge irq
                             	    97: 
-00:000100E0 103900004000    	    98: 	move.b	LOGO_ANIMATION,D0
+00:000100E0 103900006000    	    98: 	move.b	LOGO_ANIMATION,D0
 00:000100E6 5200            	    99: 	addq.b	#$1,D0
 00:000100E8 B03C00B8        	   100: 	cmp.b	#$b8,D0
 00:000100EC 6600000E        	   101: 	bne	.1
@@ -208,14 +208,14 @@ Source: "rom.s"
                             	   103: 						; this makes sure letters wobble at least 1 time
 00:000100F8 103C0048        	   104: 	move.b	#$48,D0
                             	   105: 
-00:000100FC 13C000004000    	   106: .1	move.b	D0,LOGO_ANIMATION
+00:000100FC 13C000006000    	   106: .1	move.b	D0,LOGO_ANIMATION
                             	   107: 
 00:00010102 123C0004        	   108: 	move.b	#4,D1				; start with sprite 4 (letter 'l')
 00:00010106 13C100000407    	   109: .2	move.b	D1,VDC_CURRENT_SPRITE
 00:0001010C 13FC005A00000423	   110: 	move.b	#90,VDC_SPRITE_Y_LSB		; base position for each letter
                             	   111: 
 00:00010114 103900000421    	   112: 	move.b	VDC_SPRITE_X_LSB,D0		; store x for current sprite in D0
-00:0001011A 903900004000    	   113: 	sub.b	LOGO_ANIMATION,D0		; subtract logo_an x value from D0
+00:0001011A 903900006000    	   113: 	sub.b	LOGO_ANIMATION,D0		; subtract logo_an x value from D0
                             	   114: 
 00:00010120 B03C0008        	   115: 	cmp.b	#8,D0
 00:00010124 64000008        	   116: 	bcc	.3				; if more than 8, jump to .3
@@ -475,12 +475,12 @@ Source: "rom.s"
 
 
 Symbols by name:
-BINARY_READY                     E:00004001
+BINARY_READY                     E:00006001
 CORE_CR                          E:00000481
 CORE_INPUT0                      E:00000488
 CORE_ROMS                        E:00000482
 CORE_SR                          E:00000480
-LOGO_ANIMATION                   E:00004000
+LOGO_ANIMATION                   E:00006000
 MIX_SID0_LEFT                    E:00000580
 SID0_F                           E:00000500
 SID0_V                           E:0000051B
@@ -566,8 +566,8 @@ Symbols by value:
 00000580 MIX_SID0_LEFT
 00001000 VDC_TILESET1
 00002000 VDC_LAYER0
-00004000 LOGO_ANIMATION
-00004001 BINARY_READY
+00006000 LOGO_ANIMATION
+00006001 BINARY_READY
 00010020 _start
 0001006A loop
 00010072 exc_addr_error

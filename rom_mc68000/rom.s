@@ -7,8 +7,8 @@
 
 	include	"definitions.i"
 
-LOGO_ANIMATION	equ	$4000	; 1 byte
-BINARY_READY	equ	$4001	; 1 byte
+LOGO_ANIMATION	equ	$6000	; 1 byte
+BINARY_READY	equ	$6001	; 1 byte
 
 	org	$00010000	; rom based at $10000
 

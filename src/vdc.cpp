@@ -69,10 +69,15 @@ void vdc_t::reset()
 		layer[i].colors[3] = 0b11;
 	}
 
-	layer[0].address = VDC_LAYER0_ADDRESS & 0xfffe;
-	layer[1].address = VDC_LAYER1_ADDRESS & 0xfffe;
-	layer[2].address = VDC_LAYER2_ADDRESS & 0xfffe;
-	layer[3].address = VDC_LAYER3_ADDRESS & 0xfffe;
+	layer[0].tiles_address = VDC_LAYER0_TILES_ADDRESS & 0xfffe;
+	layer[1].tiles_address = VDC_LAYER1_TILES_ADDRESS & 0xfffe;
+	layer[2].tiles_address = VDC_LAYER2_TILES_ADDRESS & 0xfffe;
+	layer[3].tiles_address = VDC_LAYER3_TILES_ADDRESS & 0xfffe;
+
+	layer[0].colors_address = VDC_LAYER0_COLORS_ADDRESS & 0xfffe;
+	layer[1].colors_address = VDC_LAYER1_COLORS_ADDRESS & 0xfffe;
+	layer[2].colors_address = VDC_LAYER2_COLORS_ADDRESS & 0xfffe;
+	layer[3].colors_address = VDC_LAYER3_COLORS_ADDRESS & 0xfffe;
 
 	current_layer = 0;
 	current_sprite = 0;
@@ -94,34 +99,40 @@ void vdc_t::reset()
 void vdc_t::draw_layer(layer_t *l, uint16_t sl)
 {
 	if (l->flags0 & 0b1) {
-		// Determine tileset
+		// Determine tileset address
 		uint16_t tileset = (l->flags0 & 0b10) ? VDC_TILESET1_ADDRESS : VDC_TILESET0_ADDRESS;
 
+		// Is scanline visible
 		if (sl < VDC_YRES) {
 			uint8_t y = (l->y + sl) & 0xff;
 
+			// Double size vertical?
 			if (l->flags1 & 0b01000000) {
 				y >>= 1;
 			}
 
 			uint8_t y_in_tile = y % 8;
 
+			bool tiles_colors = l->flags0 & 0b00001000;
+
 			for (uint16_t scr_x = 0; scr_x < VDC_XRES; scr_x++) {
 				uint16_t x = (l->x + scr_x) & 0x1ff;
 
+				// Double size horizontal?
 				if (l->flags1 & 0b00010000) {
 					x >>= 1;
 				}
 
 				uint8_t px = x % 4;
-				uint8_t tile_index = ram[(l->address + ((y >> 3) << 6) + (x >> 3)) & 0xffff];
+				uint8_t tile_index = ram[(l->tiles_address + ((y >> 3) << 6) + (x >> 3)) & 0xffff];
+				uint8_t color_index = ram[(l->colors_address + ((y >> 3) << 6) + (x >> 3)) & 0xffff];
 
 				uint8_t result =
 					(ram[tileset + (tile_index << 4) + (y_in_tile << 1) + ((x & 0x4) ? 1 : 0)] &
 					(0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
 				// if NOT (transparent AND 0b00) then pixel must be written
 				if (!((l->flags0 & 0b100) && !result)) {
-					buffer[(VDC_XRES * sl) + scr_x] = crt_palette[l->colors[result]];
+					buffer[(VDC_XRES * sl) + scr_x] = tiles_colors ? crt_palette[color_index] : crt_palette[l->colors[result]];
 				}
 			}
 		}
@@ -275,10 +286,6 @@ uint8_t vdc_t::io_read8(uint16_t address)
 			return layer[current_layer].flags0;
 		case 0x15:
 			return layer[current_layer].flags1;
-		case 0x16:
-			return (layer[current_layer].address & 0xff00) >> 8;
-		case 0x17:
-			return layer[current_layer].address & 0xff;
 		case 0x18:
 			return layer[current_layer].colors[0];
 		case 0x19:
@@ -287,6 +294,14 @@ uint8_t vdc_t::io_read8(uint16_t address)
 			return layer[current_layer].colors[2];
 		case 0x1b:
 			return layer[current_layer].colors[3];
+		case 0x1c:
+			return (layer[current_layer].tiles_address & 0xff00) >> 8;
+		case 0x1d:
+			return layer[current_layer].tiles_address & 0xff;
+		case 0x1e:
+			return (layer[current_layer].colors_address & 0xff00) >> 8;
+		case 0x1f:
+			return layer[current_layer].colors_address & 0xff;
 
 		// sprites
 		case 0x20:
@@ -394,16 +409,10 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			layer[current_layer].y = (layer[current_layer].y & 0xff00) | value;
 			break;
 		case 0x14:
-			layer[current_layer].flags0 = value & 0b00000111;
+			layer[current_layer].flags0 = value & 0b00001111;
 			break;
 		case 0x15:
 			layer[current_layer].flags1 = value & 0b01010000;
-			break;
-		case 0x16:
-			layer[current_layer].address = (layer[current_layer].address & 0x00ff) | (value << 8);
-			break;
-		case 0x17:
-			layer[current_layer].address = (layer[current_layer].address & 0xff00) | (value & 0xfe);
 			break;
 		case 0x18:
 			layer[current_layer].colors[0] = value;
@@ -416,6 +425,18 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			break;
 		case 0x1b:
 			layer[current_layer].colors[3] = value;
+			break;
+		case 0x1c:
+			layer[current_layer].tiles_address = (layer[current_layer].tiles_address & 0x00ff) | (value << 8);
+			break;
+		case 0x1d:
+			layer[current_layer].tiles_address = (layer[current_layer].tiles_address & 0xff00) | (value & 0xfe);
+			break;
+		case 0x1e:
+			layer[current_layer].colors_address = (layer[current_layer].colors_address & 0x00ff) | (value << 8);
+			break;
+		case 0x1f:
+			layer[current_layer].colors_address = (layer[current_layer].colors_address & 0xff00) | (value & 0xfe);
 			break;
 
 		// sprites

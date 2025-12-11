@@ -13,7 +13,7 @@
 // ---------------------------------------------------------------------
 #define LIME_MAJOR_VERSION			0
 #define LIME_MINOR_VERSION			11
-#define LIME_BUILD					20251210
+#define LIME_BUILD					20251211
 #define LIME_YEAR					2025
 
 // ---------------------------------------------------------------------
@@ -27,10 +27,14 @@
 
 #define VDC_TILESET0_ADDRESS		0x0800
 #define VDC_TILESET1_ADDRESS		0x1000
-#define VDC_LAYER0_ADDRESS			0x2000
-#define VDC_LAYER1_ADDRESS			0x2800
-#define VDC_LAYER2_ADDRESS			0x3000
-#define VDC_LAYER3_ADDRESS			0x3800
+#define VDC_LAYER0_TILES_ADDRESS	0x2000
+#define VDC_LAYER1_TILES_ADDRESS	0x2800
+#define VDC_LAYER2_TILES_ADDRESS	0x3000
+#define VDC_LAYER3_TILES_ADDRESS	0x3800
+#define VDC_LAYER0_COLORS_ADDRESS	0x4000
+#define VDC_LAYER1_COLORS_ADDRESS	0x4800
+#define VDC_LAYER2_COLORS_ADDRESS	0x5000
+#define VDC_LAYER3_COLORS_ADDRESS	0x5800
 
 // ---------------------------------------------------------------------
 // system / host

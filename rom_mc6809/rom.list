@@ -63,12 +63,12 @@
 0413                  VDC_LAYER_Y_LSB         equ     $0413
 0414                  VDC_LAYER_FLAGS0        equ     $0414
 0415                  VDC_LAYER_FLAGS1        equ     $0415
-0416                  VDC_LAYER_BASE_MSB      equ     $0416
-0417                  VDC_LAYER_BASE_LSB      equ     $0417
 0418                  VDC_LAYER_COLOR0        equ     $0418
 0419                  VDC_LAYER_COLOR1        equ     $0419
 041A                  VDC_LAYER_COLOR2        equ     $041a
 041B                  VDC_LAYER_COLOR3        equ     $041b
+041C                  VDC_LAYER_BASE_MSB      equ     $041c
+041D                  VDC_LAYER_BASE_LSB      equ     $041d
                       
 0420                  VDC_SPRITE_X_MSB        equ     $0420
 0421                  VDC_SPRITE_X_LSB        equ     $0421
@@ -123,7 +123,7 @@
 0587                  MIX_ANA1_RIGHT          equ     $0587
                       
                       ; general
-3000                  RAM_START               equ     $3000
+6000                  RAM_START               equ     $6000
 FE00                  ROM_START               equ     $fe00
                       
 0000                                  setdp   $00

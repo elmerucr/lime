@@ -30,8 +30,8 @@
 //
 // ---------------------------------------------------------------------
 
-#ifndef VC_HPP
-#define VC_HPP
+#ifndef VDC_HPP
+#define VDC_HPP
 
 #include <cstdint>
 #include "common.hpp"
@@ -47,10 +47,11 @@ struct layer_t {
 	// flags0
 	//
 	// bit 7 6 5 4 3 2 1 0
-	//               | | |
-	//               | | +- unactive (0) / active (1)
-	//               | +--- tileset 0 (0) / tileset 1 (1)
-	//               +----- 0b00 patterns code to opaque (0) or transparent (1)
+	//             | | | |
+	//             | | | +- unactive (0) / active (1)
+	//             | | +--- tileset 0 (0) / tileset 1 (1)
+	//             | +----- 0b00 patterns code to opaque (0) or transparent (1)
+	//             +------- 0b11 assumes color 3 (0) or color from memory (1)
 	//
 	// -----------------------------------------------------------------
 	uint8_t flags0{0b00000000};
@@ -72,8 +73,8 @@ struct layer_t {
 
 	uint8_t colors[4] = {0b00, 0b01, 0b10, 0b11};
 
-	// not to be changed
-	uint16_t address;
+	uint16_t tiles_address;
+	uint32_t colors_address;
 };
 
 struct sprite_t {
@@ -89,6 +90,7 @@ struct sprite_t {
 	//         | |   | | +- unactive (0) / active (1)
 	//         | |   | +--- tileset 0 (0) / tileset 1 (1)
 	//         | |   +----- 0b00 patterns code to opaque (0) or transparent (1)
+	//         | |
 	//         | +--------- x pos relative to screen (0) or associated layer (1)
 	//         +----------- y pos relative to screen (0) or associated layer (1)
 	// -----------------------------------------------------------------
@@ -222,7 +224,11 @@ public:
 	uint32_t crt_palette[256];
 	void crt_palette_color(uint8_t c);
 	void init_crt_palette();
-	uint8_t get_crt_contrast() { return crt_contrast; }
+
+	uint8_t get_crt_contrast() {
+		return crt_contrast;
+	}
+
 	void change_crt_contrast() {
 		if (crt_contrast > 0xf0) {
 			crt_contrast = 0x00;
