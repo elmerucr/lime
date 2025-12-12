@@ -14,7 +14,7 @@ BINARY_READY	equ	$6001	; 1 byte
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.4 20251026"
+	dc.b	"rom mc68000 0.4 20251211"
 
 	align	2
 
@@ -57,8 +57,8 @@ exc_lvl2_irq_auto
 	move.b	CORE_SR,D0				; did core cause an irq?
 	beq	.1					; no
 	move.b	D0,CORE_SR				; yes, acknowledge
-	clr.b	VDC_CURRENT_SPRITE
-	addq.b	#1,VDC_SPRITE_COLOR1
+	clr.b	VDC_CURRENT_SPRITE			; set sprite 0
+	addq.b	#1,VDC_SPRITE_COLOR1			; change color of bit pattern 0b01
 
 	move.b	(SP)+,D0
 .1	rte

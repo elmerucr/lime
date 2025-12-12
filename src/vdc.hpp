@@ -54,7 +54,10 @@ struct layer_t {
 	//             +------- 0b11 assumes color 3 (0) or color from memory (1)
 	//
 	// -----------------------------------------------------------------
-	uint8_t flags0{0b00000000};
+	bool flags0_bit0_active{false};
+	bool flags0_bit1_tileset1{false};
+	bool flags0_bit2_transparent{false};
+	bool flags0_bit3_color_memory{false};
 
 	// -----------------------------------------------------------------
 	// flags1
@@ -65,11 +68,12 @@ struct layer_t {
 	//       |   |
 	//       |   |
 	//       |   |
-	//       |   +--------- double size h
+	//       |   +--------- double width
 	//       |
-	//       +------------- double size v
+	//       +------------- double height
 	// -----------------------------------------------------------------
-	uint8_t flags1{0b00000000};
+	bool flags1_bit4_double_w{false};
+	bool flags1_bit6_double_h{false};
 
 	uint8_t colors[4] = {0b00, 0b01, 0b10, 0b11};
 
@@ -94,7 +98,11 @@ struct sprite_t {
 	//         | +--------- x pos relative to screen (0) or associated layer (1)
 	//         +----------- y pos relative to screen (0) or associated layer (1)
 	// -----------------------------------------------------------------
-	uint8_t flags0{0b00000000};
+	bool flags0_bit0_active{false};
+	bool flags0_bit1_tileset1{false};
+	bool flags0_bit2_transparent{false};
+	bool flags0_bit4_xpos_rel_layer{false};
+	bool flags0_bit5_ypos_rel_layer{false};
 
 	// -----------------------------------------------------------------
 	// flags1
@@ -105,11 +113,15 @@ struct sprite_t {
 	//       |   |   | +--- flip v  (1)
 	//       |   |   +----- flip xy (1)
 	//       |   |
-	//       |   +--------- double size h
+	//       |   +--------- double width
 	//       |
-	//       +------------- double size v
+	//       +------------- double height
 	// -----------------------------------------------------------------
-	uint8_t flags1{0b00000000};
+	bool flags1_bit0_flip_h{false};
+	bool flags1_bit1_flip_v{false};
+	bool flags1_bit2_flip_xy{false};
+	bool flags1_bit4_double_w{false};
+	bool flags1_bit6_double_h{false};
 
 	uint8_t index{0};
 
