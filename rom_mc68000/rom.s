@@ -9,12 +9,15 @@
 
 LOGO_ANIMATION	equ	$6000	; 1 byte
 BINARY_READY	equ	$6001	; 1 byte
+CURSOR_POS	equ	$6002	; 1 word
+CURSOR_COLOR	equ	$6004	; 1 byte
+
 
 	org	$00010000	; rom based at $10000
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.4 20251211"
+	dc.b	"rom mc68000 0.5 20251216"
 
 	align	2
 
@@ -28,6 +31,10 @@ _start
 	jsr	vdc_copy_logo_tiles
 	jsr	vdc_init_logo
 	jsr	sound_reset
+	jsr	terminal_init
+brok
+	move.b	#'E',-(SP)
+	jsr	terminal_putchar
 
 	move.b	#$68,LOGO_ANIMATION.w		; init variable for letter wobble
 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
@@ -174,20 +181,23 @@ init_vector_table
 
 
 vdc_init_layer0				; make layer0 visible and clear
-	movem.l	D0/A0-A1,-(SP)
+	movem.l	D0-D1/A0-A2,-(SP)
 	move.b	VDC_CURRENT_LAYER.w,-(SP)
 	clr.b	VDC_CURRENT_LAYER.w	; make layer 0 current
-	move.b	#7,VDC_LAYER_FLAGS0.w
-	move.l	#$20202020,D0
-	movea.l	#VDC_LAYER0,A0
-	movea.l	#VDC_LAYER0+$800,A1
+	move.b	#$f,VDC_LAYER_FLAGS0.w
+	move.l	#$20202020,D0		; four times a space
+	move.l	#$02020202,D1		; four times color index $02
+	movea.l	#VDC_LAYER0_TILES,A0
+	movea.l	#VDC_LAYER0_COLORS,A1
+	movea.l	#VDC_LAYER1_TILES,A2	; end address
 
 .1	move.l	D0,(A0)+
-	cmpa.l	A1,A0
+	move.l	D1,(A1)+
+	cmpa.l	A2,A0
 	bne	.1
 
 	move.b	(SP)+,VDC_CURRENT_LAYER.w
-	movem.l	(SP)+,D0/A0-A1
+	movem.l	(SP)+,D0-D1/A0-A2
 	rts
 
 
@@ -236,6 +246,20 @@ vdc_init_logo
 	bne	.1
 
 	movem.l	(SP)+,D0/A0-A1
+	rts
+
+
+terminal_init
+	; clear terminal here?
+	clr.w	CURSOR_POS
+	move.b	#$02,CURSOR_COLOR
+	rts
+
+
+terminal_putchar
+	move.b	(5,SP),CURSOR_POS
+	; color
+	addq.w	#1,CURSOR_POS
 	rts
 
 

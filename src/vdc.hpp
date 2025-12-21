@@ -40,24 +40,24 @@
 #include "font_cbm_8x8.hpp"
 
 struct layer_t {
-	uint16_t x{0};
-	uint16_t y{0};
+	uint16_t x;
+	uint16_t y;
 
 	// -----------------------------------------------------------------
 	// flags0
 	//
 	// bit 7 6 5 4 3 2 1 0
 	//             | | | |
-	//             | | | +- unactive (0) / active (1)
+	//             | | | +- hidden (0) / visible (1)
 	//             | | +--- tileset 0 (0) / tileset 1 (1)
 	//             | +----- 0b00 patterns code to opaque (0) or transparent (1)
 	//             +------- 0b11 assumes color 3 (0) or color from memory (1)
 	//
 	// -----------------------------------------------------------------
-	bool flags0_bit0_active{false};
-	bool flags0_bit1_tileset1{false};
-	bool flags0_bit2_transparent{false};
-	bool flags0_bit3_color_memory{false};
+	bool flags0_bit0_visible;
+	bool flags0_bit1_tileset1;
+	bool flags0_bit2_transparent;
+	bool flags0_bit3_color_memory;
 
 	// -----------------------------------------------------------------
 	// flags1
@@ -71,38 +71,39 @@ struct layer_t {
 	//       |   +--------- double width
 	//       |
 	//       +------------- double height
+	//
 	// -----------------------------------------------------------------
-	bool flags1_bit4_double_w{false};
-	bool flags1_bit6_double_h{false};
+	bool flags1_bit4_double_w;
+	bool flags1_bit6_double_h;
 
-	uint8_t colors[4] = {0b00, 0b01, 0b10, 0b11};
+	uint8_t colors[4];
 
 	uint16_t tiles_address;
-	uint32_t colors_address;
+	uint16_t colors_address;
 };
 
 struct sprite_t {
-	// x and y positions
-	uint16_t x{0};
-	uint16_t y{0};
+	uint16_t x;
+	uint16_t y;
 
 	// -----------------------------------------------------------------
 	// flags0
 	//
 	// bit 7 6 5 4 3 2 1 0
 	//         | |   | | |
-	//         | |   | | +- unactive (0) / active (1)
+	//         | |   | | +- hidden (0) / visible (1)
 	//         | |   | +--- tileset 0 (0) / tileset 1 (1)
 	//         | |   +----- 0b00 patterns code to opaque (0) or transparent (1)
 	//         | |
 	//         | +--------- x pos relative to screen (0) or associated layer (1)
 	//         +----------- y pos relative to screen (0) or associated layer (1)
+	//
 	// -----------------------------------------------------------------
-	bool flags0_bit0_active{false};
-	bool flags0_bit1_tileset1{false};
-	bool flags0_bit2_transparent{false};
-	bool flags0_bit4_xpos_rel_layer{false};
-	bool flags0_bit5_ypos_rel_layer{false};
+	bool flags0_bit0_visible;
+	bool flags0_bit1_tileset1;
+	bool flags0_bit2_transparent;
+	bool flags0_bit4_xpos_rel_layer;
+	bool flags0_bit5_ypos_rel_layer;
 
 	// -----------------------------------------------------------------
 	// flags1
@@ -116,16 +117,17 @@ struct sprite_t {
 	//       |   +--------- double width
 	//       |
 	//       +------------- double height
+	//
 	// -----------------------------------------------------------------
-	bool flags1_bit0_flip_h{false};
-	bool flags1_bit1_flip_v{false};
-	bool flags1_bit2_flip_xy{false};
-	bool flags1_bit4_double_w{false};
-	bool flags1_bit6_double_h{false};
+	bool flags1_bit0_flip_h;
+	bool flags1_bit1_flip_v;
+	bool flags1_bit2_flip_xy;
+	bool flags1_bit4_double_w;
+	bool flags1_bit6_double_h;
 
-	uint8_t index{0};
+	uint8_t index;
 
-	uint8_t colors[4] = {0b00, 0b01, 0b10, 0b11};
+	uint8_t colors[4];
 };
 
 class vdc_t {
@@ -143,9 +145,13 @@ private:
 	uint8_t current_sprite;
 	uint8_t current_palette_index;
 
+	// Draws a specific scanline, calls both draw_scanline_layer and
+	// draw_scanline_sprite.
 	void draw_scanline(uint16_t scanline);
-	void draw_layer(layer_t *l, uint16_t sl);
-	void draw_sprite(sprite_t *s, uint16_t sl, layer_t *t);
+
+
+	void draw_scanline_layer(layer_t *l, uint16_t sl);
+	void draw_scanline_sprite(sprite_t *s, uint16_t sl, layer_t *t);
 
 	exceptions_ic *exceptions;
 	sn74ls148_t *sn74ls148;
@@ -163,18 +169,18 @@ public:
 
 	uint8_t *ram;
 
-	layer_t layer[4];
+	layer_t  layer[4];
 	sprite_t sprite[256];
 
 	uint32_t *buffer;
 
 	uint8_t io_read8(uint16_t address);
-	void io_write8(uint16_t address, uint8_t value);
+	void    io_write8(uint16_t address, uint8_t value);
 
-	inline int32_t get_cycles_run() { return cycles_run; }
+	inline int32_t  get_cycles_run() { return cycles_run; }
 	inline uint16_t get_current_scanline() { return current_scanline; }
 	inline uint16_t get_irq_scanline() { return irq_scanline; }
-	inline bool get_generate_interrupts() { return generate_interrupts; }
+	inline bool     get_generate_interrupts() { return generate_interrupts; }
 
 	void reset();
 
@@ -234,8 +240,8 @@ public:
 
 	uint8_t crt_contrast{0xcc};
 	uint32_t crt_palette[256];
-	void crt_palette_color(uint8_t c);
-	void init_crt_palette();
+	void calculate_crt_palette_entry(uint8_t c);
+	void calculate_crt_palette();
 
 	uint8_t get_crt_contrast() {
 		return crt_contrast;
@@ -247,7 +253,7 @@ public:
 		} else {
 			crt_contrast += 0x11;
 		}
-		init_crt_palette();
+		calculate_crt_palette();
 	}
 };
 
