@@ -37,10 +37,10 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ora	#%00000010
 		sta	CORE_ROMS
 
-		ldx	#VDC_TILESET1	; copy font from rom to ram
+		ldx	#VDC_TILESET_ADDRESS	; copy font from rom to ram
 1		lda	,x
 		sta	,x+
-		cmpx	#VDC_TILESET1+$1000
+		cmpx	#VDC_TILESET_ADDRESS+$1000
 		bne	1b
 
 		lda	CORE_ROMS		; turn off font rom

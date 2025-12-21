@@ -64,13 +64,14 @@ void vdc_t::reset()
 		sprite[i].colors[1] = 0b01;
 		sprite[i].colors[2] = 0b10;
 		sprite[i].colors[3] = 0b11;
+		sprite[i].tileset_address = VDC_TILESET_ADDRESS;
 	}
 
 	for (int i=0; i<4; i++) {
 		layer[i].x = 0;
 		layer[i].y = 0;
 		layer[i].flags0_bit0_visible      = false;
-		layer[i].flags0_bit1_tileset1     = false;
+		layer[i].flags0_bit1_bitmapped    = false;
 		layer[i].flags0_bit2_transparent  = false;
 		layer[i].flags0_bit3_color_memory = false;
 		layer[i].flags1_bit4_double_w = false;
@@ -79,6 +80,7 @@ void vdc_t::reset()
 		layer[i].colors[1] = 0b01;
 		layer[i].colors[2] = 0b10;
 		layer[i].colors[3] = 0b11;
+		layer[i].tileset_address = VDC_TILESET_ADDRESS;
 	}
 
 	layer[0].tiles_address = VDC_LAYER0_TILES_ADDRESS & 0xfffe;
@@ -130,7 +132,9 @@ void vdc_t::draw_scanline_layer(layer_t *l, uint16_t sl)
 {
 	if (l->flags0_bit0_visible) {
 
-		uint16_t tileset_address = (l->flags0_bit1_tileset1) ? VDC_TILESET1_ADDRESS : VDC_TILESET0_ADDRESS;
+		//uint16_t tileset_address = (l->flags0_bit1_tileset1) ? VDC_TILESET1_ADDRESS : VDC_TILESET0_ADDRESS;
+
+		//if (l->flags0_bit4_bitmap_mode) tileset_address = l->tiles_address;
 
 		uint8_t y = (l->y + sl) & 0xff;
 
@@ -143,12 +147,16 @@ void vdc_t::draw_scanline_layer(layer_t *l, uint16_t sl)
 
 			if (l->flags1_bit4_double_w) x >>= 1;
 
-			uint8_t px = x % 4;
-			uint8_t tile_index =  ram[(l->tiles_address  + ((y >> 3) << 6) + (x >> 3)) & 0xffff];
-			uint8_t color_index = ram[(l->colors_address + ((y >> 3) << 6) + (x >> 3)) & 0xffff];
+			uint8_t  px = x % 4;
 
+			uint16_t tile_index = (l->tiles_address  + ((y >> 3) << 6) + (x >> 3)) & 0xffff;
+			if (!l->flags0_bit1_bitmapped) tile_index = ram[tile_index];
+
+			uint8_t  color_index = ram[(l->colors_address + ((y >> 3) << 6) + (x >> 3)) & 0xffff];
+
+			// result has value 0b00, 0b01, 0b10 or 0b11
 			uint8_t result =
-				(ram[tileset_address + (tile_index << 4) + (y_in_tile << 1) + ((x & 0x4) ? 1 : 0)] &
+				(ram[(l->tileset_address + (tile_index << 4) + (y_in_tile << 1) + ((x & 0x4) ? 1 : 0)) & 0xffff] &
 				(0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
 			// if NOT (transparent AND 0b00) then pixel must be drawn
 			if (!(l->flags0_bit2_transparent && !result)) {
@@ -162,7 +170,7 @@ void vdc_t::draw_scanline_sprite(sprite_t *s, uint16_t sl, layer_t *l)
 {
 	if (s->flags0_bit0_visible) {
 
-		uint16_t tileset_address = (s->flags0_bit1_tileset1) ? VDC_TILESET1_ADDRESS : VDC_TILESET0_ADDRESS;
+		//uint16_t tileset_address = (s->flags0_bit1_tileset1) ? VDC_TILESET1_ADDRESS : VDC_TILESET0_ADDRESS;
 
 		// find real y position of sprite corrected for relative to layer or not
 		uint16_t y = s->y - ((s->flags0_bit5_ypos_rel_layer) ? l->y : 0);
@@ -211,7 +219,7 @@ void vdc_t::draw_scanline_sprite(sprite_t *s, uint16_t sl, layer_t *l)
 				if (s->flags1_bit2_flip_xy) { uint8_t t = x; x = y_in_sprite; y_in_sprite = t; }
 
 				// look up color value { 0b00, 0b01, 0b10, 0b11 } (result) from tileset
-				uint8_t result = (ram[tileset_address + (s->index << 4) + (y_in_sprite << 1) + ((x & 0x4) ? 1 : 0)] &
+				uint8_t result = (ram[(s->tileset_address + (s->index << 4) + (y_in_sprite << 1) + ((x & 0x4) ? 1 : 0)) & 0xffff] &
 					(0b11 << (2 * (3 - (x%4))))) >> (2 * (3 - (x%4)));
 
 				// if NOT (transparent AND 0b00) then pixel must be drawn
@@ -276,13 +284,17 @@ uint8_t vdc_t::io_read8(uint16_t address)
 		case 0x14:
 			return
 				(layer[current_layer].flags0_bit0_visible      ? 0b00000001 : 0) |
-				(layer[current_layer].flags0_bit1_tileset1     ? 0b00000010 : 0) |
+				(layer[current_layer].flags0_bit1_bitmapped    ? 0b00000010 : 0) |
 				(layer[current_layer].flags0_bit2_transparent  ? 0b00000100 : 0) |
 				(layer[current_layer].flags0_bit3_color_memory ? 0b00001000 : 0) ;
 		case 0x15:
 			return
 				(layer[current_layer].flags1_bit4_double_w ? 0b00010000 : 0) |
 				(layer[current_layer].flags1_bit6_double_h ? 0b01000000 : 0) ;
+		case 0x16:
+			return (layer[current_layer].colors_address & 0xff00) >> 8;
+		case 0x17:
+			return layer[current_layer].colors_address & 0xff;
 		case 0x18:
 			return layer[current_layer].colors[0];
 		case 0x19:
@@ -296,9 +308,9 @@ uint8_t vdc_t::io_read8(uint16_t address)
 		case 0x1d:
 			return layer[current_layer].tiles_address & 0xff;
 		case 0x1e:
-			return (layer[current_layer].colors_address & 0xff00) >> 8;
+			return (layer[current_layer].tileset_address & 0xff00) >> 8;
 		case 0x1f:
-			return layer[current_layer].colors_address & 0xff;
+			return layer[current_layer].tileset_address & 0xff;
 
 		// sprites
 		case 0x20:
@@ -333,6 +345,10 @@ uint8_t vdc_t::io_read8(uint16_t address)
 			return sprite[current_sprite].colors[2];
 		case 0x2b:
 			return sprite[current_sprite].colors[3];
+		case 0x2e:
+			return (sprite[current_sprite].tileset_address & 0xff00) >> 8;
+		case 0x2f:
+			return sprite[current_sprite].tileset_address & 0xff;
 
 		default:
 			return 0;
@@ -417,13 +433,19 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			break;
 		case 0x14:
 			layer[current_layer].flags0_bit0_visible      = value & 0b00000001 ? true : false;
-			layer[current_layer].flags0_bit1_tileset1     = value & 0b00000010 ? true : false;
+			layer[current_layer].flags0_bit1_bitmapped    = value & 0b00000010 ? true : false;
 			layer[current_layer].flags0_bit2_transparent  = value & 0b00000100 ? true : false;
 			layer[current_layer].flags0_bit3_color_memory = value & 0b00001000 ? true : false;
 			break;
 		case 0x15:
 			layer[current_layer].flags1_bit4_double_w = value & 0b00010000 ? true : false;
 			layer[current_layer].flags1_bit6_double_h = value & 0b01000000 ? true : false;
+			break;
+		case 0x16:
+			layer[current_layer].colors_address = (layer[current_layer].colors_address & 0x00ff) | (value << 8);
+			break;
+		case 0x17:
+			layer[current_layer].colors_address = (layer[current_layer].colors_address & 0xff00) | (value & 0xfe);
 			break;
 		case 0x18:
 			layer[current_layer].colors[0] = value;
@@ -444,10 +466,10 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			layer[current_layer].tiles_address = (layer[current_layer].tiles_address & 0xff00) | (value & 0xfe);
 			break;
 		case 0x1e:
-			layer[current_layer].colors_address = (layer[current_layer].colors_address & 0x00ff) | (value << 8);
+			layer[current_layer].tileset_address = (layer[current_layer].tileset_address & 0x00ff) | (value << 8);
 			break;
 		case 0x1f:
-			layer[current_layer].colors_address = (layer[current_layer].colors_address & 0xff00) | (value & 0xfe);
+			layer[current_layer].tileset_address = (layer[current_layer].tileset_address & 0xff00) | (value & 0xfe);
 			break;
 
 		// sprites
@@ -491,6 +513,12 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			break;
 		case 0x2b:
 			sprite[current_sprite].colors[3] = value;
+			break;
+		case 0x2e:
+			sprite[current_sprite].tileset_address = (sprite[current_sprite].tileset_address & 0x00ff) | (value << 8);
+			break;
+		case 0x2f:
+			sprite[current_sprite].tileset_address = (sprite[current_sprite].tileset_address & 0xff00) | (value & 0xfe);
 			break;
 
 		default:

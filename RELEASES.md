@@ -5,6 +5,7 @@
 * osd notifications
 * Contrast adjustable with <Alt+A>
 * color per tile mode added for 0b11 bit patterns
+* addition of bitmapped mode for layers
 
 # Version 0.11.20251125-alpha
 

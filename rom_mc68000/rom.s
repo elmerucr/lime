@@ -184,7 +184,7 @@ vdc_init_layer0				; make layer0 visible and clear
 	movem.l	D0-D1/A0-A2,-(SP)
 	move.b	VDC_CURRENT_LAYER.w,-(SP)
 	clr.b	VDC_CURRENT_LAYER.w	; make layer 0 current
-	move.b	#$f,VDC_LAYER_FLAGS0.w
+	move.b	#$d,VDC_LAYER_FLAGS0.w
 	move.l	#$20202020,D0		; four times a space
 	move.l	#$02020202,D1		; four times color index $02
 	movea.l	#VDC_LAYER0_TILES,A0
@@ -206,8 +206,8 @@ vdc_copy_rom_font
 	move.b	CORE_ROMS.w,-(SP)
 
 	or.b	#%00000010,CORE_ROMS.w			; make rom font visible to cpu
-	movea.l	#VDC_TILESET1,A0
-	movea.l	#VDC_TILESET1+$1000,A1
+	movea.l	#VDC_TILESET_ADDRESS,A0
+	movea.l	#VDC_TILESET_ADDRESS+$1000,A1
 
 .1	move.l	(A0),(A0)+				; copy rom font to underlying ram
 	cmpa	A1,A0

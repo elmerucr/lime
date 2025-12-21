@@ -82,8 +82,7 @@
 042A                  VDC_SPRITE_COLOR2       equ     $042a
 042B                  VDC_SPRITE_COLOR3       equ     $042b
                       
-0800                  VDC_TILESET0            equ     $0800
-1000                  VDC_TILESET1            equ     $1000
+1000                  VDC_TILESET_ADDRESS             equ     $1000
 2000                  VDC_LAYER0              equ     $2000
 2400                  VDC_LAYER1              equ     $2400
 2800                  VDC_LAYER2              equ     $2800
@@ -152,10 +151,10 @@ FC20 B60482                           lda     CORE_ROMS       ; make font visibl
 FC23 8A02                             ora     #%00000010
 FC25 B70482                           sta     CORE_ROMS
                       
-FC28 8E1000                           ldx     #VDC_TILESET1   ; copy font from rom to ram
+FC28 8E1000                           ldx     #VDC_TILESET_ADDRESS    ; copy font from rom to ram
 FC2B A684             1               lda     ,x
 FC2D A780                             sta     ,x+
-FC2F 8C2000                           cmpx    #VDC_TILESET1+$1000
+FC2F 8C2000                           cmpx    #VDC_TILESET_ADDRESS+$1000
 FC32 26F7                             bne     1b
                       
 FC34 B60482                           lda     CORE_ROMS               ; turn off font rom

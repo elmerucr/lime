@@ -6,7 +6,6 @@
 // ---------------------------------------------------------------------
 
 // ---------------------------------------------------------------------
-//
 // sprites 0-63      front
 // layer_0             .
 // sprites 64-127      .
@@ -15,19 +14,41 @@
 // layer 2             .
 // sprites 192-255     .
 // layer 3            back
+// ---------------------------------------------------------------------
+
+// ---------------------------------------------------------------------
+// Registers in vdc
+// ---------------------------------------------------------------------
+// 0x00: Status register
 //
-// 0x00: SR
-// 0x01: CR
-// 0x02: read
-// 0x03:
+// bit 7 6 5 4 3 2 1 0
+//                   |
+//                   +- read:  0 = no irq / 1 = irq
+//                      write: 0 = do nothing / 1 = acknowledge irq
+// ---------------------------------------------------------------------
+// 0x01: Control register
+//
+// bit 7 6 5 4 3 2 1 0
+//                   |
+//                   +- read/write:	0 = vdc no irq's / 1 = irq's
+// ---------------------------------------------------------------------
+// 0x02: reserved
+// 0x03: reserved
 // 0x04: bg color
+// 0x05: current palette index
+// 0x06: Current Layer (0-3)
+// 0x07: Current Sprite (0-255)
+// 0x0c: Current scanline MSB
+// 0x0d: Current scanline LSB
+// 0x0e: IRQ scanline MSB
+// 0x0f: IRQ scanline LSB
 //
-// 0x06: current layer (0-3)
-// 0x07: current sprite (0-255)
-//
-// 0x18: x_pos current sprite
-// 0x19: y_pos current sprite
-//
+// 0x20: x_pos current sprite MSB
+// 0x21: x_pos current sprite LSB
+// 0x22: y_pos current sprite MSB
+// 0x23: y_pos current sprite LSB
+// 0x24: flags0 current sprite
+// 0x25: flags1 current sprite
 // ---------------------------------------------------------------------
 
 #ifndef VDC_HPP
@@ -49,13 +70,13 @@ struct layer_t {
 	// bit 7 6 5 4 3 2 1 0
 	//             | | | |
 	//             | | | +- hidden (0) / visible (1)
-	//             | | +--- tileset 0 (0) / tileset 1 (1)
+	//             | | +--- tilemode (0) / bitmapped (1)
 	//             | +----- 0b00 patterns code to opaque (0) or transparent (1)
 	//             +------- 0b11 assumes color 3 (0) or color from memory (1)
 	//
 	// -----------------------------------------------------------------
 	bool flags0_bit0_visible;
-	bool flags0_bit1_tileset1;
+	bool flags0_bit1_bitmapped;
 	bool flags0_bit2_transparent;
 	bool flags0_bit3_color_memory;
 
@@ -78,6 +99,7 @@ struct layer_t {
 
 	uint8_t colors[4];
 
+	uint16_t tileset_address;
 	uint16_t tiles_address;
 	uint16_t colors_address;
 };
@@ -128,6 +150,8 @@ struct sprite_t {
 	uint8_t index;
 
 	uint8_t colors[4];
+
+	uint16_t tileset_address;
 };
 
 class vdc_t {
