@@ -41,7 +41,7 @@ mc6809::mc6809()
 mc6809::~mc6809()
 {
 	printf("[MC6809] cleaning up\n");
-	delete breakpoint_array;
+	delete [] breakpoint_array;
 }
 
 void mc6809::reset()
