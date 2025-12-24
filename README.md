@@ -40,8 +40,8 @@ Lime is a virtual computer system that draws inspiration from computing platform
 0x000560 - 0x00057f io sound / analog1 (32b)
 0x000580 - 0x0005ff io sound / mixer (128b)
 0x000600 - 0x0007ff unused / reserved (512b)
-0x000800 - 0x0017ff tileset bank 0 (2kb, overlap with bank 1)
-0x001000 - 0x001fff overlapping tileset bank 1 / tileset rom (2kb, overlap with bank 0)
+0x000800 - 0x000fff available ram (2kb)
+0x001000 - 0x001fff default location tileset & tileset in rom (4kb)
 0x002000 - 0x0027ff layer 0 colors (2kb)
 0x002800 - 0x002fff layer 1 colors (2kb)
 0x003000 - 0x0037ff layer 2 colors (2kb)
@@ -66,23 +66,11 @@ Lime is a virtual computer system that draws inspiration from computing platform
 * Install Xcode from App Store
 * When it asks to install command line tools, do that
 * Install Homebrew
-* From the Homebrew command line, install cmake and SDL2 libraries
+* From the Homebrew command line, install cmake and SDL3 (>3.4) libraries
 
 #### Ubuntu / Debian
 
-* build-essential, cmake and sdl2-dev
-
-#### Windows specific
-
-* Install msys2
-* Install packages:
-
-```
-pacman -S mingw-w64-ucrt-x86_64-gcc
-pacman -S mingw-w64-ucrt-x86_64-SDL2
-...?
-...?
-```
+* build-essential, cmake
 
 ### Building with CMake
 

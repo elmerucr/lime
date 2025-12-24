@@ -988,7 +988,6 @@ void mc6809::leay(uint16_t ea)
 
 void mc6809::leas(uint16_t ea)
 {
-	test_z_flag_16(ea);
 	sp = ea;
 
 	// a write to system stackpointer enables nmi's
@@ -997,7 +996,6 @@ void mc6809::leas(uint16_t ea)
 
 void mc6809::leau(uint16_t ea)
 {
-	test_z_flag_16(ea);
 	us = ea;
 }
 

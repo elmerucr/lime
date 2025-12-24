@@ -5,6 +5,13 @@
  */
 
 /*
+ * MC6809 version 0.18 - 20251224
+ *
+ * Resolved bug: incorrect zero flag setting for leas and leau
+ * Resolved bug: delete [] breakpoint_array (was without [])
+ */
+
+/*
  * MC6809 version 0.17 - 20250519
  *
  * Status compacter
@@ -55,8 +62,8 @@
 #include <cstddef>
 
 #define MC6809_MAJOR_VERSION	0
-#define MC6809_MINOR_VERSION	17
-#define MC6809_BUILD		20250519
+#define MC6809_MINOR_VERSION	18
+#define MC6809_BUILD		20251224
 #define MC6809_YEAR		2025
 
 #define	C_FLAG	0x01	// carry

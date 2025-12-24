@@ -169,11 +169,7 @@ private:
 	uint8_t current_sprite;
 	uint8_t current_palette_index;
 
-	// Draws a specific scanline, calls both draw_scanline_layer and
-	// draw_scanline_sprite.
 	void draw_scanline(uint16_t scanline);
-
-
 	void draw_scanline_layer(layer_t *l, uint16_t sl);
 	void draw_scanline_sprite(sprite_t *s, uint16_t sl, layer_t *t);
 
