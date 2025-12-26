@@ -4,26 +4,44 @@
 
 Lime is a virtual computer system that draws inspiration from computing platforms such as the Commodore 64, the Atari ST and the Nintendo Gameboy. Notable features include:
 
-* Motorola 68000 cpu using the [Moira](https://github.com/dirkwhoffmann/Moira) library
 * Motorola 6809 cpu using the [mc6809](https://github.com/elmerucr/mc6809) library
+* Motorola 68000 cpu using the [Moira](https://github.com/dirkwhoffmann/Moira) library
 * 16mb ram (of which the lowest 64k accessible by mc6809)
 * Screen resolution of 320x180 pixels, refresh rate of 60Hz
 * Video Display Controller (VDC) for graphics processing, memory access to lowest 64k
 * Programmable using mc68000 or mc6809 assembly
 
-## Screenshots
+By default, the system starts in mc68000 mode.
 
-### Startup screen
+## Screenshots
 
 ![icon](./docs/20251210_screenshot_startup.png)
 
-### Debug screen
+![icon](./docs/20251009_screenshot_debug_mc6809.png)
 
 ![icon](./docs/20251009_screenshot_debug_mc68000.png)
 
-![icon](./docs/20251009_screenshot_debug_mc6809.png)
+## Binaries
+
+Binaries (in ```decb``` format and borrowed from TRS-80 Color Computer / Disk Extended Color Basic) can be dragged and dropped onto the application.
+
+### In mc6809 mode
+
+This follows the original specification. Information found on the webpage for [LWTOOLS](http://www.lwtools.ca).
+
+Binaries include the load address of the binary as well as encoding an execution address. These binaries may contain multiple loadable sections, each of which has its own load address.
+
+Each binary starts with a preamble. Each preamble is five bytes long. The first byte is ```$00```. The next two bytes specify the number of bytes to load and the last two bytes specify the address to load at. Then, a string of bytes follows. After this string of bytes, there may be another preamble or postamble. A postamble is also five bytes in length. The first byte of the postamble is ```$ff```, the next two are zero, and the last two are the execution address for the binary.
+
+### In mc68000 mode
+
+to be done
 
 ## Memory Map
+
+### Motorola 6809 mode
+
+to be done
 
 ### Motorola 68000 mode
 
@@ -55,47 +73,30 @@ Lime is a virtual computer system that draws inspiration from computing platform
 0x020000 - 0xffffff available ram (16256kb)
 ```
 
-### Motorola 6809 mode
-
-## Building
-
-### Preparing Environment
-
-#### MacOS
-
-* Install Xcode from App Store
-* When it asks to install command line tools, do that
-* Install Homebrew
-* From the Homebrew command line, install cmake and SDL3 (>3.4) libraries
-
-#### Ubuntu / Debian
-
-* build-essential, cmake
-
-### Building with CMake
+## Building with CMake
 
 Clone the repository with:
-```
+```shell
 git clone https://github.com/elmerucr/lime
 cd lime
 ```
 
 Create a build directory in the source tree
-```
+```shell
 mkdir build
 cd build
 cmake ..
 make
 ```
 Alternatively to build with debug symbols:
-```
+```shell
 mkdir Debug
 cd Debug
 cmake -DCMAKE_BUILD_TYPE=Debug ..
 make
 ```
 Run with:
-```
+```shell
 ./lime
 ```
 

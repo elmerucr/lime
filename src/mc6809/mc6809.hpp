@@ -63,7 +63,7 @@
 
 #define MC6809_MAJOR_VERSION	0
 #define MC6809_MINOR_VERSION	18
-#define MC6809_BUILD		20251224
+#define MC6809_BUILD		20251226
 #define MC6809_YEAR		2025
 
 #define	C_FLAG	0x01	// carry
@@ -124,7 +124,7 @@ public:
 
 	/*
 	 * Main execute function. Runs one instruction, and returns the number
-	 * of cycles consumed. Checking for breakpoints must be done with the
+	 * of cycles consumed. Checking for a breakpoint must be done with the
 	 * breakpoint() member function that returns true or false.
 	 */
 	uint16_t execute();

@@ -31,7 +31,7 @@ mc6809::mc6809()
 	breakpoint_array = new bool[65536];
 	clear_breakpoints();
 
-	printf("[MC6809] version %i.%i.%i (C)%i elmerucr\n",
+	printf("[mc6809] version %i.%i.%i (C)%i elmerucr\n",
 	       MC6809_MAJOR_VERSION,
 	       MC6809_MINOR_VERSION,
 	       MC6809_BUILD,
@@ -40,13 +40,13 @@ mc6809::mc6809()
 
 mc6809::~mc6809()
 {
-	printf("[MC6809] cleaning up\n");
+	printf("[mc6809] cleaning up\n");
 	delete [] breakpoint_array;
 }
 
 void mc6809::reset()
 {
-	printf("[MC6809] resetting cpu\n");
+	printf("[mc6809] resetting cpu\n");
 	/*
 	 * For 6800 compatibility, direct page register defaults to
 	 * zero after a reset.

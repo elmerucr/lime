@@ -22,6 +22,8 @@ private:
 	void didReachBreakpoint(u32 addr) override;
 public:
 	cpu_mc68000_t(system_t *s);
+	~cpu_mc68000_t();
+	void reset();
 	system_t *system;
 
 	i64 old_clock;

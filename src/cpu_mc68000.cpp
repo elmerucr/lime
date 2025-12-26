@@ -10,7 +10,19 @@
 
 cpu_mc68000_t::cpu_mc68000_t(system_t *s)
 {
+	printf("[mc68000]\n");
 	system = s;
+}
+
+cpu_mc68000_t::~cpu_mc68000_t()
+{
+	printf("[mc68000] cleaning up\n");
+}
+
+void cpu_mc68000_t::reset()
+{
+	printf("[mc68000] resetting cpu\n");
+	Moira::reset();
 }
 
 u8 cpu_mc68000_t::read8(u32 addr) const

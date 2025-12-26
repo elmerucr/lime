@@ -1,12 +1,13 @@
 # Version ...
 
+* color per tile mode added for 0b11 bit patterns
+* addition of bitmapped mode for layers
+* tileset address configurable for layers and sprites
+* mc6809 upgraded from v0.17 to v0.18
 * Scanline effect on/off with <Alt+S>
 * Scanline intensity with <Alt+D>
 * osd notifications
 * Contrast adjustable with <Alt+A>
-* color per tile mode added for 0b11 bit patterns
-* addition of bitmapped mode for layers
-* tileset address configurable for layers and sprites
 
 # Version 0.11.20251125-alpha
 

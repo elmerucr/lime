@@ -17,7 +17,7 @@ CURSOR_COLOR	equ	$6004	; 1 byte
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.5 20251216"
+	dc.b	"rom mc68000 0.5 20251226"
 
 	align	2
 
@@ -224,13 +224,14 @@ vdc_copy_logo_tiles
 	movea.w	#$11c0,A1		; start at tile $1c
 
 .1	move.b	(A0)+,(A1)+
-	cmpa.l	#logo_tiles+64,A0	; 64 bytes = 4 tiles
+	cmpa.l	#logo_tiles+64,A0	; 64 bytes = 4 tiles, 16 bytes/tile
 	bne	.1
 
 	movem.l	(SP)+,A0-A1
 	rts
 
 
+; setup sprites 0 - 7 (position, flags, index)
 vdc_init_logo
 	movem.l	D0/A0-A1,-(SP)
 
@@ -242,7 +243,7 @@ vdc_init_logo
 	cmpa.l	#VDC_SPRITE_X_MSB+7,A1
 	bne	.2
 	addq	#1,D0
-	cmpa.l	#logo_data+56,A0
+	cmpa.l	#logo_data+56,A0	; 8 * 7 bytes = 56 bytes
 	bne	.1
 
 	movem.l	(SP)+,D0/A0-A1
