@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	fclose(f);
 
 	// write 8k output to cpp file
-	printf("[mk_rom] writing 1024b image 'rom.bin' and 'rom_mc6809.hpp' for inclusion in punch\n");
+	printf("[mk_rom] writing 1024b image 'rom.bin' and 'rom_mc6809.hpp' for inclusion in lime\n");
 	f = fopen("rom_mc6809.hpp","w");
 
 	fprintf(f, "// ---------------------------------------------------------------------\n");

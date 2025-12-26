@@ -81,12 +81,13 @@
 0429                  VDC_SPRITE_COLOR1       equ     $0429
 042A                  VDC_SPRITE_COLOR2       equ     $042a
 042B                  VDC_SPRITE_COLOR3       equ     $042b
+042E                  VDC_SPRITE_TILESET_ADDRESS      equ     $042e
                       
-1000                  VDC_TILESET_ADDRESS             equ     $1000
-2000                  VDC_LAYER0              equ     $2000
-2400                  VDC_LAYER1              equ     $2400
-2800                  VDC_LAYER2              equ     $2800
-2C00                  VDC_LAYER3              equ     $2c00
+1000                  VDC_TILESET_ADDRESS     equ     $1000
+4000                  VDC_LAYER0_TILES        equ     $4000
+4800                  VDC_LAYER1_TILES        equ     $4800
+5000                  VDC_LAYER2_TILES        equ     $5000
+5800                  VDC_LAYER3_TILES        equ     $5800
                       
                       ; timer
 0440                  TIMER_SR                equ     $0440
