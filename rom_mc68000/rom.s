@@ -52,13 +52,9 @@ _start
 	jsr	sound_reset
 	jsr	terminal_init
 	jsr	terminal_clear
-	move.b	#'E',-(SP)
-	jsr	terminal_putchar
-	move.b	#'l',-(SP)
-	jsr	terminal_putchar
-	move.b	#'m',-(SP)
-	jsr	terminal_putchar
-	lea	(3*2,SP),SP
+	pea	hello
+	jsr	terminal_putstring
+	lea	(4,SP),SP
 
 	move.b	#$68,logo_animation.w		; init variable for letter wobble
 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
@@ -286,6 +282,24 @@ terminal_putchar
 	addq.w	#1,cursor_pos	; needs work!
 	rts
 
+
+terminal_putstring
+	movea.l	(4,SP),A0
+.1	move.b	(A0)+,D0
+	beq	.2
+	move.l	A0,-(SP)
+	move.b	D0,-(SP)
+	jsr	terminal_putchar
+	lea	(2,SP),SP
+	movea.l	(SP)+,A0
+	bra	.1
+.2	rts
+
+
+hello
+	dc.b	"hello world!",0
+
+	align	2
 
 logo_data
 	dc.b	0,152,0,74,%111,0,$1c	; icon top left

@@ -87,14 +87,14 @@ enum events_output_state host_t::events_process_events()
 					events_wait_until_key_released(SDL_SCANCODE_R);
 					osd_notify_frames_remaining = 90;
 					osd_notify->terminal->clear();
-					for (int i=0; i<((79-12) / 2); i++) osd_notify->terminal->cursor_right();
+					for (int i=0; i<((47-12) / 2); i++) osd_notify->terminal->cursor_right();
 					osd_notify->terminal->printf("system reset");
 					system->core->reset();
 				} else if ((event.key.scancode == SDL_SCANCODE_S) && alt_pressed) {
 					video_toggle_scanlines();
 					osd_notify_frames_remaining = 90;
 					osd_notify->terminal->clear();
-					for (int i=0; i<((79-13) / 2); i++) osd_notify->terminal->cursor_right();
+					for (int i=0; i<((47-13) / 2); i++) osd_notify->terminal->cursor_right();
 					osd_notify->terminal->printf("scanlines %s", video_scanlines ? "on" : "off");
 				} else if ((event.key.scancode == SDL_SCANCODE_D) && alt_pressed) {
 					if (video_scanlines) {
@@ -106,13 +106,13 @@ enum events_output_state host_t::events_process_events()
 					}
 					osd_notify_frames_remaining = 90;
 					osd_notify->terminal->clear();
-					for (int i=0; i<((79-28) / 2); i++) osd_notify->terminal->cursor_right();
+					for (int i=0; i<((47-28) / 2); i++) osd_notify->terminal->cursor_right();
 					osd_notify->terminal->printf("scanlines intensity %2i of 15", video_scanlines_alpha / 17);
 				} else if ((event.key.scancode == SDL_SCANCODE_A) && alt_pressed) {
 					system->core->vdc->change_crt_contrast();
 					osd_notify_frames_remaining = 90;
 					osd_notify->terminal->clear();
-					for (int i=0; i<((79-17) / 2); i++) osd_notify->terminal->cursor_right();
+					for (int i=0; i<((47-17) / 2); i++) osd_notify->terminal->cursor_right();
 					osd_notify->terminal->printf("contrast %2i of 15", system->core->vdc->get_crt_contrast() / 17);
                 } else if ((event.key.scancode == SDL_SCANCODE_Q) && alt_pressed) {
                     events_wait_until_key_released(SDL_SCANCODE_Q);
@@ -135,22 +135,6 @@ enum events_output_state host_t::events_process_events()
 					system->core->attach_bin(path);
 				}
 				break;
-			// case SDL_EVENT_WINDOW_RESIZED:
-			// 	printf("[SDL] Window resize event\n");
-			// 	{
-			// 		uint32_t flags = SDL_GetWindowFlags(video_window);
-			// 		if (flags & SDL_WINDOW_FULLSCREEN) {
-			// 			const SDL_DisplayMode *mode = SDL_GetWindowFullscreenMode(video_window);
-			// 			if (mode != nullptr) {
-			// 				printf("[SDL] Window is in exclusive fullscreen mode\n");
-			// 			} else {
-			// 				printf("[SDL] Window is in borderless fullscreen desktop mode\n");
-			// 			}
-			// 		} else {
-			// 			printf("[SDL] Windowed\n");
-			// 		}
-			// 	}
-			// 	break;
             case SDL_EVENT_QUIT:
 				return_value = QUIT_EVENT;
                 break;
@@ -396,7 +380,7 @@ void host_t::video_init()
 	printf("[SDL] Display window dimension: %u x %u pixels\n", video_window_width, video_window_height);
 
 	osd_stats = new osd_t(system, 47, 3);
-	osd_notify = new osd_t(system, 79, 1);
+	osd_notify = new osd_t(system, 47, 1);
 	osd_notify->terminal->clear();
 
 	// create renderer and link it to window
@@ -441,7 +425,7 @@ void host_t::video_init()
 	SDL_SetTextureBlendMode(osd_stats_texture, SDL_BLENDMODE_BLEND);
 	osd_stats_placement = {
  		.x = (float)(DEBUGGER_XRES - (osd_stats->width * 8)) / 2,
- 		.y = (float)DEBUGGER_YRES - ((osd_stats->height) * 8) - 4,
+ 		.y = (float)DEBUGGER_YRES - (osd_stats->height * 8) - 4,
  		.w = (float)osd_stats->width * 8,
  		.h = (float)osd_stats->height * 8
 	};
