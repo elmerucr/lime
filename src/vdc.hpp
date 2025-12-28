@@ -72,7 +72,7 @@ struct layer_t {
 	//             | | | +- hidden (0) / visible (1)
 	//             | | +--- tilemode (0) / bitmapped (1)
 	//             | +----- 0b00 patterns code to opaque (0) or transparent (1)
-	//             +------- 0b11 assumes color 3 (0) or color from memory (1)
+	//             +------- 0b11 assumes color 3 (0) or color from memory (1) (color per tile)
 	//
 	// -----------------------------------------------------------------
 	bool flags0_bit0_visible;

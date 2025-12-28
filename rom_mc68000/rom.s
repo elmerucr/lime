@@ -5,25 +5,44 @@
 ; Copyright © 2025 elmerucr. All rights reserved.
 ; ----------------------------------------------------------------------
 
+; ----------------------------------------------------------------------
+; - Calling convention: D0-D1/A0-A1 to be scratch registers
+; - tab size: 8
+;
+; ----------------------------------------------------------------------
+
 	include	"definitions.i"
 
-LOGO_ANIMATION	equ	$6000	; 1 byte
-BINARY_READY	equ	$6001	; 1 byte
-CURSOR_POS	equ	$6002	; 1 word
-CURSOR_COLOR	equ	$6004	; 1 byte
+logo_animation	equ	$6000	; 1 byte
+binary_ready	equ	$6001	; 1 byte
+cursor_pos	equ	$6002	; 1 word
+cursor_color	equ	$6004	; 1 byte
+; available slot
+terminal_chars	equ	$6006	; 1 word
+terminal_colors	equ	$6008	; 1 word
+
+TERMINAL_HPITCH	equ	$40	; 64
+TERMINAL_VPITCH	equ	$20	; 32
+TERMINAL_WIDTH	equ	$28	; 40 columns
+TERMINAL_HEIGTH	equ	$16	; 22 rows
+;TERMINAL_SIZE	equ	TERMINAL_WIDTH * TERMINAL_HEIGHT
 
 
 	org	$00010000	; rom based at $10000
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.5 20251226"
+	dc.b	"rom mc68000 0.5 20251228"
 
 	align	2
 
 _start
 	move.l	#$00010000,A0			; set usp
 	move.l	A0,USP
+
+	move.l	#$8000,D0			; small delay at reset
+.1	subq.l	#1,D0
+	bne	.1
 
 	jsr	init_vector_table
 	jsr	vdc_init_layer0
@@ -32,19 +51,24 @@ _start
 	jsr	vdc_init_logo
 	jsr	sound_reset
 	jsr	terminal_init
-brok
+	jsr	terminal_clear
 	move.b	#'E',-(SP)
 	jsr	terminal_putchar
+	move.b	#'l',-(SP)
+	jsr	terminal_putchar
+	move.b	#'m',-(SP)
+	jsr	terminal_putchar
+	lea	(3*2,SP),SP
 
-	move.b	#$68,LOGO_ANIMATION.w		; init variable for letter wobble
+	move.b	#$68,logo_animation.w		; init variable for letter wobble
 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
 	move.b	#%00000001,VDC_CR		; enable irq's for vdc
 
 	move.w	#$0000,SR			; set status register (User Mode, ipl = 0)
 
-	clr.b	BINARY_READY.w
+	clr.b	binary_ready.w
 
-loop	tst.b	BINARY_READY.w
+loop	tst.b	binary_ready.w
 	beq	loop				; loop forever, wait for events
 
 _jump
@@ -72,8 +96,6 @@ exc_lvl2_irq_auto
 
 
 exc_lvl4_irq_auto					; coupled to timer
-	movem.l	D0-D1/A0,-(SP)
-
 	movea.l	#VEC_TIMER0,A0
 	move.b	#%00000001,D0	; D0 contains the bit to be tested
 
@@ -90,19 +112,17 @@ exc_lvl4_irq_auto					; coupled to timer
 	movea.l	(A0),A0
 	jsr	(A0)
 
-.3	movem.l	(SP)+,D0-D1/A0
-	rte
+.3	rte
 
 
 exc_lvl6_irq_auto				; coupled to vdc
-	movem.l	D0-D1,-(SP)
 	move.b	VDC_CURRENT_SPRITE,-(SP)
 
 	move.b	VDC_SR.w,D0
 	beq	.end
 	move.b	D0,VDC_SR.w			; acknowledge irq
 
-	move.b	LOGO_ANIMATION,D0
+	move.b	logo_animation,D0
 	addq.b	#$1,D0
 	cmp.b	#$b8,D0
 	bne	.1
@@ -110,14 +130,14 @@ exc_lvl6_irq_auto				; coupled to vdc
 						; this makes sure letters wobble at least 1 time
 	move.b	#$48,D0
 
-.1	move.b	D0,LOGO_ANIMATION
+.1	move.b	D0,logo_animation
 
 	move.b	#4,D1				; start with sprite 4 (letter 'l')
 .2	move.b	D1,VDC_CURRENT_SPRITE
 	move.b	#90,VDC_SPRITE_Y_LSB		; base position for each letter
 
 	move.b	VDC_SPRITE_X_LSB,D0		; store x for current sprite in D0
-	sub.b	LOGO_ANIMATION,D0		; subtract logo_an x value from D0
+	sub.b	logo_animation,D0		; subtract logo_an x value from D0
 
 	cmp.b	#8,D0
 	bcc	.3				; if more than 8, jump to .3
@@ -131,7 +151,6 @@ exc_lvl6_irq_auto				; coupled to vdc
 .end	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w
 
 	move.b	(SP)+,VDC_CURRENT_SPRITE
-	movem.l	(SP)+,D0-D1
 	rte
 
 
@@ -164,6 +183,7 @@ sound_reset
 
 
 init_vector_table
+	; can this be improved?
 	move.l	#exc_addr_error,VEC_ADDR_ERROR.w
 	move.l	#exc_lvl1_irq_auto,VEC_LVL1_IRQ_AUTO.w
 	move.l	#exc_lvl2_irq_auto,VEC_LVL2_IRQ_AUTO.w
@@ -180,29 +200,15 @@ init_vector_table
 	rts
 
 
-vdc_init_layer0				; make layer0 visible and clear
-	movem.l	D0-D1/A0-A2,-(SP)
+vdc_init_layer0
 	move.b	VDC_CURRENT_LAYER.w,-(SP)
-	clr.b	VDC_CURRENT_LAYER.w	; make layer 0 current
-	move.b	#$d,VDC_LAYER_FLAGS0.w
-	move.l	#$20202020,D0		; four times a space
-	move.l	#$02020202,D1		; four times color index $02
-	movea.l	#VDC_LAYER0_TILES,A0
-	movea.l	#VDC_LAYER0_COLORS,A1
-	movea.l	#VDC_LAYER1_TILES,A2	; end address
-
-.1	move.l	D0,(A0)+
-	move.l	D1,(A1)+
-	cmpa.l	A2,A0
-	bne	.1
-
+	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current
+	move.b	#%1101,VDC_LAYER_FLAGS0.w	;
 	move.b	(SP)+,VDC_CURRENT_LAYER.w
-	movem.l	(SP)+,D0-D1/A0-A2
 	rts
 
 
 vdc_copy_rom_font
-	movem.l	A0-A1,-(SP)
 	move.b	CORE_ROMS.w,-(SP)
 
 	or.b	#%00000010,CORE_ROMS.w			; make rom font visible to cpu
@@ -214,12 +220,10 @@ vdc_copy_rom_font
 	bne	.1
 
 	move.b	(SP)+,CORE_ROMS.w
-	movem.l	(SP)+,A0-A1
 	rts
 
 
 vdc_copy_logo_tiles
-	movem.l	A0-A1,-(SP)
 	movea.l	#logo_tiles,A0
 	movea.w	#$11c0,A1		; start at tile $1c
 
@@ -227,18 +231,17 @@ vdc_copy_logo_tiles
 	cmpa.l	#logo_tiles+64,A0	; 64 bytes = 4 tiles, 16 bytes/tile
 	bne	.1
 
-	movem.l	(SP)+,A0-A1
 	rts
 
 
 ; setup sprites 0 - 7 (position, flags, index)
 vdc_init_logo
-	movem.l	D0/A0-A1,-(SP)
-
 	movea.l	#logo_data,A0
 	clr.b	D0
+
 .1	move.b	D0,VDC_CURRENT_SPRITE
 	movea.l	#VDC_SPRITE_X_MSB,A1
+
 .2	move.b	(A0)+,(A1)+
 	cmpa.l	#VDC_SPRITE_X_MSB+7,A1
 	bne	.2
@@ -246,21 +249,41 @@ vdc_init_logo
 	cmpa.l	#logo_data+56,A0	; 8 * 7 bytes = 56 bytes
 	bne	.1
 
-	movem.l	(SP)+,D0/A0-A1
 	rts
 
 
 terminal_init
-	; clear terminal here?
-	clr.w	CURSOR_POS
-	move.b	#$02,CURSOR_COLOR
+	move.w	#VDC_LAYER0_TILES,terminal_chars
+	move.w	#VDC_LAYER0_COLORS,terminal_colors
+	move.b	#$02,cursor_color
 	rts
 
 
+terminal_clear
+	move.w	#TERMINAL_HPITCH,D0
+	mulu.w	#TERMINAL_VPITCH,D0	; D0 contains number of tiles to write
+	move.b	cursor_color.w,D1
+	movea.w	terminal_chars,A0
+	movea.w	terminal_colors,A1
+
+.1	move.b	#' ',(A0)+
+	move.b	D1,(A1)+
+	subq.w	#1,D0
+	bne	.1
+
+	clr.w	cursor_pos
+
+	rts
+
 terminal_putchar
-	move.b	(5,SP),CURSOR_POS
-	; color
-	addq.w	#1,CURSOR_POS
+	; check for new line etc...
+	movea.w	terminal_chars,A0
+	movea.w	terminal_colors,A1
+	move.w	cursor_pos,D0
+	move.b	(4,SP),(A0,D0)
+	move.b	cursor_color,(A1,D0)
+
+	addq.w	#1,cursor_pos	; needs work!
 	rts
 
 
