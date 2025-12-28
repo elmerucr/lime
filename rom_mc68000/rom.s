@@ -299,8 +299,8 @@ terminal_putstring
 hello
 	dc.b	"hello world!",0
 
-	align	2
 
+	align	2
 logo_data
 	dc.b	0,152,0,74,%111,0,$1c	; icon top left
 	dc.b	0,160,0,74,%111,0,$1d	; icon top right
