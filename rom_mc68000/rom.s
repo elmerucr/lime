@@ -6,7 +6,8 @@
 ; ----------------------------------------------------------------------
 
 ; ----------------------------------------------------------------------
-; - Calling convention: D0-D1/A0-A1 to be scratch registers
+; - Calling convention: D0-D1/A0-A1 are scratch registers, and need to
+;   be caller saved when preserved
 ; - tab size: 8
 ;
 ; ----------------------------------------------------------------------
@@ -24,7 +25,7 @@ terminal_colors	equ	$6008	; 1 word
 TERMINAL_HPITCH	equ	$40	; 64
 TERMINAL_VPITCH	equ	$20	; 32
 TERMINAL_WIDTH	equ	$28	; 40 columns
-TERMINAL_HEIGTH	equ	$16	; 22 rows
+TERMINAL_HEIGHT	equ	$16	; 22 rows
 ;TERMINAL_SIZE	equ	TERMINAL_WIDTH * TERMINAL_HEIGHT
 
 
@@ -52,12 +53,26 @@ _start
 	jsr	sound_reset
 	jsr	terminal_init
 	jsr	terminal_clear
+
 	pea	hello
 	jsr	terminal_putstring
 	lea	(4,SP),SP
-	pea	hello
+
+	move.b	#$0a,-(SP)
+	jsr	terminal_putchar
+	lea	(2,SP),SP
+
+	move.b	#2,D2
+.2	pea	hello2
 	jsr	terminal_putstring
 	lea	(4,SP),SP
+	subq.b	#1,D2
+	bne	.2
+
+	move.b	#$0d,-(SP)
+	jsr	terminal_putchar
+	lea	(2,SP),SP
+
 	pea	hello
 	jsr	terminal_putstring
 	lea	(4,SP),SP
@@ -278,12 +293,16 @@ terminal_clear
 	rts
 
 terminal_putchar
-	; safely assume that the current cursor pos is correct
-	; TODO: newline, carriage return
-	; TODO:
+	; TODO: scroll screen when line 23 is reached
 	movea.w	terminal_chars,A0
 	movea.w	terminal_colors,A1
 	move.w	cursor_pos,D0
+
+	cmp.b	#$0a,(4,SP)		; check for newline
+	beq	.1
+	cmp.b	#$0d,(4,SP)		; check for carriage return
+	beq	.2
+
 	move.b	(4,SP),(A0,D0)		; print char
 	move.b	cursor_color,(A1,D0)	; set color
 
@@ -291,14 +310,13 @@ terminal_putchar
 	move.w	D0,D1
 	andi.w	#%111111,D1
 	cmp.w	#TERMINAL_WIDTH,D1	; are we at pos 40 or higher?
-	blo	.1			; no
+	blo	.3			; no
 
-	andi.w	#%1111111111000000,D0	; yes
-	addi.w	#TERMINAL_HPITCH,D0
-	move.w	D0,cursor_pos
-	rts
+.1	addi.w	#TERMINAL_HPITCH,D0	; yes
+.2	andi.w	#%1111111111000000,D0	; cursor to beginning of line
+	; here we need to build a check for cursor below screen
 
-.1	move.w	D0,cursor_pos
+.3	move.w	D0,cursor_pos
 	rts
 
 
@@ -316,7 +334,10 @@ terminal_putstring
 
 
 hello
-	dc.b	"Hello, World!00-01-02-03-04-05-06-07-08-09",0
+	dc.b	"Hello, World!",$0a,0
+
+hello2
+	dc.b	"testing....",0
 
 
 	align	2
