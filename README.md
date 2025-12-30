@@ -27,7 +27,7 @@ Binaries (in ```decb``` format and borrowed from TRS-80 Color Computer / Disk Ex
 
 ### In mc6809 mode
 
-This follows the original specification. Information found on the webpage for [LWTOOLS](http://www.lwtools.ca).
+This follows the original specification. Information can be found on the webpage for [LWTOOLS](https://www.lwtools.ca/manual/x27.html).
 
 Binaries include the load address of the binary as well as encoding an execution address. These binaries may contain multiple loadable sections, each of which has its own load address.
 

@@ -130,19 +130,16 @@ void vdc_t::draw_scanline(uint16_t scanline)
 
 void vdc_t::draw_scanline_layer(layer_t *l, uint16_t sl)
 {
-	if (l->flags0_bit0_visible) {
-
-		//uint16_t tileset_address = (l->flags0_bit1_tileset1) ? VDC_TILESET1_ADDRESS : VDC_TILESET0_ADDRESS;
-
-		//if (l->flags0_bit4_bitmap_mode) tileset_address = l->tiles_address;
-
+	if (l->flags0_bit0_visible)
+	{
 		uint8_t y = (l->y + sl) & 0xff;
 
 		if (l->flags1_bit6_double_h) y >>= 1;
 
 		uint8_t y_in_tile = y % 8;
 
-		for (uint16_t scr_x = 0; scr_x < VDC_XRES; scr_x++) {
+		for (uint16_t scr_x = 0; scr_x < VDC_XRES; scr_x++)
+		{
 			uint16_t x = (l->x + scr_x) & 0x1ff;
 
 			if (l->flags1_bit4_double_w) x >>= 1;
@@ -166,13 +163,11 @@ void vdc_t::draw_scanline_layer(layer_t *l, uint16_t sl)
 	}
 }
 
-void vdc_t::draw_scanline_sprite(sprite_t *s, uint16_t sl, layer_t *l)
+inline void vdc_t::draw_scanline_sprite(sprite_t *s, uint16_t sl, layer_t *l)
 {
-	if (s->flags0_bit0_visible) {
-
-		//uint16_t tileset_address = (s->flags0_bit1_tileset1) ? VDC_TILESET1_ADDRESS : VDC_TILESET0_ADDRESS;
-
-		// find real y position of sprite corrected for relative to layer or not
+	if (s->flags0_bit0_visible)
+	{
+		// determine real y position of sprite and correct if relative to layer
 		uint16_t y = s->y - ((s->flags0_bit5_ypos_rel_layer) ? l->y : 0);
 
 		// Subtract sprite y position from scanline, remainder is y position
@@ -181,7 +176,6 @@ void vdc_t::draw_scanline_sprite(sprite_t *s, uint16_t sl, layer_t *l)
 
 		if (s->flags1_bit6_double_h) y_in_sprite >>= 1;
 
-		// if y_in_sprite < 8, it's in range of the sprite (values 0 to 7 are valid)
 		if (y_in_sprite < 8) {
 			// find real x postion of sprite correct for relative to layer or not
 			uint16_t real_x = s->x - ((s->flags0_bit4_xpos_rel_layer) ? l->x : 0);

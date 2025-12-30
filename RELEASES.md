@@ -1,13 +1,14 @@
 # Version ...
 
+* mc68000 rom: putchar and putstring added
 * color per tile mode added for 0b11 bit patterns
 * addition of bitmapped mode for layers
 * tileset address configurable for layers and sprites
 * mc6809 upgraded from v0.17 to v0.18
-* Scanline effect on/off with <Alt+S>
-* Scanline intensity with <Alt+D>
-* osd notifications
-* Contrast adjustable with <Alt+A>
+* Host: Scanline effect on/off with <Alt+S>
+* Host: Scanline intensity with <Alt+D>
+* Host: osd notifications
+* Host: Contrast adjustable with <Alt+A>
 
 # Version 0.11.20251125-alpha
 

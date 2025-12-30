@@ -87,14 +87,14 @@ enum events_output_state host_t::events_process_events()
 					events_wait_until_key_released(SDL_SCANCODE_R);
 					osd_notify_frames_remaining = 90;
 					osd_notify->terminal->clear();
-					for (int i=0; i<((47-12) / 2); i++) osd_notify->terminal->cursor_right();
+					for (int i=0; i<((21-12) / 2); i++) osd_notify->terminal->cursor_right();
 					osd_notify->terminal->printf("system reset");
 					system->core->reset();
 				} else if ((event.key.scancode == SDL_SCANCODE_S) && alt_pressed) {
 					video_toggle_scanlines();
 					osd_notify_frames_remaining = 90;
 					osd_notify->terminal->clear();
-					for (int i=0; i<((47-13) / 2); i++) osd_notify->terminal->cursor_right();
+					for (int i=0; i<((21-13) / 2); i++) osd_notify->terminal->cursor_right();
 					osd_notify->terminal->printf("scanlines %s", video_scanlines ? "on" : "off");
 				} else if ((event.key.scancode == SDL_SCANCODE_D) && alt_pressed) {
 					if (video_scanlines) {
@@ -103,16 +103,16 @@ enum events_output_state host_t::events_process_events()
 						} else {
 							video_scanlines_alpha += 0x11;
 						}
+						osd_notify_frames_remaining = 90;
+						osd_notify->terminal->clear();
+						for (int i=0; i<((21-19) / 2); i++) osd_notify->terminal->cursor_right();
+						osd_notify->terminal->printf("brightness %2i of 15", video_scanlines_alpha / 17);
 					}
-					osd_notify_frames_remaining = 90;
-					osd_notify->terminal->clear();
-					for (int i=0; i<((47-28) / 2); i++) osd_notify->terminal->cursor_right();
-					osd_notify->terminal->printf("scanlines intensity %2i of 15", video_scanlines_alpha / 17);
 				} else if ((event.key.scancode == SDL_SCANCODE_A) && alt_pressed) {
 					system->core->vdc->change_crt_contrast();
 					osd_notify_frames_remaining = 90;
 					osd_notify->terminal->clear();
-					for (int i=0; i<((47-17) / 2); i++) osd_notify->terminal->cursor_right();
+					for (int i=0; i<((21-17) / 2); i++) osd_notify->terminal->cursor_right();
 					osd_notify->terminal->printf("contrast %2i of 15", system->core->vdc->get_crt_contrast() / 17);
                 } else if ((event.key.scancode == SDL_SCANCODE_Q) && alt_pressed) {
                     events_wait_until_key_released(SDL_SCANCODE_Q);
@@ -380,7 +380,7 @@ void host_t::video_init()
 	printf("[SDL] Display window dimension: %u x %u pixels\n", video_window_width, video_window_height);
 
 	osd_stats = new osd_t(system, 47, 3);
-	osd_notify = new osd_t(system, 47, 1);
+	osd_notify = new osd_t(system, 21, 1);
 	osd_notify->terminal->clear();
 
 	// create renderer and link it to window

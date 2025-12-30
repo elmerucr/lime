@@ -32,7 +32,7 @@ TERMINAL_HEIGTH	equ	$16	; 22 rows
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.5 20251228"
+	dc.b	"rom mc68000 0.5 20251230"
 
 	align	2
 
@@ -52,6 +52,12 @@ _start
 	jsr	sound_reset
 	jsr	terminal_init
 	jsr	terminal_clear
+	pea	hello
+	jsr	terminal_putstring
+	lea	(4,SP),SP
+	pea	hello
+	jsr	terminal_putstring
+	lea	(4,SP),SP
 	pea	hello
 	jsr	terminal_putstring
 	lea	(4,SP),SP
@@ -272,14 +278,27 @@ terminal_clear
 	rts
 
 terminal_putchar
-	; check for new line etc...
+	; safely assume that the current cursor pos is correct
+	; TODO: newline, carriage return
+	; TODO:
 	movea.w	terminal_chars,A0
 	movea.w	terminal_colors,A1
 	move.w	cursor_pos,D0
-	move.b	(4,SP),(A0,D0)
-	move.b	cursor_color,(A1,D0)
+	move.b	(4,SP),(A0,D0)		; print char
+	move.b	cursor_color,(A1,D0)	; set color
 
-	addq.w	#1,cursor_pos	; needs work!
+	addq.w	#1,D0			; move cursor 1 step
+	move.w	D0,D1
+	andi.w	#%111111,D1
+	cmp.w	#TERMINAL_WIDTH,D1	; are we at pos 40 or higher?
+	blo	.1			; no
+
+	andi.w	#%1111111111000000,D0	; yes
+	addi.w	#TERMINAL_HPITCH,D0
+	move.w	D0,cursor_pos
+	rts
+
+.1	move.w	D0,cursor_pos
 	rts
 
 
@@ -297,7 +316,7 @@ terminal_putstring
 
 
 hello
-	dc.b	"hello world!",0
+	dc.b	"Hello, World!00-01-02-03-04-05-06-07-08-09",0
 
 
 	align	2
