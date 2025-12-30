@@ -26,7 +26,7 @@ TERMINAL_HPITCH	equ	$40	; 64
 TERMINAL_VPITCH	equ	$20	; 32
 TERMINAL_WIDTH	equ	$28	; 40 columns
 TERMINAL_HEIGHT	equ	$16	; 22 rows
-;TERMINAL_SIZE	equ	TERMINAL_WIDTH * TERMINAL_HEIGHT
+TERMINAL_SIZE	equ	(TERMINAL_HPITCH*TERMINAL_HEIGHT)
 
 
 	org	$00010000	; rom based at $10000
@@ -62,20 +62,12 @@ _start
 	jsr	terminal_putchar
 	lea	(2,SP),SP
 
-	move.b	#2,D2
+	move.b	#20,D2
 .2	pea	hello2
 	jsr	terminal_putstring
 	lea	(4,SP),SP
 	subq.b	#1,D2
 	bne	.2
-
-	move.b	#$0d,-(SP)
-	jsr	terminal_putchar
-	lea	(2,SP),SP
-
-	pea	hello
-	jsr	terminal_putstring
-	lea	(4,SP),SP
 
 	move.b	#$68,logo_animation.w		; init variable for letter wobble
 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
@@ -312,9 +304,16 @@ terminal_putchar
 	cmp.w	#TERMINAL_WIDTH,D1	; are we at pos 40 or higher?
 	blo	.3			; no
 
-.1	addi.w	#TERMINAL_HPITCH,D0	; yes
-.2	andi.w	#%1111111111000000,D0	; cursor to beginning of line
-	; here we need to build a check for cursor below screen
+.1	addi.w	#TERMINAL_HPITCH,D0	; yes, move cursor one line down
+.2	andi.w	#%1111111111000000,D0	; cursor to beginning of line (carriage return)
+
+	cmp.w	#TERMINAL_SIZE,D0	; check for cursor lower than TERMINAL_HEIGHT
+	blo	.3			; no
+
+	subi.w	#TERMINAL_HPITCH,D0	; move cursor one line up
+	move.w	D0,cursor_pos
+	jsr	terminal_add_bottom_row
+	rts
 
 .3	move.w	D0,cursor_pos
 	rts
@@ -333,11 +332,32 @@ terminal_putstring
 .2	rts
 
 
+terminal_add_bottom_row
+	movem.l	A2-A3,-(SP)
+
+	movea.w	terminal_chars,A0
+	lea.l	(TERMINAL_HPITCH,A0),A1
+	movea.w	terminal_colors,A2
+	lea.l	(TERMINAL_HPITCH,A2),A3
+
+	move.w	#(TERMINAL_SIZE-TERMINAL_HPITCH),D0
+.1	move.b	(A1)+,(A0)+
+	move.b	(A3)+,(A2)+
+	subq.w	#1,D0
+	bne	.1
+
+	; todo: fill lowest row with spaces and right color / or us a different trick?
+
+	movem.l	(SP)+,A2-A3
+	rts
+
+
 hello
 	dc.b	"Hello, World!",$0a,0
 
+
 hello2
-	dc.b	"testing....",0
+	dc.b	"testing....",$0a,0
 
 
 	align	2
