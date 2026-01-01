@@ -2,7 +2,7 @@
 // debugger.cpp
 // lime
 //
-// Copyright © 2025 elmerucr. All rights reserved.
+// Copyright © 2025-2026 elmerucr. All rights reserved.
 // ---------------------------------------------------------------------
 
 #include "debugger.hpp"
@@ -650,7 +650,7 @@ void debugger_t::process_command(char *c)
 
 void debugger_t::print_version()
 {
-	terminal->printf("\nlime %i.%i.%i (C)%i elmerucr",
+	terminal->printf("\nlime %i.%i.%i (C)2025-%i elmerucr",
 	       LIME_MAJOR_VERSION,
 	       LIME_MINOR_VERSION,
 	       LIME_BUILD, LIME_YEAR);

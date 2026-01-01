@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 	fprintf(f, "// rom_mc6809.hpp\n");
 	fprintf(f, "// lime\n");
 	fprintf(f, "//\n");
-	fprintf(f, "// Copyright (C)2025 elmerucr. All rights reserved.\n");
+	fprintf(f, "// Copyright (C)2025-2026 elmerucr. All rights reserved.\n");
 	fprintf(f, "// %s",ctime(&t));
 	fprintf(f, "// ---------------------------------------------------------------------\n\n");
 

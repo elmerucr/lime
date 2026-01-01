@@ -2,7 +2,7 @@
 // system.cpp
 // lime
 //
-// Copyright © 2025 elmerucr. All rights reserved.
+// Copyright © 2025-2026 elmerucr. All rights reserved.
 // ---------------------------------------------------------------------
 
 #include "system.hpp"
@@ -17,7 +17,7 @@ system_t::system_t(char *bin)
 {
 	system_start_time = std::chrono::steady_clock::now();
 
-	printf("lime %i.%i.%i (C)%i elmerucr\n",
+	printf("lime %i.%i.%i (C)2025-%i elmerucr\n",
 	       LIME_MAJOR_VERSION,
 	       LIME_MINOR_VERSION,
 	       LIME_BUILD, LIME_YEAR

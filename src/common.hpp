@@ -13,8 +13,8 @@
 // ---------------------------------------------------------------------
 #define LIME_MAJOR_VERSION			0
 #define LIME_MINOR_VERSION			11
-#define LIME_BUILD					20251230
-#define LIME_YEAR					2025
+#define LIME_BUILD					20260101
+#define LIME_YEAR					2026
 
 // ---------------------------------------------------------------------
 // vdc (video display controller)

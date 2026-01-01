@@ -33,7 +33,7 @@ TERMINAL_SIZE	equ	(TERMINAL_HPITCH*TERMINAL_HEIGHT)
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.5 20251230"
+	dc.b	"rom mc68000 0.6.20260101"
 
 	align	2
 
@@ -57,17 +57,6 @@ _start
 	pea	hello
 	jsr	terminal_putstring
 	lea	(4,SP),SP
-
-	move.b	#$0a,-(SP)
-	jsr	terminal_putchar
-	lea	(2,SP),SP
-
-	move.b	#20,D2
-.2	pea	hello2
-	jsr	terminal_putstring
-	lea	(4,SP),SP
-	subq.b	#1,D2
-	bne	.2
 
 	move.b	#$68,logo_animation.w		; init variable for letter wobble
 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
@@ -269,8 +258,7 @@ terminal_init
 
 
 terminal_clear
-	move.w	#TERMINAL_HPITCH,D0
-	mulu.w	#TERMINAL_VPITCH,D0	; D0 contains number of tiles to write
+	move.w	#TERMINAL_SIZE,D0
 	move.b	cursor_color.w,D1
 	movea.w	terminal_chars,A0
 	movea.w	terminal_colors,A1
@@ -281,11 +269,9 @@ terminal_clear
 	bne	.1
 
 	clr.w	cursor_pos
-
 	rts
 
 terminal_putchar
-	; TODO: scroll screen when line 23 is reached
 	movea.w	terminal_chars,A0
 	movea.w	terminal_colors,A1
 	move.w	cursor_pos,D0
@@ -331,22 +317,25 @@ terminal_putstring
 	bra	.1
 .2	rts
 
+terminal_put_hex_byte
+	move.b	(4,SP),D0
+
+	rts
 
 terminal_add_bottom_row
 	movem.l	A2-A3,-(SP)
 
 	movea.w	terminal_chars,A0
-	lea.l	(TERMINAL_HPITCH,A0),A1
+	lea	(TERMINAL_HPITCH,A0),A1
 	movea.w	terminal_colors,A2
-	lea.l	(TERMINAL_HPITCH,A2),A3
+	lea	(TERMINAL_HPITCH,A2),A3
 
-	move.w	#(TERMINAL_SIZE-TERMINAL_HPITCH),D0
-.1	move.b	(A1)+,(A0)+
-	move.b	(A3)+,(A2)+
+	move.w	#TERMINAL_SIZE,D0	; use terminal size, then lowest row is filled properly
+	lsr.w	#2,D0			; divide by 4
+.1	move.l	(A1)+,(A0)+		; do 4 bytes at once
+	move.l	(A3)+,(A2)+		; do 4 bytes at once
 	subq.w	#1,D0
 	bne	.1
-
-	; todo: fill lowest row with spaces and right color / or us a different trick?
 
 	movem.l	(SP)+,A2-A3
 	rts
@@ -354,10 +343,6 @@ terminal_add_bottom_row
 
 hello
 	dc.b	"Hello, World!",$0a,0
-
-
-hello2
-	dc.b	"testing....",$0a,0
 
 
 	align	2
@@ -408,3 +393,6 @@ logo_tiles
 	dc.b	%11111111,%01010000
 	dc.b	%01010101,%00000000
 	dc.b	%00000000,%00000000
+
+hex_values
+	dc.b	"0123456789abcdef"

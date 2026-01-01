@@ -2,7 +2,7 @@
 // debugger.hpp
 // lime
 //
-// Copyright © 2025 elmerucr. All rights reserved.
+// Copyright © 2025-2026 elmerucr. All rights reserved.
 // ---------------------------------------------------------------------
 
 #ifndef DEBUGGER_HPP
