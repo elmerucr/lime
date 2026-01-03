@@ -10,7 +10,7 @@
 
 cpu_mc68000_t::cpu_mc68000_t(system_t *s)
 {
-	printf("[mc68000]\n");
+	printf("[mc68000] VERSION... FIXME...\n");
 	system = s;
 }
 

@@ -33,7 +33,7 @@ TERMINAL_SIZE	equ	(TERMINAL_HPITCH*TERMINAL_HEIGHT)
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.6.20260101"
+	dc.b	"rom mc68000 0.6.20260103"
 
 	align	2
 
@@ -57,6 +57,11 @@ _start
 	pea	hello
 	jsr	terminal_putstring
 	lea	(4,SP),SP
+
+	move.l	#$d021,-(SP)
+	move.b	#4,-(SP)
+	jsr	terminal_put_hex_byte
+	lea	(6,SP),SP
 
 	move.b	#$68,logo_animation.w		; init variable for letter wobble
 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
@@ -318,9 +323,28 @@ terminal_putstring
 .2	rts
 
 terminal_put_hex_byte
-	move.b	(4,SP),D0
+	move.b	(4,SP),D0	; D0 contains no of digits to print
+	beq	.2		; if this is 0, end this function
 
-	rts
+	subq.b	#1,D0		; reduce number of digits to print by 1
+	beq	.1		; if this is 0 (now), only one digit to print
+
+	move.l	(6,SP),D1	; D1 contains the number to be printed
+
+	lsr.l	#4,D1
+	move.l	D1,-(SP)
+	move.b	D0,-(SP)
+	jsr	terminal_put_hex_byte
+	lea	(6,SP),SP
+
+.1	move.l	(6,SP),D0
+	andi.l	#$f,D0
+	lea	hex_values,A0
+	move.b	(A0,D0),-(SP)
+	jsr	terminal_putchar
+	lea	(2,SP),SP
+
+.2	rts
 
 terminal_add_bottom_row
 	movem.l	A2-A3,-(SP)
