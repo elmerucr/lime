@@ -2,12 +2,12 @@
 ; rom.s (assembles with vasmm68k_mot)
 ; lime
 ;
-; Copyright © 2025 elmerucr. All rights reserved.
+; Copyright © 2025-2026 elmerucr. All rights reserved.
 ; ----------------------------------------------------------------------
 
 ; ----------------------------------------------------------------------
 ; - Calling convention: D0-D1/A0-A1 are scratch registers, and need to
-;   be caller saved when preserved
+;   be caller saved when to be kept
 ; - tab size: 8
 ;
 ; ----------------------------------------------------------------------
@@ -33,7 +33,7 @@ TERMINAL_SIZE	equ	(TERMINAL_HPITCH*TERMINAL_HEIGHT)
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.6.20260103"
+	dc.b	"rom mc68000 0.7.20260104"
 
 	align	2
 
@@ -53,15 +53,6 @@ _start
 	jsr	sound_reset
 	jsr	terminal_init
 	jsr	terminal_clear
-
-	pea	hello
-	jsr	terminal_putstring
-	lea	(4,SP),SP
-
-	move.l	#$d021,-(SP)
-	move.b	#4,-(SP)
-	jsr	terminal_put_hex_byte
-	lea	(6,SP),SP
 
 	move.b	#$68,logo_animation.w		; init variable for letter wobble
 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
@@ -86,16 +77,43 @@ exc_lvl1_irq_auto
 
 
 exc_lvl2_irq_auto
-	move.b	D0,-(SP)
-
+	movem.l	D0-D1,-(SP)
 	move.b	CORE_SR,D0				; did core cause an irq?
-	beq	.1					; no
+	beq	.2					; no
 	move.b	D0,CORE_SR				; yes, acknowledge
-	clr.b	VDC_CURRENT_SPRITE			; set sprite 0
-	addq.b	#1,VDC_SPRITE_COLOR1			; change color of bit pattern 0b01
 
-	move.b	(SP)+,D0
-.1	rte
+	move.b	CORE_FILE_DATA.w,D0			; get first byte
+	cmp	#1,D0
+	bne	.1					; it's not a valid file
+
+	pea	file_loading
+	jsr	terminal_putstring
+	lea	(4,SP),SP
+
+	clr.l	D0
+	move.b	CORE_FILE_DATA.w,D0
+	lsl.l	#8,D0
+	move.b	CORE_FILE_DATA.w,D0
+	lsl.l	#8,D0
+	move.b	CORE_FILE_DATA.w,D0
+
+	movem.l	D0-D1,-(SP)
+	move.b	#'$',-(SP)
+	jsr	terminal_putchar
+	lea	(2,SP),SP
+	movem.l	(SP)+,D0-D1
+
+	move.l	D0,-(SP)
+	move.b	#6,-(SP)
+	jsr	terminal_put_hex_byte
+	lea	(6,SP),SP
+	bra	.2
+
+.1	pea	file_error
+	jsr	terminal_putstring
+	lea	(4,SP),SP
+.2	movem.l	(SP)+,D0-D1
+	rte
 
 
 exc_lvl4_irq_auto					; coupled to timer
@@ -127,11 +145,12 @@ exc_lvl6_irq_auto				; coupled to vdc
 
 	move.b	logo_animation,D0
 	addq.b	#$1,D0
-	cmp.b	#$b8,D0
-	bne	.1
-	move.b	#%00000001,CORE_CR		; activate irq's for binary insert
-						; this makes sure letters wobble at least 1 time
-	move.b	#$48,D0
+	cmp.b	#$b8,D0				; did we reach x position $b8?
+	bne	.1				; no jump to .1
+	move.b	#%00000001,CORE_CR		; yes, activate irq's for binary insert (each time we reach $b8)
+						; this makes sure letters wobble at least 1 time before binary
+						; load process starts
+	move.b	#$48,D0				; reset x position to $48
 
 .1	move.b	D0,logo_animation
 
@@ -255,6 +274,13 @@ vdc_init_logo
 	rts
 
 
+vdc_disable_logo
+	; stop interrupt routine
+	; make sprites 0-7 hidden, but leave other data as it is
+	; <OR> restore original chars?
+	rts
+
+
 terminal_init
 	move.w	#VDC_LAYER0_TILES,terminal_chars
 	move.w	#VDC_LAYER0_COLORS,terminal_colors
@@ -365,8 +391,12 @@ terminal_add_bottom_row
 	rts
 
 
-hello
-	dc.b	"Hello, World!",$0a,0
+file_error
+	dc.b	$0a,"Error: not a valid binary",0
+
+
+file_loading
+	dc.b	$0a,"Loading binary",$0a,0
 
 
 	align	2
