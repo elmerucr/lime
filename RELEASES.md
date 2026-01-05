@@ -1,6 +1,6 @@
 # Version ...
 
-* mc68000 rom: putchar and putstring added
+* mc68000 rom: putchar, putstring and puthexbyte added
 * color per tile mode added for 0b11 bit patterns
 * addition of bitmapped mode for layers
 * tileset address configurable for layers and sprites

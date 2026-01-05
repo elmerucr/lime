@@ -22,6 +22,9 @@ cursor_color	equ	$6004	; 1 byte
 terminal_chars	equ	$6006	; 1 word
 terminal_colors	equ	$6008	; 1 word
 
+chunk_length	equ	$600a	; 1 long
+chunk_address	equ	$600e	; 1 long
+
 TERMINAL_HPITCH	equ	$40	; 64
 TERMINAL_VPITCH	equ	$20	; 32
 TERMINAL_WIDTH	equ	$28	; 40 columns
@@ -33,7 +36,7 @@ TERMINAL_SIZE	equ	(TERMINAL_HPITCH*TERMINAL_HEIGHT)
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.7.20260104"
+	dc.b	"rom mc68000 0.7.20260105"
 
 	align	2
 
@@ -79,16 +82,20 @@ exc_lvl1_irq_auto
 exc_lvl2_irq_auto
 	movem.l	D0-D1,-(SP)
 	move.b	CORE_SR,D0				; did core cause an irq?
-	beq	.2					; no
+	beq	.3					; no
 	move.b	D0,CORE_SR				; yes, acknowledge
 
 	move.b	CORE_FILE_DATA.w,D0			; get first byte
 	cmp	#1,D0
-	bne	.1					; it's not a valid file
+	bne	.2					; it's not a valid file
 
-	pea	file_loading
-	jsr	terminal_putstring
+	pea	file_loading1
+	bsr	terminal_putstring
 	lea	(4,SP),SP
+
+	move.b	#'$',-(SP)
+	bsr	terminal_putchar
+	lea	(2,SP),SP
 
 	clr.l	D0
 	move.b	CORE_FILE_DATA.w,D0
@@ -97,22 +104,55 @@ exc_lvl2_irq_auto
 	lsl.l	#8,D0
 	move.b	CORE_FILE_DATA.w,D0
 
-	movem.l	D0-D1,-(SP)
-	move.b	#'$',-(SP)
-	jsr	terminal_putchar
-	lea	(2,SP),SP
-	movem.l	(SP)+,D0-D1
+	move.l	D0,chunk_length
 
 	move.l	D0,-(SP)
 	move.b	#6,-(SP)
-	jsr	terminal_put_hex_byte
+	bsr	terminal_put_hex_byte
 	lea	(6,SP),SP
-	bra	.2
 
-.1	pea	file_error
-	jsr	terminal_putstring
+	pea	file_loading2
+	bsr	terminal_putstring
 	lea	(4,SP),SP
-.2	movem.l	(SP)+,D0-D1
+
+	clr.l	D1
+	move.b	CORE_FILE_DATA.w,D1
+	lsl.l	#8,D1
+	move.b	CORE_FILE_DATA.w,D1
+	lsl.l	#8,D1
+	move.b	CORE_FILE_DATA.w,D1
+
+	move.l	D1,-(SP)
+	move.b	#6,-(SP)
+	bsr	terminal_put_hex_byte
+	lea	(2,SP),SP
+	movea.l	(SP)+,A0
+
+	move.l	chunk_length,D0
+
+.1	move.b	CORE_FILE_DATA.w,(A0)+	; get data and store in memory
+	subq	#1,D0
+	bne	.1
+
+	move.l	A0,-(SP)
+	pea	file_loading3
+	bsr	terminal_putstring
+	lea	(4,SP),SP
+	movea.l	(SP)+,A0
+
+	lea	(-1,A0),A0
+	move.l	A0,-(SP)
+	move.b	#6,-(SP)
+	bsr	terminal_put_hex_byte
+	lea	(6,SP),SP
+
+	move.b	#1,binary_ready
+	bra	.3
+
+.2	pea	file_error
+	bsr	terminal_putstring
+	lea	(4,SP),SP
+.3	movem.l	(SP)+,D0-D1
 	rte
 
 
@@ -391,13 +431,10 @@ terminal_add_bottom_row
 	rts
 
 
-file_error
-	dc.b	$0a,"Error: not a valid binary",0
-
-
-file_loading
-	dc.b	$0a,"Loading binary",$0a,0
-
+file_error	dc.b	$0a,"error: not a valid binary",0
+file_loading1	dc.b	$0a,"loading binary",$0a,$0a,0
+file_loading2	dc.b	" bytes from $",0
+file_loading3	dc.b	"-$",0
 
 	align	2
 logo_data

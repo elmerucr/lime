@@ -2,7 +2,7 @@
 // common.hpp
 // lime
 //
-// Copyright © 2025 elmerucr. All rights reserved.
+// Copyright © 2025-2026 elmerucr. All rights reserved.
 // ---------------------------------------------------------------------
 
 #ifndef COMMON_HPP
@@ -13,7 +13,7 @@
 // ---------------------------------------------------------------------
 #define LIME_MAJOR_VERSION			0
 #define LIME_MINOR_VERSION			11
-#define LIME_BUILD					20260101
+#define LIME_BUILD					20260105
 #define LIME_YEAR					2026
 
 // ---------------------------------------------------------------------
