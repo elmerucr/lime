@@ -23,7 +23,7 @@ terminal_chars	equ	$6006	; 1 word
 terminal_colors	equ	$6008	; 1 word
 
 chunk_length	equ	$600a	; 1 long
-chunk_address	equ	$600e	; 1 long
+exec_address	equ	$600e	; 1 long
 
 TERMINAL_HPITCH	equ	$40	; 64
 TERMINAL_VPITCH	equ	$20	; 32
@@ -36,7 +36,7 @@ TERMINAL_SIZE	equ	(TERMINAL_HPITCH*TERMINAL_HEIGHT)
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.7.20260105"
+	dc.b	"rom mc68000 0.8.20260106"
 
 	align	2
 
@@ -61,14 +61,41 @@ _start
 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
 	move.b	#%00000001,VDC_CR		; enable irq's for vdc
 
-	move.w	#$0000,SR			; set status register (User Mode, ipl = 0)
+	move.w	#$2000,SR			; set status register (Supervisor Mode, ipl = 0)
 
 	clr.b	binary_ready.w
 
 loop	tst.b	binary_ready.w
 	beq	loop				; loop forever, wait for events
 
-_jump
+_jump	move.w	#$2700,SR
+	clr.b	CORE_CR				; no irq when new bin inserted
+	clr.b	VDC_CR				; stop interrupts at scanline 179
+	move.w	#$2000,SR
+	clr.b	D0
+.1	move.b	D0,VDC_CURRENT_SPRITE
+	clr.b	VDC_SPRITE_FLAGS0
+	addq.b	#1,D0
+	cmp.b	#8,D0
+	bne	.1
+
+	pea	file_loading4
+	bsr	terminal_putstring
+	lea	(4,SP),SP
+
+	move.l	exec_address,-(SP)
+	move.b	#8,-(SP)
+	bsr	terminal_put_hex_byte
+	lea	(6,SP),SP
+
+	move.l	#$000c0000,D0
+.2	subq.l	#1,D0
+	bne	.2
+
+	bsr	terminal_clear
+
+	movea.l	exec_address,A0
+	jmp	(A0)
 
 
 exc_addr_error
@@ -93,9 +120,9 @@ exc_lvl2_irq_auto
 	bsr	terminal_putstring
 	lea	(4,SP),SP
 
-	move.b	#'$',-(SP)
-	bsr	terminal_putchar
-	lea	(2,SP),SP
+.start	pea	file_loading2
+	bsr	terminal_putstring
+	lea	(4,SP),SP
 
 	clr.l	D0
 	move.b	CORE_FILE_DATA.w,D0
@@ -111,7 +138,7 @@ exc_lvl2_irq_auto
 	bsr	terminal_put_hex_byte
 	lea	(6,SP),SP
 
-	pea	file_loading2
+	pea	file_loading3
 	bsr	terminal_putstring
 	lea	(4,SP),SP
 
@@ -145,6 +172,27 @@ exc_lvl2_irq_auto
 	move.b	#6,-(SP)
 	bsr	terminal_put_hex_byte
 	lea	(6,SP),SP
+
+	move.b	CORE_FILE_DATA.w,D0	; look for next chunk
+	cmp.b	#1,D0
+	beq	.start			; yes, another data chunk
+	cmp.b	#$fe,D0			; no, is this a postamble?
+	bne	.2			; no = error
+
+	move.b	CORE_FILE_DATA.w,D0	; yes it's the postamble
+	bne	.2			; should be zero
+	move.b	CORE_FILE_DATA.w,D0
+	bne	.2			; should be zero
+	move.b	CORE_FILE_DATA.w,D0
+	bne	.2			; should be zero
+
+	clr.l	D0
+	move.b	CORE_FILE_DATA.w,D0
+	lsl.l	#8,D0
+	move.b	CORE_FILE_DATA.w,D0
+	lsl.l	#8,D0
+	move.b	CORE_FILE_DATA.w,D0	; D0 contains starting address
+	move.l	D0,exec_address
 
 	move.b	#1,binary_ready
 	bra	.3
@@ -432,9 +480,10 @@ terminal_add_bottom_row
 
 
 file_error	dc.b	$0a,"error: not a valid binary",0
-file_loading1	dc.b	$0a,"loading binary",$0a,$0a,0
-file_loading2	dc.b	" bytes from $",0
-file_loading3	dc.b	"-$",0
+file_loading1	dc.b	$0a,"  size    from     to",0
+file_loading2	dc.b	$0a,"$",0
+file_loading3	dc.b	" $",0
+file_loading4	dc.b	$0a,$0a," jumping to $",0
 
 	align	2
 logo_data

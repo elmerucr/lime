@@ -1,6 +1,7 @@
 # Version ...
 
 * mc68000 rom: putchar, putstring and puthexbyte added
+* mc68000 rom: basic binary loading of adapted decb format enabled
 * color per tile mode added for 0b11 bit patterns
 * addition of bitmapped mode for layers
 * tileset address configurable for layers and sprites
