@@ -84,18 +84,13 @@ struct layer_t {
 	// flags1
 	//
 	// bit 7 6 5 4 3 2 1 0
-	//       |   |
-	//       |   |
-	//       |   |
-	//       |   |
-	//       |   |
-	//       |   +--------- double width
-	//       |
-	//       +------------- double height
+	//       | | |
+	//       | +-+--------- bits coding for horizontal size (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
+	//       +------------- bits coding for vertical size (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
 	//
 	// -----------------------------------------------------------------
-	bool flags1_bit4_double_w;
-	bool flags1_bit6_double_h;
+	uint8_t flags1_bit45_width;
+	uint8_t flags1_bit67_height;
 
 	uint8_t colors[4];
 
@@ -122,7 +117,6 @@ struct sprite_t {
 	//
 	// -----------------------------------------------------------------
 	bool flags0_bit0_visible;
-	bool flags0_bit1_tileset1;
 	bool flags0_bit2_transparent;
 	bool flags0_bit4_xpos_rel_layer;
 	bool flags0_bit5_ypos_rel_layer;
@@ -131,21 +125,19 @@ struct sprite_t {
 	// flags1
 	//
 	// bit 7 6 5 4 3 2 1 0
-	//       |   |   | | |
-	//       |   |   | | +- flip h  (1)
-	//       |   |   | +--- flip v  (1)
-	//       |   |   +----- flip xy (1)
-	//       |   |
-	//       |   +--------- double width
-	//       |
-	//       +------------- double height
+	//     | | | |   | | |
+	//     | | | |   | | +- flip h  (1)
+	//     | | | |   | +--- flip v  (1)
+	//     | | | |   +----- flip xy (1)
+	//     | | +-+--------- bits coding for horizontal size (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
+	//     +-+------------- bits coding for vertical size (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
 	//
 	// -----------------------------------------------------------------
 	bool flags1_bit0_flip_h;
 	bool flags1_bit1_flip_v;
 	bool flags1_bit2_flip_xy;
-	bool flags1_bit4_double_w;
-	bool flags1_bit6_double_h;
+	uint8_t flags1_bit45_width;
+	uint8_t flags1_bit67_height;
 
 	uint8_t index;
 

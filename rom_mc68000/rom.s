@@ -29,14 +29,14 @@ TERMINAL_HPITCH	equ	$40	; 64
 TERMINAL_VPITCH	equ	$20	; 32
 TERMINAL_WIDTH	equ	$28	; 40 columns
 TERMINAL_HEIGHT	equ	$16	; 22 rows
-TERMINAL_SIZE	equ	(TERMINAL_HPITCH*TERMINAL_HEIGHT)
+TERMINAL_SIZE	equ	(TERMINAL_HPITCH*TERMINAL_VPITCH)
 
 
 	org	$00010000	; rom based at $10000
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.8.20260106"
+	dc.b	"rom mc68000 0.8.20260108"
 
 	align	2
 
