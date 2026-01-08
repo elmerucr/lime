@@ -1,5 +1,6 @@
 # Version ...
 
+* vdc: proper scaling for layers and sprites (1x, 2x, 4x, 8x) in both directions
 * mc68000 rom: putchar, putstring and puthexbyte added
 * mc68000 rom: basic binary loading of adapted decb format enabled
 * color per tile mode added for 0b11 bit patterns
