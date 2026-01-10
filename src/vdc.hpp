@@ -84,9 +84,9 @@ struct layer_t {
 	// flags1
 	//
 	// bit 7 6 5 4 3 2 1 0
-	//       | | |
-	//       | +-+--------- bits coding for horizontal size (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
-	//       +------------- bits coding for vertical size (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
+	//     | | | |
+	//     | | +-+--------- bits coding for horizontal size (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
+	//     +-+------------- bits coding for vertical size (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
 	//
 	// -----------------------------------------------------------------
 	uint8_t flags1_bit45_width;
@@ -107,19 +107,20 @@ struct sprite_t {
 	// flags0
 	//
 	// bit 7 6 5 4 3 2 1 0
-	//         | |   | | |
-	//         | |   | | +- hidden (0) / visible (1)
-	//         | |   | +--- tileset 0 (0) / tileset 1 (1)
-	//         | |   +----- 0b00 patterns code to opaque (0) or transparent (1)
-	//         | |
-	//         | +--------- x pos relative to screen (0) or associated layer (1)
-	//         +----------- y pos relative to screen (0) or associated layer (1)
+	//     | | | |   |   |
+	//     | | | |   |   +- hidden (0) / visible (1)
+	//     | | | |   +----- 0b00 patterns code to opaque (0) or transparent (1)
+	//     | | | |
+	//     | | | +--------- x pos relative to screen (0) or associated layer (1)
+	//     | | +----------- y pos relative to screen (0) or associated layer (1)
+	//     +-+------------- transparency of sprite (0b00 = no transp., 0b01/0b01/0b11 variious degrees)
 	//
 	// -----------------------------------------------------------------
 	bool flags0_bit0_visible;
 	bool flags0_bit2_transparent;
 	bool flags0_bit4_xpos_rel_layer;
 	bool flags0_bit5_ypos_rel_layer;
+	uint8_t flags0_bit67_transparency;
 
 	// -----------------------------------------------------------------
 	// flags1

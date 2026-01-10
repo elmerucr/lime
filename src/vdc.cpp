@@ -53,6 +53,7 @@ void vdc_t::reset()
 		sprite[i].flags0_bit2_transparent    = false;
 		sprite[i].flags0_bit4_xpos_rel_layer = false;
 		sprite[i].flags0_bit5_ypos_rel_layer = false;
+		sprite[i].flags0_bit67_transparency = 0;
 		sprite[i].flags1_bit0_flip_h   = false;
 		sprite[i].flags1_bit1_flip_v   = false;
 		sprite[i].flags1_bit2_flip_xy  = false;
@@ -118,7 +119,9 @@ void vdc_t::draw_scanline(uint16_t scanline)
 		}
 
 		for (int l=3; l>=0; l--) {
-			draw_scanline_layer(&layer[l], scanline);
+			if (layer[l].flags0_bit0_visible) {
+				draw_scanline_layer(&layer[l], scanline);
+			}
 
 			for (uint8_t i=0; i<64; i++) {
 				draw_scanline_sprite(&sprite[(64*l) + (63-i)], scanline, &layer[l]);
@@ -129,39 +132,44 @@ void vdc_t::draw_scanline(uint16_t scanline)
 
 void vdc_t::draw_scanline_layer(layer_t *l, uint16_t sl)
 {
-	if (l->flags0_bit0_visible)
+	uint16_t y = (l->y + sl) & ((0x100 << l->flags1_bit67_height) - 1);
+
+	//if (l->flags1_bit6_double_h) y >>= 1;
+	y >>= l->flags1_bit67_height;
+
+	uint8_t y_in_tile = y % 8;
+
+	for (uint16_t scr_x = 0; scr_x < VDC_XRES; scr_x++)
 	{
-		uint16_t y = (l->y + sl) & ((0x100 << l->flags1_bit67_height) - 1);
+		uint16_t x = (l->x + scr_x) & ((0x200 << l->flags1_bit45_width) - 1);
 
-		//if (l->flags1_bit6_double_h) y >>= 1;
-        y >>= l->flags1_bit67_height;
+		//if (l->flags1_bit4_double_w) x >>= 1;
+		x >>= l->flags1_bit45_width;
 
-		uint8_t y_in_tile = y % 8;
+		uint8_t  px = x % 4;
 
-		for (uint16_t scr_x = 0; scr_x < VDC_XRES; scr_x++)
-		{
-			uint16_t x = (l->x + scr_x) & ((0x200 << l->flags1_bit45_width) - 1);
+		uint16_t tile_index = (l->tiles_address  + ((y >> 3) << 6) + (x >> 3)) & 0xffff;
+		if (!l->flags0_bit1_bitmapped) tile_index = ram[tile_index];
 
-			//if (l->flags1_bit4_double_w) x >>= 1;
-            x >>= l->flags1_bit45_width;
+		uint8_t  color_index = ram[(l->colors_address + ((y >> 3) << 6) + (x >> 3)) & 0xffff];
 
-			uint8_t  px = x % 4;
+		// result has value 0b00, 0b01, 0b10 or 0b11
+		uint8_t result = (ram[(l->tileset_address + (tile_index << 4) + (y_in_tile << 1) + ((x & 0x4) ? 1 : 0)) & 0xffff] >> (2 * (3 - px))) & 0b11;
 
-			uint16_t tile_index = (l->tiles_address  + ((y >> 3) << 6) + (x >> 3)) & 0xffff;
-			if (!l->flags0_bit1_bitmapped) tile_index = ram[tile_index];
-
-			uint8_t  color_index = ram[(l->colors_address + ((y >> 3) << 6) + (x >> 3)) & 0xffff];
-
-			// result has value 0b00, 0b01, 0b10 or 0b11
-			uint8_t result =
-				(ram[(l->tileset_address + (tile_index << 4) + (y_in_tile << 1) + ((x & 0x4) ? 1 : 0)) & 0xffff] &
-				(0b11 << (2 * (3 - px)))) >> (2 * (3 - px));
-			// if NOT (transparent AND 0b00) then pixel must be drawn
-			if (!(l->flags0_bit2_transparent && !result)) {
-				buffer[(VDC_XRES * sl) + scr_x] = (l->flags0_bit3_color_memory && (result == 0b11)) ? crt_palette[color_index] : crt_palette[l->colors[result]];
-			}
+		// if NOT (transparent AND 0b00) then pixel must be drawn
+		if (!(l->flags0_bit2_transparent && !result)) {
+			buffer[(VDC_XRES * sl) + scr_x] = (l->flags0_bit3_color_memory && (result == 0b11)) ? crt_palette[color_index] : crt_palette[l->colors[result]];
 		}
 	}
+}
+
+inline uint32_t blend(uint8_t transparency, uint32_t source, uint32_t target)
+{
+	// transparency must be element of { 0, 3 }
+	return
+		((((4 - transparency) * (source & 0x00ff00ff) + (transparency * (target & 0x00ff00ff))) >> 2) & 0x00ff00ff) |
+		((((4 - transparency) * (source & 0x0000ff00) + (transparency * (target & 0x0000ff00))) >> 2) & 0x0000ff00) |
+		0xff000000;
 }
 
 inline void vdc_t::draw_scanline_sprite(sprite_t *s, uint16_t sl, layer_t *l)
@@ -176,7 +184,6 @@ inline void vdc_t::draw_scanline_sprite(sprite_t *s, uint16_t sl, layer_t *l)
 		uint16_t y_in_sprite = (sl - y) & ((0x100 << l->flags1_bit67_height) - 1);
 
         y_in_sprite >>= s->flags1_bit67_height;
-		//if (s->flags1_bit6_double_h) y_in_sprite >>= 1;
 
 		if (y_in_sprite < 8) {
 			// find real x postion of sprite correct for relative to layer or not
@@ -212,12 +219,12 @@ inline void vdc_t::draw_scanline_sprite(sprite_t *s, uint16_t sl, layer_t *l)
 				if (s->flags1_bit2_flip_xy) { uint8_t t = x; x = y_in_sprite; y_in_sprite = t; }
 
 				// look up color value { 0b00, 0b01, 0b10, 0b11 } (result) from tileset
-				uint8_t result = (ram[(s->tileset_address + (s->index << 4) + (y_in_sprite << 1) + ((x & 0x4) ? 1 : 0)) & 0xffff] &
-					(0b11 << (2 * (3 - (x%4))))) >> (2 * (3 - (x%4)));
+				uint8_t result = (ram[(s->tileset_address + (s->index << 4) + (y_in_sprite << 1) + ((x & 0x4) ? 1 : 0)) & 0xffff] >> (2 * (3 - (x%4)))) & 0b11;
 
 				// if NOT (transparent AND 0b00) then pixel must be drawn
 				if (!((s->flags0_bit2_transparent) && !result)) {
-					buffer[(VDC_XRES * sl) + scr_x] = crt_palette[s->colors[result]];
+					uint32_t target = buffer[(VDC_XRES * sl) + scr_x];
+					buffer[(VDC_XRES * sl) + scr_x] = blend(s->flags0_bit67_transparency, crt_palette[s->colors[result]], target);
 				}
 
 				// restore y, if xy flip was done before
@@ -319,7 +326,8 @@ uint8_t vdc_t::io_read8(uint16_t address)
 				(sprite[current_sprite].flags0_bit0_visible        ? 0b00000001 : 0) |
 				(sprite[current_sprite].flags0_bit2_transparent    ? 0b00000100 : 0) |
 				(sprite[current_sprite].flags0_bit4_xpos_rel_layer ? 0b00010000 : 0) |
-				(sprite[current_sprite].flags0_bit5_ypos_rel_layer ? 0b00100000 : 0) ;
+				(sprite[current_sprite].flags0_bit5_ypos_rel_layer ? 0b00100000 : 0) |
+				(sprite[current_sprite].flags0_bit67_transparency << 6             ) ;
 		case 0x25:
 			return
 				(sprite[current_sprite].flags1_bit0_flip_h   ? 0b00000001 : 0) |
@@ -482,6 +490,8 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			sprite[current_sprite].flags0_bit2_transparent    = value & 0b00000100 ? true : false;
 			sprite[current_sprite].flags0_bit4_xpos_rel_layer = value & 0b00010000 ? true : false;
 			sprite[current_sprite].flags0_bit5_ypos_rel_layer = value & 0b00100000 ? true : false;
+			sprite[current_sprite].flags0_bit67_transparency = (value & 0b11000000) >> 6;
+
 			break;
 		case 0x25:
 			sprite[current_sprite].flags1_bit0_flip_h   = value & 0b00000001 ? true : false;
