@@ -1,0 +1,189 @@
+                      ;-----------------------------------------------------------------------
+                      ; DECB binary format: http://www.lwtools.ca/manual/x27.html
+                      ;
+                      ; These binaries include the load address of the binary as well as
+                      ; encoding an execution address. These binaries may contain multiple
+                      ; loadable sections, each of which has its own load address.
+                      ;
+                      ; Each binary starts with a preamble. Each preamble is five bytes long.
+                      ; The first byte is zero. The next two bytes specify the number of bytes
+                      ; to load and the last two bytes specify the address to load the bytes
+                      ; at. Then, a string of bytes follows. After this string of bytes, there
+                      ; may be another preamble or a postamble. A postamble is also five bytes
+                      ; in length. The first byte of the postamble is $FF, the next two are
+                      ; zero, and the last two are the execution address for the binary.
+                      ;-----------------------------------------------------------------------
+                      
+0000                                  include "../../../rom/mc6809/definitions.i"
+                      ;-----------------------------------------------------------------------
+                      ; definitions.i
+                      ; lime
+                      ;
+                      ; Copyright © 2025 elmerucr. All rights reserved.
+                      ;-----------------------------------------------------------------------
+                      
+0200                  VECTOR_ILLOP_INDIRECT   equ     $0200
+0202                  VECTOR_SWI3_INDIRECT    equ     $0202
+0204                  VECTOR_SWI2_INDIRECT    equ     $0204
+0206                  VECTOR_FIRQ_INDIRECT    equ     $0206
+0208                  VECTOR_IRQ_INDIRECT     equ     $0208
+020A                  VECTOR_SWI_INDIRECT     equ     $020a
+020C                  VECTOR_NMI_INDIRECT     equ     $020c
+                      ; $020e unused and reserved
+0210                  VECTOR_TIMER0_INDIRECT  equ     $0210
+0212                  VECTOR_TIMER1_INDIRECT  equ     $0212
+0214                  VECTOR_TIMER2_INDIRECT  equ     $0214
+0216                  VECTOR_TIMER3_INDIRECT  equ     $0216
+0218                  VECTOR_TIMER4_INDIRECT  equ     $0218
+021A                  VECTOR_TIMER5_INDIRECT  equ     $021a
+021C                  VECTOR_TIMER6_INDIRECT  equ     $021c
+021E                  VECTOR_TIMER7_INDIRECT  equ     $021e
+0220                  VECTOR_VDC_INDIRECT     equ     $0220
+                      
+                      ; vdc (video display controller)
+0400                  VDC_SR                  equ     $0400
+0401                  VDC_CR                  equ     $0401
+0404                  VDC_BG_COLOR            equ     $0404
+0405                  VDC_CURRENT_PALETTE     equ     $0405
+0406                  VDC_CURRENT_LAYER       equ     $0406
+0407                  VDC_CURRENT_SPRITE      equ     $0407
+                      
+0408                  VDC_PALETTE_ALPHA       equ     $0408
+0409                  VDC_PALETTE_RED         equ     $0409
+040A                  VDC_PALETTE_GREEN       equ     $040a
+040B                  VDC_PALETTE_BLUE        equ     $040b
+                      
+040C                  VDC_CURRENT_SCANLINE_MSB        equ     $040c
+040D                  VDC_CURRENT_SCANLINE_LSB        equ     $040d
+040E                  VDC_IRQ_SCANLINE_MSB            equ     $040e
+040F                  VDC_IRQ_SCANLINE_LSB            equ     $040f
+                      
+                      
+0410                  VDC_LAYER_X_MSB         equ     $0410
+0411                  VDC_LAYER_X_LSB         equ     $0411
+0412                  VDC_LAYER_Y_MSB         equ     $0412
+0413                  VDC_LAYER_Y_LSB         equ     $0413
+0414                  VDC_LAYER_FLAGS0        equ     $0414
+0415                  VDC_LAYER_FLAGS1        equ     $0415
+0418                  VDC_LAYER_COLOR0        equ     $0418
+0419                  VDC_LAYER_COLOR1        equ     $0419
+041A                  VDC_LAYER_COLOR2        equ     $041a
+041B                  VDC_LAYER_COLOR3        equ     $041b
+041C                  VDC_LAYER_BASE_MSB      equ     $041c
+041D                  VDC_LAYER_BASE_LSB      equ     $041d
+                      
+0420                  VDC_SPRITE_X_MSB        equ     $0420
+0421                  VDC_SPRITE_X_LSB        equ     $0421
+0422                  VDC_SPRITE_Y_MSB        equ     $0422
+0423                  VDC_SPRITE_Y_LSB        equ     $0423
+0424                  VDC_SPRITE_FLAGS0       equ     $0424
+0425                  VDC_SPRITE_FLAGS1       equ     $0425
+0426                  VDC_SPRITE_INDEX        equ     $0426
+0428                  VDC_SPRITE_COLOR0       equ     $0428
+0429                  VDC_SPRITE_COLOR1       equ     $0429
+042A                  VDC_SPRITE_COLOR2       equ     $042a
+042B                  VDC_SPRITE_COLOR3       equ     $042b
+042E                  VDC_SPRITE_TILESET_ADDRESS      equ     $042e
+                      
+1000                  VDC_TILESET_ADDRESS     equ     $1000
+4000                  VDC_LAYER0_TILES        equ     $4000
+4800                  VDC_LAYER1_TILES        equ     $4800
+5000                  VDC_LAYER2_TILES        equ     $5000
+5800                  VDC_LAYER3_TILES        equ     $5800
+                      
+                      ; timer
+0440                  TIMER_SR                equ     $0440
+0441                  TIMER_CR                equ     $0441
+0450                  TIMER0_BPM              equ     $0450
+0452                  TIMER1_BPM              equ     $0452
+0454                  TIMER2_BPM              equ     $0454
+0456                  TIMER3_BPM              equ     $0456
+0458                  TIMER4_BPM              equ     $0458
+045A                  TIMER5_BPM              equ     $045a
+045C                  TIMER6_BPM              equ     $045c
+045E                  TIMER7_BPM              equ     $045e
+                      
+                      ; core
+0480                  CORE_SR                 equ     $0480
+0481                  CORE_CR                 equ     $0481
+0482                  CORE_ROMS               equ     $0482
+0484                  CORE_FILE_DATA          equ     $0484
+0488                  CORE_INPUT0             equ     $0488
+                      
+                      ; sound devices
+0500                  SID0_F                  equ     $0500
+0502                  SID0_PW                 equ     $0502
+051B                  SID0_V                  equ     $051b
+053B                  SID1_V                  equ     $053b
+0580                  MIX_SID0_LEFT           equ     $0580
+0581                  MIX_SID0_RIGHT          equ     $0581
+0582                  MIX_SID1_LEFT           equ     $0582
+0583                  MIX_SID1_RIGHT          equ     $0583
+0584                  MIX_ANA0_LEFT           equ     $0584
+0585                  MIX_ANA0_RIGHT          equ     $0585
+0586                  MIX_ANA1_LEFT           equ     $0586
+0587                  MIX_ANA1_RIGHT          equ     $0587
+                      
+                      ; general
+6000                  RAM_START               equ     $6000
+FE00                  ROM_START               equ     $fe00
+                      
+5FFB                                  org     RAM_START-5                     ; allocate 5 bytes for code_preamble
+                      
+5FFB 00               code_preamble   fcb     $00                             ; first byte
+5FFC 0050                             fdb     graph_preamble-RAM_START        ; size (16 bit unsigned)
+5FFE 6000                             fdb     RAM_START                       ; where (16 bit unsigned)
+                      
+6000                  code            include "main.s"
+6000 7F0406           main            clr     VDC_CURRENT_LAYER       ; points to layer 0
+6003 8605                             lda     #%00000101
+6005 B70414                           sta     VDC_LAYER_FLAGS0        ; activate, use transparency ofr 0b00
+                      
+6008 8620                             lda     #' '
+600A 8E4000                           ldx     #VDC_LAYER0_TILES
+600D A780             1               sta     ,x+
+600F 8C45C0                           cmpx    #VDC_LAYER0_TILES+(64*23)
+6012 26F9                             bne     1b
+                      
+6014 8637                             lda     #$37
+6016 B70404                           sta     VDC_BG_COLOR
+                      
+                                      ; print string
+6019 8E6043                           ldx     #text
+601C 108E4000                         ldy     #VDC_LAYER0_TILES
+6020 A680             1               lda     ,x+
+6022 2704                             beq     2f
+6024 A7A0                             sta     ,y+
+6026 20F8                             bra     1b
+                      
+6028 7F0407           2               clr     VDC_CURRENT_SPRITE
+602B 7F0426                           clr     VDC_SPRITE_INDEX
+602E 8605                             lda     #%00000101
+6030 B70424                           sta     VDC_SPRITE_FLAGS0
+6033 CC0800                           ldd #$0800
+6036 FD042E                           std VDC_SPRITE_TILESET_ADDRESS
+6039 8638                             lda     #56
+603B B70421                           sta     VDC_SPRITE_X_LSB
+603E 7F0423                           clr     VDC_SPRITE_Y_LSB
+                      
+6041 20FE             1               bra     1b                      ; loop / do nothing
+                      
+6043 48656C6C6F207720 text            fcn     "Hello w rld!"          ; 'o' replaced by sprite
+     726C642100
+                      
+6050 00               graph_preamble  fcb     $00                             ; first byte
+6051 0010                             fdb     postamble-tiles                 ; size (16 bit unsigned)
+6053 0800                             fdb     $0800                           ; where (16 bit unsigned)
+                      
+6055                  tiles           include "tiles.s"
+6055 0150                             fdb     %0000000101010000
+6057 06A4                             fdb     %0000011010100100
+6059 1999                             fdb     %0001100110011001
+605B 1AA9                             fdb     %0001101010101001
+605D 1999                             fdb     %0001100110011001
+605F 1959                             fdb     %0001100101011001
+6061 06A4                             fdb     %0000011010100100
+6063 0150                             fdb     %0000000101010000
+                      
+6065 FF0000           postamble       fcb     $ff,$00,$00
+6068 6000                             fdb     main                            ; execution address

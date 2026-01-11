@@ -2,8 +2,8 @@
 // rom_mc6809.hpp
 // lime
 //
-// Copyright (C)2025 elmerucr. All rights reserved.
-// Fri Dec 26 12:52:25 2025
+// Copyright (C)2025-2026 elmerucr. All rights reserved.
+// Sun Jan 11 11:10:53 2026
 // ---------------------------------------------------------------------
 
 #ifndef ROM_MC6809_HPP

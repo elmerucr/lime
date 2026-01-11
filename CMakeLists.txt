@@ -24,7 +24,7 @@ if(LIME_VENDORED)
 	set(SDL_SHARED OFF CACHE BOOL "Build SDL shared library" FORCE)
 	set(SDL_STATIC ON CACHE BOOL "Build SDL static library" FORCE)
 else()
-    # 1. Look for a SDL3 package,
+    # 1. Look for an SDL3 package,
     # 2. look for the SDL3-shared component, and
     # 3. fail if the shared component cannot be found.
     find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
@@ -36,8 +36,8 @@ include_directories(
 	src/mc6809
 	src/Moira
     src/resid-0.16
-	rom_mc68000
-	rom_mc6809
+	rom/mc68000
+	rom/mc6809
 )
 
 add_subdirectory(src/)
