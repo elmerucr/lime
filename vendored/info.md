@@ -1,4 +1,4 @@
-# External
+# vendored
 
 ## Commands to run
 

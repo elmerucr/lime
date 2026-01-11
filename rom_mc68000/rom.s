@@ -29,14 +29,14 @@ TERMINAL_HPITCH	equ	$40	; 64
 TERMINAL_VPITCH	equ	$20	; 32
 TERMINAL_WIDTH	equ	$28	; 40 columns
 TERMINAL_HEIGHT	equ	$16	; 22 rows
-TERMINAL_SIZE	equ	(TERMINAL_HPITCH*TERMINAL_VPITCH)
+;TERMINAL_SIZE	equ	(TERMINAL_HPITCH*TERMINAL_VPITCH)
 
 
 	org	$00010000	; rom based at $10000
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.8.20260108"
+	dc.b	"rom mc68000 0.8.20260111"
 
 	align	2
 
@@ -377,7 +377,7 @@ terminal_init
 
 
 terminal_clear
-	move.w	#TERMINAL_SIZE,D0
+	move.w	#(TERMINAL_HPITCH*TERMINAL_VPITCH),D0
 	move.b	cursor_color.w,D1
 	movea.w	terminal_chars,A0
 	movea.w	terminal_colors,A1
@@ -412,7 +412,7 @@ terminal_putchar
 .1	addi.w	#TERMINAL_HPITCH,D0	; yes, move cursor one line down
 .2	andi.w	#%1111111111000000,D0	; cursor to beginning of line (carriage return)
 
-	cmp.w	#TERMINAL_SIZE,D0	; check for cursor lower than TERMINAL_HEIGHT
+	cmp.w	#(TERMINAL_WIDTH*TERMINAL_VPITCH),D0	; check for cursor lower than TERMINAL_HEIGHT
 	blo	.3			; no
 
 	subi.w	#TERMINAL_HPITCH,D0	; move cursor one line up
@@ -468,7 +468,7 @@ terminal_add_bottom_row
 	movea.w	terminal_colors,A2
 	lea	(TERMINAL_HPITCH,A2),A3
 
-	move.w	#TERMINAL_SIZE,D0	; use terminal size, then lowest row is filled properly
+	move.w	#(TERMINAL_HPITCH*TERMINAL_HEIGHT),D0	; use terminal size, then lowest row is filled properly
 	lsr.w	#2,D0			; divide by 4
 .1	move.l	(A1)+,(A0)+		; do 4 bytes at once
 	move.l	(A3)+,(A2)+		; do 4 bytes at once

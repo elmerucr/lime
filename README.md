@@ -2,16 +2,16 @@
 
 ![icon](./docs/icon_80x80.png)
 
-Lime is a virtual computer system that draws inspiration from computing platforms such as the Commodore 64, the Atari ST and the Nintendo Gameboy. Notable features include:
+Lime is a virtual computer system that draws inspiration from computing platforms such as the Commodore 64 (look and feel, SID and VIC-II), the Atari ST (Motorola 68000), the TRS-80 Color Computer (Motorola 6809 and binary format) and the Nintendo Gameboy (tiles / graphics system). Notable features include:
 
 * Motorola 6809 cpu using the [mc6809](https://github.com/elmerucr/mc6809) library
 * Motorola 68000 cpu using the [Moira](https://github.com/dirkwhoffmann/Moira) library
-* 16mb ram (of which the lowest 64k accessible by mc6809)
+* 16mb ram (mc6809 can reach the lowest 64k)
 * Screen resolution of 320x180 pixels, refresh rate of 60Hz
 * Video Display Controller (VDC) for graphics processing, memory access to lowest 64k
-* Programmable using mc68000 or mc6809 assembly
+* Programmable using mc6809 and mc68000 assembly (see ```examples```)
 
-By default, the system starts in mc68000 mode.
+By default, lime starts in mc68000 mode.
 
 ## Screenshots
 
@@ -21,9 +21,9 @@ By default, the system starts in mc68000 mode.
 
 ![icon](./docs/20251009_screenshot_debug_mc68000.png)
 
-## Binaries
+## Binaries (apps / games)
 
-Binaries (in ```decb``` format and borrowed from TRS-80 Color Computer / Disk Extended Color Basic) can be dragged and dropped onto the application.
+Binaries (in ```decb``` format and borrowed from the TRS-80 Color Computer / Disk Extended Color Basic specification) can be dragged and dropped onto the application.
 
 ### In mc6809 mode
 
@@ -35,7 +35,11 @@ Each binary starts with a preamble. Each preamble is five bytes long. The first 
 
 ### In mc68000 mode
 
-to be done
+Largely comparable to mc6809 mode.
+
+Each preamble is seven bytes long and starts with the magic byte ```$01```, the next three bytes (big endian) specify the number of bytes to load, the next three bytes (big endian) the address to load at. There may be multiple preambles / chunks to load.
+
+The postamble (seven bytes) starts with magic byte ```$fe```, the next three are zero, then three bytes follow (big endian) the execution address for the binary.
 
 ## Memory Map
 
@@ -155,7 +159,7 @@ Zaks, Rodnay and William Labiak. 1982. Programming the 6809. SYBEX.
 
 ## MIT License
 
-Copyright (c) 2025 elmerucr
+Copyright (c) 2026 elmerucr
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

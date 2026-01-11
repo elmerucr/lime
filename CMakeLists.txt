@@ -15,9 +15,9 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 project(lime)
 
 # Create an option to switch between a system sdl library and a vendored SDL library
-option(MYGAME_VENDORED "Use vendored libraries" ON)
+option(LIME_VENDORED "Use vendored libraries" ON)
 
-if(MYGAME_VENDORED)
+if(LIME_VENDORED)
     # This assumes you have added SDL as a submodule in vendored/SDL
     add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
 	# Statically link SDL3

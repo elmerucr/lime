@@ -142,16 +142,16 @@ Source: "rom.s"
                             	    29: TERMINAL_VPITCH	equ	$20	; 32
                             	    30: TERMINAL_WIDTH	equ	$28	; 40 columns
                             	    31: TERMINAL_HEIGHT	equ	$16	; 22 rows
-                            	    32: TERMINAL_SIZE	equ	(TERMINAL_HPITCH*TERMINAL_VPITCH)
+                            	    32: ;TERMINAL_SIZE	equ	(TERMINAL_HPITCH*TERMINAL_VPITCH)
                             	    33: 
                             	    34: 
                             	    35: 	org	$00010000	; rom based at $10000
                             	    36: 
 00:00010000 01000000        	    37: 	dc.l	$01000000	; initial ssp at end of ram
 00:00010004 00010020        	    38: 	dc.l	_start		; reset vector
-00:00010008 726F6D206D633638	    39: 	dc.b	"rom mc68000 0.8.20260108"
+00:00010008 726F6D206D633638	    39: 	dc.b	"rom mc68000 0.8.20260111"
 00:00010010 30303020302E382E
-00:00010018 3230323630313038
+00:00010018 3230323630313131
                             	    40: 
                             	    41: 	align	2
                             	    42: 
@@ -492,7 +492,7 @@ Source: "rom.s"
                             	   377: 
                             	   378: 
                             	   379: terminal_clear
-00:0001040C 303C0800        	   380: 	move.w	#TERMINAL_SIZE,D0
+00:0001040C 303C0800        	   380: 	move.w	#(TERMINAL_HPITCH*TERMINAL_VPITCH),D0
 00:00010410 12386004        	   381: 	move.b	cursor_color.w,D1
 00:00010414 307900006006    	   382: 	movea.w	terminal_chars,A0
 00:0001041A 327900006008    	   383: 	movea.w	terminal_colors,A1
@@ -527,7 +527,7 @@ Source: "rom.s"
 00:00010478 06400040        	   412: .1	addi.w	#TERMINAL_HPITCH,D0	; yes, move cursor one line down
 00:0001047C 0240FFC0        	   413: .2	andi.w	#%1111111111000000,D0	; cursor to beginning of line (carriage return)
                             	   414: 
-00:00010480 B07C0800        	   415: 	cmp.w	#TERMINAL_SIZE,D0	; check for cursor lower than TERMINAL_HEIGHT
+00:00010480 B07C0500        	   415: 	cmp.w	#(TERMINAL_WIDTH*TERMINAL_VPITCH),D0	; check for cursor lower than TERMINAL_HEIGHT
 00:00010484 65000014        	   416: 	blo	.3			; no
                             	   417: 
 00:00010488 04400040        	   418: 	subi.w	#TERMINAL_HPITCH,D0	; move cursor one line up
@@ -583,7 +583,7 @@ Source: "rom.s"
 00:00010512 347900006008    	   468: 	movea.w	terminal_colors,A2
 00:00010518 47EA0040        	   469: 	lea	(TERMINAL_HPITCH,A2),A3
                             	   470: 
-00:0001051C 303C0800        	   471: 	move.w	#TERMINAL_SIZE,D0	; use terminal size, then lowest row is filled properly
+00:0001051C 303C0580        	   471: 	move.w	#(TERMINAL_HPITCH*TERMINAL_HEIGHT),D0	; use terminal size, then lowest row is filled properly
 00:00010520 E448            	   472: 	lsr.w	#2,D0			; divide by 4
 00:00010522 20D9            	   473: .1	move.l	(A1)+,(A0)+		; do 4 bytes at once
 00:00010524 24DB            	   474: 	move.l	(A3)+,(A2)+		; do 4 bytes at once
@@ -761,8 +761,8 @@ MIX_SID0_LEFT                    E:00000580
 SID0_F                           E:00000500
 SID0_V                           E:0000051B
 SID1_V                           E:0000053B
+TERMINAL_HEIGHT                  E:00000016
 TERMINAL_HPITCH                  E:00000040
-TERMINAL_SIZE                    E:00000800
 TERMINAL_VPITCH                  E:00000020
 TERMINAL_WIDTH                   E:00000028
 TIMER_SR                         E:00000440
@@ -834,6 +834,7 @@ vdc_init_logo                    A:000103C2
 
 Symbols by value:
 0000000C VEC_ADDR_ERROR
+00000016 TERMINAL_HEIGHT
 00000020 TERMINAL_VPITCH
 00000028 TERMINAL_WIDTH
 00000040 TERMINAL_HPITCH
@@ -870,7 +871,6 @@ Symbols by value:
 0000051B SID0_V
 0000053B SID1_V
 00000580 MIX_SID0_LEFT
-00000800 TERMINAL_SIZE
 00001000 VDC_TILESET_ADDRESS
 00002000 VDC_LAYER0_COLORS
 00004000 VDC_LAYER0_TILES
