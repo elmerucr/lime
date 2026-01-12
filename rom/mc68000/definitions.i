@@ -11,7 +11,25 @@ VEC_LVL1_IRQ_AUTO		equ	$0064
 VEC_LVL2_IRQ_AUTO		equ	$0068	; entry point for core
 VEC_LVL4_IRQ_AUTO		equ	$0070	; entry point for timer
 VEC_LVL6_IRQ_AUTO		equ	$0078	; entry point for vdc
-VEC_TIMER0			equ	$0100
+VEC_LVL7_IRQ_AUTO		equ	$007c	; currently unused
+VEC_TRAP0			equ	$0080
+VEC_TRAP1			equ	$0084
+VEC_TRAP2			equ	$0088
+VEC_TRAP3			equ	$008c
+VEC_TRAP4			equ	$0090
+VEC_TRAP5			equ	$0094
+VEC_TRAP6			equ	$0098
+VEC_TRAP7			equ	$009c
+VEC_TRAP8			equ	$00a0
+VEC_TRAP9			equ	$00a4
+VEC_TRAP10			equ	$00a8
+VEC_TRAP11			equ	$00ac
+VEC_TRAP12			equ	$00b0
+VEC_TRAP13			equ	$00b4
+VEC_TRAP14			equ	$00b8
+VEC_TRAP15			equ	$00bc
+
+VEC_TIMER0			equ	$0100	; $0100 onwards, user vectors
 VEC_TIMER1			equ	$0104
 VEC_TIMER2			equ	$0108
 VEC_TIMER3			equ	$010c
@@ -101,3 +119,5 @@ CORE_CR				equ	$0481
 CORE_ROMS			equ	$0482
 CORE_FILE_DATA			equ	$0484
 CORE_INPUT0			equ	$0488
+
+RAM_START			equ	$20000

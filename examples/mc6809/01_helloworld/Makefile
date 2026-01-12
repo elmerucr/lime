@@ -1,4 +1,4 @@
-PROJECT_NAME = hello_world
+PROJECT_NAME = helloworld
 
 all: $(PROJECT_NAME).decb
 

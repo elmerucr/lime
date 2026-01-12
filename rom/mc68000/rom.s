@@ -21,9 +21,12 @@ cursor_color	equ	$6004	; 1 byte
 ; available slot
 terminal_chars	equ	$6006	; 1 word
 terminal_colors	equ	$6008	; 1 word
-
 chunk_length	equ	$600a	; 1 long
 exec_address	equ	$600e	; 1 long
+rnda		equ	$6012	; 1 byte
+rndb		equ	$6013	; 1 byte
+rndc		equ	$6014	; 1 byte
+rndx		equ	$6015	; 1 byte
 
 TERMINAL_HPITCH	equ	$40	; 64
 TERMINAL_VPITCH	equ	$20	; 32
@@ -61,9 +64,11 @@ _start
 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
 	move.b	#%00000001,VDC_CR		; enable irq's for vdc
 
-	move.w	#$2000,SR			; set status register (Supervisor Mode, ipl = 0)
+	move.w	#$2000,SR			; set status register (User Mode, ipl = 0)
 
 	clr.b	binary_ready.w
+
+	clr.l	rnda				; init random generator, clears rnda, rndb, rndc and rndx
 
 loop	tst.b	binary_ready.w
 	beq	loop				; loop forever, wait for events
@@ -95,6 +100,7 @@ _jump	move.w	#$2700,SR
 	bsr	terminal_clear
 
 	movea.l	exec_address,A0
+	move.w	#$0000,SR			; user mode
 	jmp	(A0)
 
 
@@ -126,6 +132,8 @@ exc_lvl2_irq_auto
 
 	clr.l	D0
 	move.b	CORE_FILE_DATA.w,D0
+	bne	.2					; should be zero this first byte
+	move.b	CORE_FILE_DATA.w,D0
 	lsl.l	#8,D0
 	move.b	CORE_FILE_DATA.w,D0
 	lsl.l	#8,D0
@@ -143,6 +151,8 @@ exc_lvl2_irq_auto
 	lea	(4,SP),SP
 
 	clr.l	D1
+	move.b	CORE_FILE_DATA.w,D1
+	bne	.2
 	move.b	CORE_FILE_DATA.w,D1
 	lsl.l	#8,D1
 	move.b	CORE_FILE_DATA.w,D1
@@ -167,7 +177,7 @@ exc_lvl2_irq_auto
 	lea	(4,SP),SP
 	movea.l	(SP)+,A0
 
-	lea	(-1,A0),A0
+	lea	(-1,A0),A0		; now A0 contains the last address in which a byte was loaded
 	move.l	A0,-(SP)
 	move.b	#6,-(SP)
 	bsr	terminal_put_hex_byte
@@ -185,8 +195,12 @@ exc_lvl2_irq_auto
 	bne	.2			; should be zero
 	move.b	CORE_FILE_DATA.w,D0
 	bne	.2			; should be zero
+	move.b	CORE_FILE_DATA.w,D0
+	bne	.2			; should be zero
 
 	clr.l	D0
+	move.b	CORE_FILE_DATA.w,D0
+	bne	.2			; should be zero
 	move.b	CORE_FILE_DATA.w,D0
 	lsl.l	#8,D0
 	move.b	CORE_FILE_DATA.w,D0
@@ -476,6 +490,18 @@ terminal_add_bottom_row
 	bne	.1
 
 	movem.l	(SP)+,A2-A3
+	rts
+
+; see: https://www.stix.id.au/wiki/Fast_8-bit_pseudorandom_number_generator
+rnd_impl
+	addq.b	#1,rndx.w
+	move.b	rnda.w,D0
+	eor.b	D0,rndc.w
+	eor.b	D0,rndx.w
+	move.b	D0,rnda.w
+	add.b	rndb.w,D0
+	move.b	D0,rndb.w
+	lsr.b	D0
 	rts
 
 

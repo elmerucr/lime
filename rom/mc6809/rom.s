@@ -5,10 +5,14 @@
 ; Copyright © 2025 elmerucr. All rights reserved.
 ;-----------------------------------------------------------------------
 
-; rom 0.9 20250603
+;
+
+; rom 0.10
+
+; rom 0.9.20250603
 ; adding rnd routine
 
-; rom 0.8 20250420
+; rom 0.8.20250420
 ;
 ;
 
@@ -236,13 +240,7 @@ core_interrupt	lda	CORE_FILE_DATA		; first value $00?
 core_int_end	rti
 
 ; prng / rnd routine, value contained in ac
-; see:
-; c version:
-;
-;
-;
-;
-;
+; see: https://www.stix.id.au/wiki/Fast_8-bit_pseudorandom_number_generator
 rnd_impl	inc	rndx
 		lda	rnda
 		eora	rndc

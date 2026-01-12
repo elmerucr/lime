@@ -37,9 +37,9 @@ Each binary starts with a preamble. Each preamble is five bytes long. The first 
 
 Largely comparable to mc6809 mode.
 
-Each preamble is seven bytes long and starts with the magic byte ```$01```, the next three bytes (big endian) specify the number of bytes to load, the next three bytes (big endian) the address to load at. There may be multiple preambles / chunks to load.
+Each preamble is nine bytes long and starts with the magic byte ```$01```, the next four bytes (big endian) specify the number of bytes to load (first byte must be ```$00```), the next four bytes (big endian, first byte ```$00```) the address to load at. There may be multiple preambles / chunks to load.
 
-The postamble (seven bytes) starts with magic byte ```$fe```, the next three are zero, then three bytes follow (big endian) the execution address for the binary.
+The postamble (nine bytes) starts with magic byte ```$fe```, the next four are zero, then four bytes follow (big endian, first ```$00```) the execution address for the binary.
 
 ## Memory Map
 
