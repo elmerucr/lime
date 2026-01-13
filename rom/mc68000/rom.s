@@ -39,7 +39,7 @@ TERMINAL_HEIGHT	equ	$16	; 22 rows
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.8.20260111"
+	dc.b	"rom mc68000 0.8.20260114"
 
 	align	2
 
@@ -64,7 +64,7 @@ _start
 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
 	move.b	#%00000001,VDC_CR		; enable irq's for vdc
 
-	move.w	#$2000,SR			; set status register (User Mode, ipl = 0)
+	move.w	#$0000,SR			; jump to user mode, ipl = 0
 
 	clr.b	binary_ready.w
 
@@ -73,10 +73,10 @@ _start
 loop	tst.b	binary_ready.w
 	beq	loop				; loop forever, wait for events
 
-_jump	move.w	#$2700,SR
+_jump	;move.w	#$2700,SR
 	clr.b	CORE_CR				; no irq when new bin inserted
 	clr.b	VDC_CR				; stop interrupts at scanline 179
-	move.w	#$2000,SR
+	;move.w	#$2000,SR
 	clr.b	D0
 .1	move.b	D0,VDC_CURRENT_SPRITE
 	clr.b	VDC_SPRITE_FLAGS0
@@ -86,12 +86,12 @@ _jump	move.w	#$2700,SR
 
 	pea	file_loading4
 	bsr	terminal_putstring
-	lea	(4,SP),SP
+	addq.l	#4,SP
 
 	move.l	exec_address,-(SP)
 	move.b	#8,-(SP)
-	bsr	terminal_put_hex_byte
-	lea	(6,SP),SP
+	bsr	terminal_put_hex_number
+	addq.l	#6,SP
 
 	move.l	#$000c0000,D0
 .2	subq.l	#1,D0
@@ -100,7 +100,7 @@ _jump	move.w	#$2700,SR
 	bsr	terminal_clear
 
 	movea.l	exec_address,A0
-	move.w	#$0000,SR			; user mode
+	;move.w	#$0000,SR			; user mode
 	jmp	(A0)
 
 
@@ -124,11 +124,11 @@ exc_lvl2_irq_auto
 
 	pea	file_loading1
 	bsr	terminal_putstring
-	lea	(4,SP),SP
+	addq.l	#4,SP
 
 .start	pea	file_loading2
 	bsr	terminal_putstring
-	lea	(4,SP),SP
+	addq.l	#4,SP
 
 	clr.l	D0
 	move.b	CORE_FILE_DATA.w,D0
@@ -143,12 +143,12 @@ exc_lvl2_irq_auto
 
 	move.l	D0,-(SP)
 	move.b	#6,-(SP)
-	bsr	terminal_put_hex_byte
-	lea	(6,SP),SP
+	bsr	terminal_put_hex_number
+	addq.l	#6,SP
 
 	pea	file_loading3
 	bsr	terminal_putstring
-	lea	(4,SP),SP
+	addq.l	#4,SP
 
 	clr.l	D1
 	move.b	CORE_FILE_DATA.w,D1
@@ -161,8 +161,8 @@ exc_lvl2_irq_auto
 
 	move.l	D1,-(SP)
 	move.b	#6,-(SP)
-	bsr	terminal_put_hex_byte
-	lea	(2,SP),SP
+	bsr	terminal_put_hex_number
+	addq.l	#2,SP
 	movea.l	(SP)+,A0
 
 	move.l	chunk_length,D0
@@ -174,14 +174,14 @@ exc_lvl2_irq_auto
 	move.l	A0,-(SP)
 	pea	file_loading3
 	bsr	terminal_putstring
-	lea	(4,SP),SP
+	addq.l	#4,SP
 	movea.l	(SP)+,A0
 
-	lea	(-1,A0),A0		; now A0 contains the last address in which a byte was loaded
+	subq.w	#1,A0			; now A0 contains the last address in which a byte was loaded
 	move.l	A0,-(SP)
 	move.b	#6,-(SP)
-	bsr	terminal_put_hex_byte
-	lea	(6,SP),SP
+	bsr	terminal_put_hex_number
+	addq.l	#6,SP
 
 	move.b	CORE_FILE_DATA.w,D0	; look for next chunk
 	cmp.b	#1,D0
@@ -198,7 +198,7 @@ exc_lvl2_irq_auto
 	move.b	CORE_FILE_DATA.w,D0
 	bne	.2			; should be zero
 
-	clr.l	D0
+.gh	clr.l	D0
 	move.b	CORE_FILE_DATA.w,D0
 	bne	.2			; should be zero
 	move.b	CORE_FILE_DATA.w,D0
@@ -213,7 +213,7 @@ exc_lvl2_irq_auto
 
 .2	pea	file_error
 	bsr	terminal_putstring
-	lea	(4,SP),SP
+	addq.l	#4,SP
 .3	movem.l	(SP)+,D0-D1
 	rte
 
@@ -277,6 +277,14 @@ exc_lvl6_irq_auto				; coupled to vdc
 	move.b	(SP)+,VDC_CURRENT_SPRITE
 	rte
 
+; io routines
+exc_trap15_handler
+	cmp.b	#1,(6,SP)
+	bne	.end
+	move.b	(8,SP),-(SP)
+	jsr	terminal_putchar
+	addq.l	#2,SP
+.end	rte
 
 timer_default_handler
 	move.b	#$12,VDC_BG_COLOR.w
@@ -307,12 +315,12 @@ sound_reset
 
 
 init_vector_table
-	; can this be improved?
 	move.l	#exc_addr_error,VEC_ADDR_ERROR.w
 	move.l	#exc_lvl1_irq_auto,VEC_LVL1_IRQ_AUTO.w
 	move.l	#exc_lvl2_irq_auto,VEC_LVL2_IRQ_AUTO.w
 	move.l	#exc_lvl4_irq_auto,VEC_LVL4_IRQ_AUTO.w
 	move.l	#exc_lvl6_irq_auto,VEC_LVL6_IRQ_AUTO.w
+	move.l	#exc_trap15_handler,VEC_TRAP15.w
 	move.l	#timer_default_handler,VEC_TIMER0.w
 	move.l	#timer_default_handler,VEC_TIMER1.w
 	move.l	#timer_default_handler,VEC_TIMER2.w
@@ -445,12 +453,12 @@ terminal_putstring
 	move.l	A0,-(SP)
 	move.b	D0,-(SP)
 	jsr	terminal_putchar
-	lea	(2,SP),SP
+	addq.l	#2,SP
 	movea.l	(SP)+,A0
 	bra	.1
 .2	rts
 
-terminal_put_hex_byte
+terminal_put_hex_number
 	move.b	(4,SP),D0	; D0 contains no of digits to print
 	beq	.2		; if this is 0, end this function
 
@@ -462,15 +470,15 @@ terminal_put_hex_byte
 	lsr.l	#4,D1
 	move.l	D1,-(SP)
 	move.b	D0,-(SP)
-	jsr	terminal_put_hex_byte
-	lea	(6,SP),SP
+	jsr	terminal_put_hex_number
+	addq.l	#6,SP
 
 .1	move.l	(6,SP),D0
 	andi.l	#$f,D0
 	lea	hex_values,A0
 	move.b	(A0,D0),-(SP)
 	jsr	terminal_putchar
-	lea	(2,SP),SP
+	addq.l	#2,SP
 
 .2	rts
 
