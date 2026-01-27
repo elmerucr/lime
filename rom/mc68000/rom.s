@@ -73,10 +73,8 @@ _start
 loop	tst.b	binary_ready.w
 	beq	loop				; loop forever, wait for events
 
-_jump	;move.w	#$2700,SR
-	clr.b	CORE_CR				; no irq when new bin inserted
+_jump	clr.b	CORE_CR				; no irq when new bin inserted
 	clr.b	VDC_CR				; stop interrupts at scanline 179
-	;move.w	#$2000,SR
 	clr.b	D0
 .1	move.b	D0,VDC_CURRENT_SPRITE
 	clr.b	VDC_SPRITE_FLAGS0
@@ -296,6 +294,7 @@ exc_trap15_handler
 	move.b	D1,-(SP)
 	bsr	terminal_putchar
 	addq.l	#2,SP
+	rte
 .1	cmp.b	#2,D0
 	bne	.2
 	movea.l	A0,-(SP)
@@ -454,7 +453,7 @@ terminal_putchar
 .1	addi.w	#TERMINAL_HPITCH,D0	; yes, move cursor one line down
 .2	andi.w	#%1111111111000000,D0	; cursor to beginning of line (carriage return)
 
-	cmp.w	#(TERMINAL_WIDTH*TERMINAL_VPITCH),D0	; check for cursor lower than TERMINAL_HEIGHT
+	cmp.w	#(TERMINAL_HPITCH*TERMINAL_HEIGHT),D0	; check for cursor out of screen
 	blo	.3			; no
 
 	subi.w	#TERMINAL_HPITCH,D0	; move cursor one line up
