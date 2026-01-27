@@ -7,6 +7,9 @@
 
 ; vectors
 VEC_ADDR_ERROR			equ	$000c
+VEC_ILLEGAL_INSTR		equ	$0010
+VEC_PRIVILEGE_VIOLATION	equ	$0020
+VEC_SPURIOUS_INTERRUPT	equ	$0060
 VEC_LVL1_IRQ_AUTO		equ	$0064
 VEC_LVL2_IRQ_AUTO		equ	$0068	; entry point for core
 VEC_LVL4_IRQ_AUTO		equ	$0070	; entry point for timer

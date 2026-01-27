@@ -39,7 +39,7 @@ TERMINAL_HEIGHT	equ	$16	; 22 rows
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.8.20260114"
+	dc.b	"rom mc68000 0.8.20260127"
 
 	align	2
 
@@ -68,7 +68,7 @@ _start
 
 	clr.b	binary_ready.w
 
-	clr.l	rnda				; init random generator, clears rnda, rndb, rndc and rndx
+	clr.l	rnda				; init random generator, clears all: rnda, rndb, rndc and rndx
 
 loop	tst.b	binary_ready.w
 	beq	loop				; loop forever, wait for events
@@ -100,12 +100,25 @@ _jump	;move.w	#$2700,SR
 	bsr	terminal_clear
 
 	movea.l	exec_address,A0
-	;move.w	#$0000,SR			; user mode
 	jmp	(A0)
 
 
 exc_addr_error
 	bra	exc_addr_error			; TODO: bsod when this happens?
+
+
+exc_illegal_instr
+	move.b	#$12,VDC_BG_COLOR.w
+.1	bra.s	.1
+
+
+exc_privilege_violation
+	move.b	#$15,VDC_BG_COLOR.w
+.1	bra.s	.1
+
+
+exc_spurious_interrupt
+	rte
 
 
 exc_lvl1_irq_auto
@@ -198,7 +211,7 @@ exc_lvl2_irq_auto
 	move.b	CORE_FILE_DATA.w,D0
 	bne	.2			; should be zero
 
-.gh	clr.l	D0
+	clr.l	D0
 	move.b	CORE_FILE_DATA.w,D0
 	bne	.2			; should be zero
 	move.b	CORE_FILE_DATA.w,D0
@@ -277,14 +290,18 @@ exc_lvl6_irq_auto				; coupled to vdc
 	move.b	(SP)+,VDC_CURRENT_SPRITE
 	rte
 
-; io routines
 exc_trap15_handler
-	cmp.b	#1,(6,SP)
-	bne	.end
-	move.b	(8,SP),-(SP)
-	jsr	terminal_putchar
+	cmp.b	#1,D0
+	bne	.1
+	move.b	D1,-(SP)
+	bsr	terminal_putchar
 	addq.l	#2,SP
-.end	rte
+.1	cmp.b	#2,D0
+	bne	.2
+	movea.l	A0,-(SP)
+	bsr	terminal_putstring
+	addq.l	#4,SP
+.2	rte
 
 timer_default_handler
 	move.b	#$12,VDC_BG_COLOR.w
@@ -316,6 +333,9 @@ sound_reset
 
 init_vector_table
 	move.l	#exc_addr_error,VEC_ADDR_ERROR.w
+	move.l	#exc_illegal_instr,VEC_ILLEGAL_INSTR.w
+	move.l	#exc_privilege_violation,VEC_PRIVILEGE_VIOLATION.w
+	move.l	#exc_spurious_interrupt,VEC_SPURIOUS_INTERRUPT.w
 	move.l	#exc_lvl1_irq_auto,VEC_LVL1_IRQ_AUTO.w
 	move.l	#exc_lvl2_irq_auto,VEC_LVL2_IRQ_AUTO.w
 	move.l	#exc_lvl4_irq_auto,VEC_LVL4_IRQ_AUTO.w
@@ -452,7 +472,7 @@ terminal_putstring
 	beq	.2
 	move.l	A0,-(SP)
 	move.b	D0,-(SP)
-	jsr	terminal_putchar
+	bsr	terminal_putchar
 	addq.l	#2,SP
 	movea.l	(SP)+,A0
 	bra	.1

@@ -15,10 +15,10 @@ vdc_t::vdc_t(exceptions_ic *e, sn74ls148_t *t)
 	sn74ls148 = t;
 
 	dev_number_exceptions = exceptions->connect_device("vdc");
-	printf("[vdc] Connecting to exceptions getting dev %i for MC6809\n", dev_number_exceptions);
+	printf("[vdc] Connecting to exceptions getting dev %i for mc6809\n", dev_number_exceptions);
 
 	dev_number_sn74ls148 = sn74ls148->connect_device(6, "vdc");
-	printf("[vdc] Connecting to sn74ls148 at IPL 6 getting dev %i for M68K\n", dev_number_exceptions);
+	printf("[vdc] Connecting to sn74ls148 at IPL 6 getting dev %i for mc68000\n", dev_number_exceptions);
 
     ram = new uint8_t[VDC_RAM];
     buffer = new uint32_t[VDC_XRES * VDC_YRES];

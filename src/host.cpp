@@ -394,7 +394,7 @@ void host_t::video_init()
 	printf("[SDL] Renderer outputs at %ix%i\n", w, h);
 
 	printf("[SDL] Display refresh rate of current display is %.2fHz\n", mode->refresh_rate);
-	if ((mode->refresh_rate > ((float)FPS - .1)) && (mode->refresh_rate < ((float)FPS + .1))) {
+	if ((mode->refresh_rate > ((float)FPS - .6)) && (mode->refresh_rate < ((float)FPS + .6))) {
 		printf("[SDL] This is equal to the fps of lime, trying for vsync\n");
 		SDL_SetRenderVSync(video_renderer, 1);
 	} else {
