@@ -1,6 +1,6 @@
 main		clr	VDC_CURRENT_LAYER	; points to layer 0
 		lda	#%00000101
-		sta	VDC_LAYER_FLAGS0	; activate, use transparency ofr 0b00
+		sta	VDC_LAYER_FLAGS0	; activate, use transparency for 0b00
 
 		lda	#' '
 		ldx	#VDC_LAYER0_TILES
