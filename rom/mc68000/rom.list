@@ -175,9 +175,9 @@ Source: "rom.s"
                             	    39: 
 00:00010000 01000000        	    40: 	dc.l	$01000000	; initial ssp at end of ram
 00:00010004 00010020        	    41: 	dc.l	_start		; reset vector
-00:00010008 726F6D206D633638	    42: 	dc.b	"rom mc68000 0.8.20260127"
+00:00010008 726F6D206D633638	    42: 	dc.b	"rom mc68000 0.8.20260128"
 00:00010010 30303020302E382E
-00:00010018 3230323630313237
+00:00010018 3230323630313238
                             	    43: 
                             	    44: 	align	2
                             	    45: 
@@ -202,7 +202,7 @@ Source: "rom.s"
 00:0001006A 13FC00B30000040F	    64: 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
 00:00010072 13FC000100000401	    65: 	move.b	#%00000001,VDC_CR		; enable irq's for vdc
                             	    66: 
-00:0001007A 46FC0000        	    67: 	move.w	#$0000,SR			; jump to user mode, ipl = 0
+00:0001007A 027C00FF        	    67: 	andi.w	#$00ff,SR			; jump to user mode, IPL reg = 0b000
                             	    68: 
 00:0001007E 42386001        	    69: 	clr.b	binary_ready.w
                             	    70: 
@@ -435,7 +435,7 @@ Source: "rom.s"
 00:000102E8 4E73            	   297: 	rte
 00:000102EA B03C0002        	   298: .1	cmp.b	#2,D0
 00:000102EE 6600000A        	   299: 	bne	.2
-00:000102F2 2F08            	   300: 	movea.l	A0,-(SP)
+00:000102F2 2F08            	   300: 	move.l	A0,-(SP)
 00:000102F4 6100020A        	   301: 	bsr	terminal_putstring
 00:000102F8 588F            	   302: 	addq.l	#4,SP
 00:000102FA 4E73            	   303: .2	rte

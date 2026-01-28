@@ -39,7 +39,7 @@ TERMINAL_HEIGHT	equ	$16	; 22 rows
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.8.20260127"
+	dc.b	"rom mc68000 0.8.20260128"
 
 	align	2
 
@@ -64,7 +64,7 @@ _start
 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
 	move.b	#%00000001,VDC_CR		; enable irq's for vdc
 
-	move.w	#$0000,SR			; jump to user mode, ipl = 0
+	andi.w	#$00ff,SR			; jump to user mode, IPL reg = 0b000
 
 	clr.b	binary_ready.w
 
@@ -297,7 +297,7 @@ exc_trap15_handler
 	rte
 .1	cmp.b	#2,D0
 	bne	.2
-	movea.l	A0,-(SP)
+	move.l	A0,-(SP)
 	bsr	terminal_putstring
 	addq.l	#4,SP
 .2	rte
