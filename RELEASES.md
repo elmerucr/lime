@@ -3,6 +3,7 @@
 * vdc: proper scaling for layers and sprites (1x, 2x, 4x, 8x) in both directions
 * vdc: transparency added for sprites in flags0, bits 6 and 7
 * mc68000 rom: putchar, putstring and puthexbyte added
+* mc68000 rom: putchar and putstring have trap #15 calling as well (document this!)
 * mc68000 rom: basic binary loading of adapted decb format enabled
 * color per tile mode added for 0b11 bit patterns
 * addition of bitmapped mode for layers
@@ -12,6 +13,7 @@
 * Host: Scanline intensity with <Alt+D>
 * Host: osd notifications
 * Host: Contrast adjustable with <Alt+A>
+* Examples (decb format): Added
 
 # Version 0.11.20251125-alpha
 

@@ -19,14 +19,14 @@ binary_ready	equ	$6001	; 1 byte
 cursor_pos	equ	$6002	; 1 word
 cursor_color	equ	$6004	; 1 byte
 ; available slot
-terminal_chars	equ	$6006	; 1 word
-terminal_colors	equ	$6008	; 1 word
-chunk_length	equ	$600a	; 1 long
-exec_address	equ	$600e	; 1 long
-rnda		equ	$6012	; 1 byte
-rndb		equ	$6013	; 1 byte
-rndc		equ	$6014	; 1 byte
-rndx		equ	$6015	; 1 byte
+terminal_chars	equ	$6006	; 1 long
+terminal_colors	equ	$600a	; 1 long
+chunk_length	equ	$600e	; 1 long
+exec_address	equ	$6012	; 1 long
+rnda		equ	$6016	; 1 byte
+rndb		equ	$6017	; 1 byte
+rndc		equ	$6018	; 1 byte
+rndx		equ	$6019	; 1 byte
 
 TERMINAL_HPITCH	equ	$40	; 64
 TERMINAL_VPITCH	equ	$20	; 32
@@ -39,7 +39,7 @@ TERMINAL_HEIGHT	equ	$16	; 22 rows
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.8.20260128"
+	dc.b	"rom mc68000 0.8.20260129"
 
 	align	2
 
@@ -70,7 +70,11 @@ _start
 
 	clr.l	rnda				; init random generator, clears all: rnda, rndb, rndc and rndx
 
-loop	tst.b	binary_ready.w
+loop	;bsr	rnd_impl
+	;move.b	D0,D1
+	;move.b	#1,D0
+	;trap	#15
+	tst.b	binary_ready.w
 	beq	loop				; loop forever, wait for events
 
 _jump	clr.b	CORE_CR				; no irq when new bin inserted
@@ -230,6 +234,7 @@ exc_lvl2_irq_auto
 
 
 exc_lvl4_irq_auto					; coupled to timer
+	movem.l	D0-D1/A0,-(SP)
 	movea.l	#VEC_TIMER0,A0
 	move.b	#%00000001,D0	; D0 contains the bit to be tested
 
@@ -246,11 +251,13 @@ exc_lvl4_irq_auto					; coupled to timer
 	movea.l	(A0),A0
 	jsr	(A0)
 
-.3	rte
+.3	movem.l	(SP)+,D0-D1/A0
+	rte
 
 
 exc_lvl6_irq_auto				; coupled to vdc
 	move.b	VDC_CURRENT_SPRITE,-(SP)
+	movem.l	D0-D1,-(SP)
 
 	move.b	VDC_SR.w,D0
 	beq	.end
@@ -285,8 +292,15 @@ exc_lvl6_irq_auto				; coupled to vdc
 
 .end	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w
 
+	movem.l	(SP)+,D0-D1
 	move.b	(SP)+,VDC_CURRENT_SPRITE
 	rte
+
+exc_trap14_handler
+	cmp.b	#0,D0
+	bne	.1
+	bsr	rnd_impl
+.1	rte
 
 exc_trap15_handler
 	cmp.b	#1,D0
@@ -339,6 +353,7 @@ init_vector_table
 	move.l	#exc_lvl2_irq_auto,VEC_LVL2_IRQ_AUTO.w
 	move.l	#exc_lvl4_irq_auto,VEC_LVL4_IRQ_AUTO.w
 	move.l	#exc_lvl6_irq_auto,VEC_LVL6_IRQ_AUTO.w
+	move.l	#exc_trap14_handler,VEC_TRAP14.w
 	move.l	#exc_trap15_handler,VEC_TRAP15.w
 	move.l	#timer_default_handler,VEC_TIMER0.w
 	move.l	#timer_default_handler,VEC_TIMER1.w
@@ -411,8 +426,8 @@ vdc_disable_logo
 
 
 terminal_init
-	move.w	#VDC_LAYER0_TILES,terminal_chars
-	move.w	#VDC_LAYER0_COLORS,terminal_colors
+	move.l	#VDC_LAYER0_TILES,terminal_chars
+	move.l	#VDC_LAYER0_COLORS,terminal_colors
 	move.b	#$02,cursor_color
 	rts
 
@@ -420,8 +435,8 @@ terminal_init
 terminal_clear
 	move.w	#(TERMINAL_HPITCH*TERMINAL_VPITCH),D0
 	move.b	cursor_color.w,D1
-	movea.w	terminal_chars,A0
-	movea.w	terminal_colors,A1
+	movea.l	terminal_chars,A0
+	movea.l	terminal_colors,A1
 
 .1	move.b	#' ',(A0)+
 	move.b	D1,(A1)+
@@ -432,8 +447,8 @@ terminal_clear
 	rts
 
 terminal_putchar
-	movea.w	terminal_chars,A0
-	movea.w	terminal_colors,A1
+	movea.l	terminal_chars,A0
+	movea.l	terminal_colors,A1
 	move.w	cursor_pos,D0
 
 	cmp.b	#$0a,(4,SP)		; check for newline
@@ -441,10 +456,10 @@ terminal_putchar
 	cmp.b	#$0d,(4,SP)		; check for carriage return
 	beq	.2
 
-	move.b	(4,SP),(A0,D0)		; print char
-	move.b	cursor_color,(A1,D0)	; set color
+	move.b	(4,SP),(A0,D0.w)	; print char
+	move.b	cursor_color,(A1,D0.w)	; set color
 
-	addq.w	#1,D0			; move cursor 1 step
+	addq.w	#1,D0			; move cursor one step to the right
 	move.w	D0,D1
 	andi.w	#%111111,D1
 	cmp.w	#TERMINAL_WIDTH,D1	; are we at pos 40 or higher?
@@ -477,6 +492,7 @@ terminal_putstring
 	bra	.1
 .2	rts
 
+
 terminal_put_hex_number
 	move.b	(4,SP),D0	; D0 contains no of digits to print
 	beq	.2		; if this is 0, end this function
@@ -504,9 +520,9 @@ terminal_put_hex_number
 terminal_add_bottom_row
 	movem.l	A2-A3,-(SP)
 
-	movea.w	terminal_chars,A0
+	movea.l	terminal_chars,A0
 	lea	(TERMINAL_HPITCH,A0),A1
-	movea.w	terminal_colors,A2
+	movea.l	terminal_colors,A2
 	lea	(TERMINAL_HPITCH,A2),A3
 
 	move.w	#(TERMINAL_HPITCH*TERMINAL_HEIGHT),D0	; use terminal size, then lowest row is filled properly
@@ -522,13 +538,20 @@ terminal_add_bottom_row
 ; see: https://www.stix.id.au/wiki/Fast_8-bit_pseudorandom_number_generator
 rnd_impl
 	addq.b	#1,rndx.w
-	move.b	rnda.w,D0
-	eor.b	D0,rndc.w
-	eor.b	D0,rndx.w
-	move.b	D0,rnda.w
-	add.b	rndb.w,D0
-	move.b	D0,rndb.w
-	lsr.b	D0
+	move.b	rnda.w,D0	; D0 = a
+	move.b	rndc.w,D1	; D1 = c
+	eor.b	D1,D0		; (a ^ c), in D0
+	move.b	rndx.w,D1	; D1 = x
+	eor.b	D1,D0		; (a ^ c) ^ x, in D0
+	move.b	D0,rnda.w	; store result in a
+
+	move.b	rndb.w,D1	; D1 = b
+	add.b	D0,D1		; b = b + a
+	move.b	D1,rndb.w
+	ror.b	#1,D1
+	add.b	rndc.w,D1
+	eor.b	D1,D0
+	move.b	D0,rndc.w
 	rts
 
 
