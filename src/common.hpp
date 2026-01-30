@@ -13,7 +13,7 @@
 // ---------------------------------------------------------------------
 #define LIME_MAJOR_VERSION			0
 #define LIME_MINOR_VERSION			11
-#define LIME_BUILD					20260128
+#define LIME_BUILD					20260130
 #define LIME_YEAR					2026
 
 // ---------------------------------------------------------------------
@@ -22,8 +22,8 @@
 #define	VDC_RAM						0x1000000	// 16mb
 #define	VDC_RAM_MASK				(VDC_RAM-1)
 #define VDC_XRES					320
-#define VDC_YRES					180
-#define VDC_SCANLINES				(180+28)	// 180 visible, 28 vblank
+#define VDC_YRES					176
+#define VDC_SCANLINES				(176+32)	// 180 visible, 28 vblank
 
 #define VDC_TILESET_ADDRESS			0x1000
 
@@ -53,7 +53,7 @@
 // debugger
 // ---------------------------------------------------------------------
 #define DEBUGGER_XRES				640
-#define	DEBUGGER_YRES				360
+#define	DEBUGGER_YRES				352
 
 // ---------------------------------------------------------------------
 // audio

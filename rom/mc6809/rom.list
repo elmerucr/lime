@@ -5,7 +5,8 @@
                       ; Copyright © 2025 elmerucr. All rights reserved.
                       ;-----------------------------------------------------------------------
                       
-                      ;
+                      ; rom 0.11
+                      ; adjusted for 320 x 176 screen resolution
                       
                       ; rom 0.10
                       
@@ -145,9 +146,9 @@ FE00                  ROM_START               equ     $fe00
                       
 FC00                                  org     $fc00
                       
-FC00 726F6D206D633638                 fcn     "rom mc6809 0.10 20251211"
-     303920302E313020
-     3230323531323131
+FC00 726F6D206D633638                 fcn     "rom mc6809 0.11 20260130"
+     303920302E313120
+     3230323630313330
      00
 FC19 10CE0200         reset           lds     #$0200          ; sets system stackpointer + enables nmi
 FC1D CEFE00                           ldu     #$fe00          ; sets user stackpointer
@@ -201,8 +202,8 @@ FC7E 26F8                             bne     1b
 FC80 8EFD51                           ldx     #vdc_interrupt
 FC83 BF0220                           stx     VECTOR_VDC_INDIRECT
                       
-                      ; set raster irq on scanline 179
-FC86 86B3                             lda     #$b3
+                      ; set raster irq on scanline 175
+FC86 86AF                             lda     #$af
 FC88 B7040F                           sta     VDC_IRQ_SCANLINE_LSB
 FC8B 8601                             lda     #%00000001
 FC8D B70401                           sta     VDC_CR          ; enable irq's for vdc
@@ -259,14 +260,14 @@ FCDF B7053B                           sta     SID1_V                  ; sid 1 vo
 FCE2 3726                             pulu    y,b,a
 FCE4 39                               rts
                       
-FCE5 0098004A07001C   logo_data       fcb     0,152,0,74,%111,0,$1c           ; icon top left
-FCEC 00A0004A07001D                   fcb     0,160,0,74,%111,0,$1d           ; icon top right
-FCF3 0098005207001E                   fcb     0,152,0,82,%111,0,$1e           ; icon bottom left
-FCFA 00A0005207001F                   fcb     0,160,0,82,%111,0,$1f           ; icon bottom right
-FD01 0093005A07006C                   fcb     0,147,0,90,%111,0,$6c           ; l
-FD08 0098005A070069                   fcb     0,152,0,90,%111,0,$69           ; i
-FD0F 009E005A07006D                   fcb     0,158,0,90,%111,0,$6d           ; m
-FD16 00A6005A070065                   fcb     0,166,0,90,%111,0,$65           ; e
+FCE5 0098004807001C   logo_data       fcb     0,152,0,72,%111,0,$1c           ; icon top left
+FCEC 00A0004807001D                   fcb     0,160,0,72,%111,0,$1d           ; icon top right
+FCF3 0098005007001E                   fcb     0,152,0,80,%111,0,$1e           ; icon bottom left
+FCFA 00A0005007001F                   fcb     0,160,0,80,%111,0,$1f           ; icon bottom right
+FD01 0093005807006C                   fcb     0,147,0,88,%111,0,$6c           ; l
+FD08 00980058070069                   fcb     0,152,0,88,%111,0,$69           ; i
+FD0F 009E005807006D                   fcb     0,158,0,88,%111,0,$6d           ; m
+FD16 00A60058070065                   fcb     0,166,0,88,%111,0,$65           ; e
                       
 FD1D B60440           exc_irq         lda     TIMER_SR                ; load timer status register
 FD20 2716                             beq     exc_vdc

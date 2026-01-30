@@ -12,6 +12,9 @@
 ;
 ; ----------------------------------------------------------------------
 
+; rom v0.9
+; adjusted for 320x176 screen resolution
+
 	include	"definitions.i"
 
 logo_animation	equ	$6000	; 1 byte
@@ -39,7 +42,7 @@ TERMINAL_HEIGHT	equ	$16	; 22 rows
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.8.20260129"
+	dc.b	"rom mc68000 0.9.20260130"
 
 	align	2
 
@@ -61,7 +64,7 @@ _start
 	jsr	terminal_clear
 
 	move.b	#$68,logo_animation.w		; init variable for letter wobble
-	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
+	move.b	#$af,VDC_IRQ_SCANLINE_LSB	; set rasterline 175
 	move.b	#%00000001,VDC_CR		; enable irq's for vdc
 
 	andi.w	#$00ff,SR			; jump to user mode, IPL reg = 0b000
@@ -563,14 +566,14 @@ file_loading4	dc.b	$0a,$0a," jumping to $",0
 
 	align	2
 logo_data
-	dc.b	0,152,0,74,%111,0,$1c	; icon top left
-	dc.b	0,160,0,74,%111,0,$1d	; icon top right
-	dc.b	0,152,0,82,%111,0,$1e	; icon bottom left
-	dc.b	0,160,0,82,%111,0,$1f	; icon bottom right
-	dc.b	0,147,0,90,%111,0,$6c	; l
-	dc.b	0,152,0,90,%111,0,$69	; i
-	dc.b	0,158,0,90,%111,0,$6d	; m
-	dc.b	0,166,0,90,%111,0,$65	; e
+	dc.b	0,152,0,72,%111,0,$1c	; icon top left
+	dc.b	0,160,0,72,%111,0,$1d	; icon top right
+	dc.b	0,152,0,80,%111,0,$1e	; icon bottom left
+	dc.b	0,160,0,80,%111,0,$1f	; icon bottom right
+	dc.b	0,147,0,88,%111,0,$6c	; l
+	dc.b	0,152,0,88,%111,0,$69	; i
+	dc.b	0,158,0,88,%111,0,$6d	; m
+	dc.b	0,166,0,88,%111,0,$65	; e
 
 
 logo_tiles

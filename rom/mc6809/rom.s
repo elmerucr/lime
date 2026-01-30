@@ -5,7 +5,8 @@
 ; Copyright © 2025 elmerucr. All rights reserved.
 ;-----------------------------------------------------------------------
 
-;
+; rom 0.11
+; adjusted for 320 x 176 screen resolution
 
 ; rom 0.10
 
@@ -33,7 +34,7 @@ rndx		equ	$ff
 
 		org	$fc00
 
-		fcn	"rom mc6809 0.10 20251211"
+		fcn	"rom mc6809 0.11 20260130"
 reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldu	#$fe00		; sets user stackpointer
 
@@ -86,8 +87,8 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldx	#vdc_interrupt
 		stx	VECTOR_VDC_INDIRECT
 
-; set raster irq on scanline 179
-		lda	#$b3
+; set raster irq on scanline 175
+		lda	#$af
 		sta	VDC_IRQ_SCANLINE_LSB
 		lda	#%00000001
 		sta	VDC_CR		; enable irq's for vdc
@@ -144,14 +145,14 @@ sound_reset	pshu	y,b,a
 		pulu	y,b,a
 		rts
 
-logo_data	fcb	0,152,0,74,%111,0,$1c		; icon top left
-		fcb	0,160,0,74,%111,0,$1d		; icon top right
-		fcb	0,152,0,82,%111,0,$1e		; icon bottom left
-		fcb	0,160,0,82,%111,0,$1f		; icon bottom right
-		fcb	0,147,0,90,%111,0,$6c		; l
-		fcb	0,152,0,90,%111,0,$69		; i
-		fcb	0,158,0,90,%111,0,$6d		; m
-		fcb	0,166,0,90,%111,0,$65		; e
+logo_data	fcb	0,152,0,72,%111,0,$1c		; icon top left
+		fcb	0,160,0,72,%111,0,$1d		; icon top right
+		fcb	0,152,0,80,%111,0,$1e		; icon bottom left
+		fcb	0,160,0,80,%111,0,$1f		; icon bottom right
+		fcb	0,147,0,88,%111,0,$6c		; l
+		fcb	0,152,0,88,%111,0,$69		; i
+		fcb	0,158,0,88,%111,0,$6d		; m
+		fcb	0,166,0,88,%111,0,$65		; e
 
 exc_irq		lda	TIMER_SR		; load timer status register
 		beq	exc_vdc

@@ -1,6 +1,7 @@
-main	move.b	#$37,VDC_BG_COLOR	; pink background color
+main	move.b	#$16,VDC_BG_COLOR	; c64 blue background color
+	move.b	#$0e,$6004.w		; c64 lightblue fg color
 	clr.b	VDC_CURRENT_LAYER
-	andi.b	#%11110111,VDC_LAYER_FLAGS0	; turn off color per tile
+	;andi.b	#%11110111,VDC_LAYER_FLAGS0	; turn off color per tile
 
 .1	clr.b	D0	; prng is function 0
 	trap	#14	; from trap 14

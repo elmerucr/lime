@@ -7,7 +7,7 @@ Lime is a virtual computer system that draws inspiration from computing platform
 * Motorola 6809 cpu using the [mc6809](https://github.com/elmerucr/mc6809) library
 * Motorola 68000 cpu using the [Moira](https://github.com/dirkwhoffmann/Moira) library
 * 16mb ram (mc6809 can reach the lowest 64k)
-* Screen resolution of 320x180 pixels, refresh rate of 60Hz
+* Screen resolution of 320x176 pixels, refresh rate of 60Hz
 * Video Display Controller (VDC) for graphics processing, memory access to lowest 64k
 * Programmable using mc6809 and mc68000 assembly (see ```examples```)
 

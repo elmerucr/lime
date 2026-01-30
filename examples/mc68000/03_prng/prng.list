@@ -1,5 +1,5 @@
 Sections:
-00: "org0001:1fff7" (1FFF7-20048)
+00: "org0001:1fff7" (1FFF7-20046)
 
 
 Source: "base.s"
@@ -146,53 +146,54 @@ Source: "base.s"
                             	     8: 		org	RAM_START-9			; allocate 9 bytes for preamble
                             	     9: 
 00:0001FFF7 01              	    10: 		dc.b	$01				; first byte
-00:0001FFF8 00000026        	    11: 		dc.l	graph_preamble-RAM_START	; size (16 bit unsigned)
+00:0001FFF8 00000024        	    11: 		dc.l	graph_preamble-RAM_START	; size (16 bit unsigned)
 00:0001FFFC 00020000        	    12: 		dc.l	RAM_START			; where (16 bit unsigned)
                             	    13: 
                             	    14: 		include	"main.s"
 
 Source: "main.s"
-00:00020000 13FC003700000404	     1: main	move.b	#$37,VDC_BG_COLOR	; pink background color
-00:00020008 423900000406    	     2: 	clr.b	VDC_CURRENT_LAYER
-00:0002000E 023900F700000414	     3: 	andi.b	#%11110111,VDC_LAYER_FLAGS0	; turn off color per tile
-                            	     4: 
-00:00020016 4200            	     5: .1	clr.b	D0	; prng is function 0
-00:00020018 4E4E            	     6: 	trap	#14	; from trap 14
-                            	     7: 
-00:0002001A 1200            	     8: 	move.b	D0,D1	; move result from D0 to D1
-00:0002001C 103C0001        	     9: 	move.b	#1,D0	; putchar is function 1
-00:00020020 4E4F            	    10: 	trap	#15	; from trap 15
-                            	    11: 
-00:00020022 6000FFF2        	    12: 	bra	.1
-                            	    13: 
+00:00020000 13FC001600000404	     1: main	move.b	#$16,VDC_BG_COLOR	; c64 blue background color
+00:00020008 11FC000E6004    	     2: 	move.b	#$0e,$6004.w		; c64 lightblue fg color
+00:0002000E 423900000406    	     3: 	clr.b	VDC_CURRENT_LAYER
+                            	     4: 	;andi.b	#%11110111,VDC_LAYER_FLAGS0	; turn off color per tile
+                            	     5: 
+00:00020014 4200            	     6: .1	clr.b	D0	; prng is function 0
+00:00020016 4E4E            	     7: 	trap	#14	; from trap 14
+                            	     8: 
+00:00020018 1200            	     9: 	move.b	D0,D1	; move result from D0 to D1
+00:0002001A 103C0001        	    10: 	move.b	#1,D0	; putchar is function 1
+00:0002001E 4E4F            	    11: 	trap	#15	; from trap 15
+                            	    12: 
+00:00020020 6000FFF2        	    13: 	bra	.1
+                            	    14: 
 
 Source: "base.s"
                             	    15: 
-00:00020026 01              	    16: graph_preamble	dc.b	$01				; first byte
-00:00020027 00000010        	    17: 		dc.l	postamble-tiles			; size (16 bit unsigned)
-00:0002002B 00000800        	    18: 		dc.l	$0800				; where (16 bit unsigned)
+00:00020024 01              	    16: graph_preamble	dc.b	$01				; first byte
+00:00020025 00000010        	    17: 		dc.l	postamble-tiles			; size (16 bit unsigned)
+00:00020029 00000800        	    18: 		dc.l	$0800				; where (16 bit unsigned)
                             	    19: 
                             	    20: tiles		include	"tiles.s"
 
 Source: "tiles.s"
-00:0002002F 0150            	     1: 		dc.w	%0000000101010000
-00:00020031 06A4            	     2: 		dc.w	%0000011010100100
-00:00020033 1999            	     3: 		dc.w	%0001100110011001
-00:00020035 1AA9            	     4: 		dc.w	%0001101010101001
-00:00020037 1999            	     5: 		dc.w	%0001100110011001
-00:00020039 1959            	     6: 		dc.w	%0001100101011001
-00:0002003B 06A4            	     7: 		dc.w	%0000011010100100
-00:0002003D 0150            	     8: 		dc.w	%0000000101010000
+00:0002002D 0150            	     1: 		dc.w	%0000000101010000
+00:0002002F 06A4            	     2: 		dc.w	%0000011010100100
+00:00020031 1999            	     3: 		dc.w	%0001100110011001
+00:00020033 1AA9            	     4: 		dc.w	%0001101010101001
+00:00020035 1999            	     5: 		dc.w	%0001100110011001
+00:00020037 1959            	     6: 		dc.w	%0001100101011001
+00:00020039 06A4            	     7: 		dc.w	%0000011010100100
+00:0002003B 0150            	     8: 		dc.w	%0000000101010000
                             	     9: 
 
 Source: "base.s"
                             	    21: 
-00:0002003F FE              	    22: postamble	dc.b	$fe,$00,$00,$00,$00
+00:0002003D FE              	    22: postamble	dc.b	$fe,$00,$00,$00,$00
+00:0002003E 00
+00:0002003F 00
 00:00020040 00
 00:00020041 00
-00:00020042 00
-00:00020043 00
-00:00020044 00020000        	    23: 		dc.l	main				; execution address
+00:00020042 00020000        	    23: 		dc.l	main				; execution address
                             	    24: 
 
 
@@ -200,18 +201,16 @@ Symbols by name:
 RAM_START                        E:00020000
 VDC_BG_COLOR                     E:00000404
 VDC_CURRENT_LAYER                E:00000406
-VDC_LAYER_FLAGS0                 E:00000414
-graph_preamble                   A:00020026
+graph_preamble                   A:00020024
 main                             A:00020000
-postamble                        A:0002003F
-tiles                            A:0002002F
+postamble                        A:0002003D
+tiles                            A:0002002D
 
 Symbols by value:
 00000404 VDC_BG_COLOR
 00000406 VDC_CURRENT_LAYER
-00000414 VDC_LAYER_FLAGS0
-00020000 main
 00020000 RAM_START
-00020026 graph_preamble
-0002002F tiles
-0002003F postamble
+00020000 main
+00020024 graph_preamble
+0002002D tiles
+0002003D postamble

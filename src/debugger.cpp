@@ -70,7 +70,7 @@ debugger_t::debugger_t(system_t *s)
 
 	buffer = new uint32_t[DEBUGGER_XRES * DEBUGGER_YRES];
 
-	terminal = new terminal_t(system, DEBUGGER_XRES / 8, 17, PUNCH_LIGHTBLUE, (PUNCH_BLUE & 0x00ffffff) | 0xe0000000);
+	terminal = new terminal_t(system, DEBUGGER_XRES / 8, 16, PUNCH_LIGHTBLUE, (PUNCH_BLUE & 0x00ffffff) | 0xe0000000);
 	terminal->clear();
 	print_version();
 	terminal->activate_cursor();

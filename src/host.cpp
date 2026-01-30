@@ -339,7 +339,7 @@ void host_t::video_init()
     printf("[SDL] Video scaling will be %i time%s\n", video_scaling, (video_scaling == 1) ? "" : "s");
 
 	video_window = SDL_CreateWindow(nullptr, video_scaling * VDC_XRES, video_scaling * VDC_YRES, SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_RESIZABLE);
-	SDL_SetWindowAspectRatio(video_window, 16.0/9.0, 16.0/9.0);
+	SDL_SetWindowAspectRatio(video_window, (float)VDC_XRES/VDC_YRES, (float)VDC_XRES/VDC_YRES);
 	SDL_SetWindowPosition(video_window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
     SDL_Surface *icon = SDL_CreateSurface(64, 64, SDL_PIXELFORMAT_ARGB8888);
@@ -444,8 +444,8 @@ void host_t::video_init()
     SDL_SetTextureScaleMode(viewer_texture, SDL_SCALEMODE_PIXELART);
 	SDL_SetTextureBlendMode(viewer_texture, SDL_BLENDMODE_BLEND);
 	viewer_texture_placement = {
-		.x = (float)DEBUGGER_XRES - (((15 * 8 * VDC_XRES) / VDC_YRES) + 8),
-		.y = (float)DEBUGGER_YRES - ((15 * 8) + 16),
+		.x = (float)DEBUGGER_XRES - (((15 * 8 * VDC_XRES) / VDC_YRES) + 4),
+		.y = (float)DEBUGGER_YRES - ((15 * 8) + 12),
 		.w = (float)(15 * 8 * VDC_XRES) / VDC_YRES,
 		.h = (float)15 * 8
 	};
