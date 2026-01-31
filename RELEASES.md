@@ -1,5 +1,7 @@
 # Version ...
 
+# Version 0.12.20260131-alpha
+
 * vdc: proper scaling for layers and sprites (1x, 2x, 4x, 8x) in both directions
 * vdc: transparency added for sprites in flags0, bits 6 and 7
 * vdc: 320 x 176 resolution (in stead of 180), 22 x 8 vertical

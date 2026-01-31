@@ -51,7 +51,7 @@ to be done
 
 ```
 0x000000 - 0x000007 initial ssp / reset vector (8b)
-0x000008 - 0x0003ff vector table (1016b)
+0x000008 - 0x0003ff mc68000 vector table (1016b)
 0x000400 - 0x00043f io vdc (64b)
 0x000440 - 0x00047f io timer (64b)
 0x000480 - 0x0004bf io core (64b)

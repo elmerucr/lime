@@ -1,0 +1,226 @@
+Sections:
+00: "org0001:1fff7" (1FFF7-2005A)
+
+
+Source: "base.s"
+                            	     1: ;-----------------------------------------------------------------------
+                            	     2: ;
+                            	     3: ;
+                            	     4: ;-----------------------------------------------------------------------
+                            	     5: 
+                            	     6: 		include	"../../../rom/mc68000/definitions.i"
+
+Source: "../../../rom/mc68000/definitions.i"
+                            	     1: ; ----------------------------------------------------------------------
+                            	     2: ; definitions.i
+                            	     3: ; lime
+                            	     4: ;
+                            	     5: ; Copyright © 2025 elmerucr. All rights reserved.
+                            	     6: ; ----------------------------------------------------------------------
+                            	     7: 
+                            	     8: ; vectors
+                            	     9: VEC_ADDR_ERROR			equ	$000c
+                            	    10: VEC_ILLEGAL_INSTR		equ	$0010
+                            	    11: VEC_PRIVILEGE_VIOLATION	equ	$0020
+                            	    12: VEC_SPURIOUS_INTERRUPT	equ	$0060
+                            	    13: VEC_LVL1_IRQ_AUTO		equ	$0064
+                            	    14: VEC_LVL2_IRQ_AUTO		equ	$0068	; entry point for core
+                            	    15: VEC_LVL4_IRQ_AUTO		equ	$0070	; entry point for timer
+                            	    16: VEC_LVL6_IRQ_AUTO		equ	$0078	; entry point for vdc
+                            	    17: VEC_LVL7_IRQ_AUTO		equ	$007c	; currently unused
+                            	    18: VEC_TRAP0			equ	$0080
+                            	    19: VEC_TRAP1			equ	$0084
+                            	    20: VEC_TRAP2			equ	$0088
+                            	    21: VEC_TRAP3			equ	$008c
+                            	    22: VEC_TRAP4			equ	$0090
+                            	    23: VEC_TRAP5			equ	$0094
+                            	    24: VEC_TRAP6			equ	$0098
+                            	    25: VEC_TRAP7			equ	$009c
+                            	    26: VEC_TRAP8			equ	$00a0
+                            	    27: VEC_TRAP9			equ	$00a4
+                            	    28: VEC_TRAP10			equ	$00a8
+                            	    29: VEC_TRAP11			equ	$00ac
+                            	    30: VEC_TRAP12			equ	$00b0
+                            	    31: VEC_TRAP13			equ	$00b4
+                            	    32: VEC_TRAP14			equ	$00b8
+                            	    33: VEC_TRAP15			equ	$00bc
+                            	    34: 
+                            	    35: VEC_TIMER0			equ	$0100	; $0100 onwards, user vectors
+                            	    36: VEC_TIMER1			equ	$0104
+                            	    37: VEC_TIMER2			equ	$0108
+                            	    38: VEC_TIMER3			equ	$010c
+                            	    39: VEC_TIMER4			equ	$0110
+                            	    40: VEC_TIMER5			equ	$0114
+                            	    41: VEC_TIMER6			equ	$0118
+                            	    42: VEC_TIMER7			equ	$011c
+                            	    43: 
+                            	    44: ; vdc (video display controller)
+                            	    45: VDC_SR				equ	$0400
+                            	    46: VDC_CR				equ	$0401
+                            	    47: VDC_BG_COLOR			equ	$0404
+                            	    48: VDC_CURRENT_LAYER		equ	$0406
+                            	    49: VDC_CURRENT_SPRITE		equ	$0407
+                            	    50: VDC_CURRENT_SCANLINE_MSB	equ	$040c
+                            	    51: VDC_CURRENT_SCANLINE_LSB	equ	$040d
+                            	    52: VDC_IRQ_SCANLINE_MSB		equ	$040e
+                            	    53: VDC_IRQ_SCANLINE_LSB		equ	$040f
+                            	    54: 
+                            	    55: VDC_LAYER_X_MSB			equ	$0410
+                            	    56: VDC_LAYER_X_LSB			equ	$0411
+                            	    57: VDC_LAYER_Y_MSB			equ	$0412
+                            	    58: VDC_LAYER_Y_LSB			equ	$0413
+                            	    59: VDC_LAYER_FLAGS0		equ	$0414
+                            	    60: VDC_LAYER_FLAGS1		equ	$0415
+                            	    61: VDC_LAYER_COLOR0		equ	$0418
+                            	    62: VDC_LAYER_COLOR1		equ	$0419
+                            	    63: VDC_LAYER_COLOR2		equ	$041a
+                            	    64: VDC_LAYER_COLOR3		equ	$041b
+                            	    65: VDC_LAYER_TILES_MSB		equ	$041c
+                            	    66: VDC_LAYER_TILES_LSB		equ	$041d
+                            	    67: VDC_LAYER_TILESET_MSB		equ	$041e
+                            	    68: VDC_LAYER_TILESET_LSB		equ	$041f
+                            	    69: 
+                            	    70: VDC_SPRITE_X_MSB		equ	$0420
+                            	    71: VDC_SPRITE_X_LSB		equ	$0421
+                            	    72: VDC_SPRITE_Y_MSB		equ	$0422
+                            	    73: VDC_SPRITE_Y_LSB		equ	$0423
+                            	    74: VDC_SPRITE_FLAGS0		equ	$0424
+                            	    75: VDC_SPRITE_FLAGS1		equ	$0425
+                            	    76: VDC_SPRITE_INDEX		equ	$0426
+                            	    77: VDC_SPRITE_COLOR0		equ	$0428
+                            	    78: VDC_SPRITE_COLOR1		equ	$0429
+                            	    79: VDC_SPRITE_COLOR2		equ	$042a
+                            	    80: VDC_SPRITE_COLOR3		equ	$042b
+                            	    81: VDC_SPRITE_TILESET_ADDR	equ	$042e
+                            	    82: 
+                            	    83: VDC_TILESET_ADDRESS		equ	$1000
+                            	    84: 
+                            	    85: VDC_LAYER0_COLORS		equ	$2000
+                            	    86: VDC_LAYER1_COLORS		equ	$2800
+                            	    87: VDC_LAYER2_COLORS		equ	$3000
+                            	    88: VDC_LAYER3_COLORS		equ	$3800
+                            	    89: 
+                            	    90: VDC_LAYER0_TILES		equ	$4000
+                            	    91: VDC_LAYER1_TILES		equ	$4800
+                            	    92: VDC_LAYER2_TILES		equ	$5000
+                            	    93: VDC_LAYER3_TILES		equ	$5800
+                            	    94: 
+                            	    95: ; sound devices
+                            	    96: SID0_F				equ	$0500
+                            	    97: SID0_PW				equ	$0502
+                            	    98: SID0_V				equ	$051b
+                            	    99: SID1_V				equ	$053b
+                            	   100: MIX_SID0_LEFT			equ	$0580
+                            	   101: MIX_SID0_RIGHT			equ	$0581
+                            	   102: MIX_SID1_LEFT			equ	$0582
+                            	   103: MIX_SID1_RIGHT			equ	$0583
+                            	   104: MIX_ANA0_LEFT			equ	$0584
+                            	   105: MIX_ANA0_RIGHT			equ	$0585
+                            	   106: MIX_ANA1_LEFT			equ	$0586
+                            	   107: MIX_ANA1_RIGHT			equ	$0587
+                            	   108: 
+                            	   109: ; timer
+                            	   110: TIMER_SR			equ	$0440
+                            	   111: TIMER_CR			equ	$0441
+                            	   112: TIMER0_BPM			equ	$0450
+                            	   113: TIMER1_BPM			equ	$0452
+                            	   114: TIMER2_BPM			equ	$0454
+                            	   115: TIMER3_BPM			equ	$0456
+                            	   116: TIMER4_BPM			equ	$0458
+                            	   117: TIMER5_BPM			equ	$045a
+                            	   118: TIMER6_BPM			equ	$045c
+                            	   119: TIMER7_BPM			equ	$045e
+                            	   120: 
+                            	   121: ; core
+                            	   122: CORE_SR				equ	$0480
+                            	   123: CORE_CR				equ	$0481
+                            	   124: CORE_ROMS			equ	$0482
+                            	   125: CORE_FILE_DATA			equ	$0484
+                            	   126: CORE_INPUT0			equ	$0488
+                            	   127: 
+                            	   128: RAM_START			equ	$20000
+                            	   129: 
+
+Source: "base.s"
+                            	     7: 
+                            	     8: 		org	RAM_START-9			; allocate 9 bytes for preamble
+                            	     9: 
+00:0001FFF7 01              	    10: 		dc.b	$01				; first byte
+00:0001FFF8 00000038        	    11: 		dc.l	graph_preamble-RAM_START	; size (16 bit unsigned)
+00:0001FFFC 00020000        	    12: 		dc.l	RAM_START			; where (16 bit unsigned)
+                            	    13: 
+                            	    14: 		include	"main.s"
+
+Source: "main.s"
+00:00020000 42380404        	     1: main	clr.b	VDC_BG_COLOR.w		; make sure bg color = 0
+00:00020004 21FC0002001E0100	     2: 	move.l	#routine,VEC_TIMER0.w	; update vector for timer0 event
+00:0002000C 33FC9C4000000450	     3: 	move.w	#40000,TIMER0_BPM	; 40.000 beats per minute
+00:00020014 11FC00010441    	     4: 	move.b	#$01,TIMER_CR.w		; activate timer 0
+00:0002001A 6000FFFE        	     5: .1	bra	.1			; endless loop
+                            	     6: 
+00:0002001E 2F00            	     7: routine	move.l	D0,-(SP)
+                            	     8: 
+00:00020020 10380404        	     9: 	move.b	VDC_BG_COLOR.w,D0
+00:00020024 5200            	    10: 	addq.b	#1,D0
+00:00020026 B03C0040        	    11: 	cmp.b	#$40,D0
+00:0002002A 66000004        	    12: 	bne	.1
+00:0002002E 4200            	    13: 	clr.b	D0
+00:00020030 11C00404        	    14: .1	move.b	D0,VDC_BG_COLOR.w
+                            	    15: 
+00:00020034 201F            	    16: 	move.l	(SP)+,D0
+00:00020036 4E75            	    17: 	rts
+                            	    18: 
+
+Source: "base.s"
+                            	    15: 
+00:00020038 01              	    16: graph_preamble	dc.b	$01				; first byte
+00:00020039 00000010        	    17: 		dc.l	postamble-tiles			; size (16 bit unsigned)
+00:0002003D 00000800        	    18: 		dc.l	$0800				; where (16 bit unsigned)
+                            	    19: 
+                            	    20: tiles		include	"tiles.s"
+
+Source: "tiles.s"
+00:00020041 0150            	     1: 		dc.w	%0000000101010000
+00:00020043 06A4            	     2: 		dc.w	%0000011010100100
+00:00020045 1999            	     3: 		dc.w	%0001100110011001
+00:00020047 1AA9            	     4: 		dc.w	%0001101010101001
+00:00020049 1999            	     5: 		dc.w	%0001100110011001
+00:0002004B 1959            	     6: 		dc.w	%0001100101011001
+00:0002004D 06A4            	     7: 		dc.w	%0000011010100100
+00:0002004F 0150            	     8: 		dc.w	%0000000101010000
+                            	     9: 
+
+Source: "base.s"
+                            	    21: 
+00:00020051 FE              	    22: postamble	dc.b	$fe,$00,$00,$00,$00
+00:00020052 00
+00:00020053 00
+00:00020054 00
+00:00020055 00
+00:00020056 00020000        	    23: 		dc.l	main				; execution address
+                            	    24: 
+
+
+Symbols by name:
+RAM_START                        E:00020000
+TIMER0_BPM                       E:00000450
+TIMER_CR                         E:00000441
+VDC_BG_COLOR                     E:00000404
+VEC_TIMER0                       E:00000100
+graph_preamble                   A:00020038
+main                             A:00020000
+postamble                        A:00020051
+routine                          A:0002001E
+tiles                            A:00020041
+
+Symbols by value:
+00000100 VEC_TIMER0
+00000404 VDC_BG_COLOR
+00000441 TIMER_CR
+00000450 TIMER0_BPM
+00020000 RAM_START
+00020000 main
+0002001E routine
+00020038 graph_preamble
+00020041 tiles
+00020051 postamble

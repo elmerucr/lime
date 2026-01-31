@@ -12,8 +12,8 @@
 // Version information
 // ---------------------------------------------------------------------
 #define LIME_MAJOR_VERSION			0
-#define LIME_MINOR_VERSION			11
-#define LIME_BUILD					20260130
+#define LIME_MINOR_VERSION			12
+#define LIME_BUILD					20260131
 #define LIME_YEAR					2026
 
 // ---------------------------------------------------------------------
@@ -23,7 +23,7 @@
 #define	VDC_RAM_MASK				(VDC_RAM-1)
 #define VDC_XRES					320
 #define VDC_YRES					176
-#define VDC_SCANLINES				(176+32)	// 180 visible, 28 vblank
+#define VDC_SCANLINES				(176+32)	// 176 visible, 32 vblank
 
 #define VDC_TILESET_ADDRESS			0x1000
 
