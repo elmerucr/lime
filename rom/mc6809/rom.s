@@ -34,7 +34,7 @@ rndx		equ	$ff
 
 		org	$fc00
 
-		fcn	"rom mc6809 0.11 20260130"
+		fcn	"rom mc6809 0.11 20260215"
 reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldu	#$fe00		; sets user stackpointer
 
@@ -193,7 +193,7 @@ vdc_interrupt	lda	VDC_CURRENT_SPRITE
 		ldb	#$04			; set current sprite to 4
 2		stb	VDC_CURRENT_SPRITE
 
-		lda	#90			; set default y value
+		lda	#88			; set default y value
 		sta	VDC_SPRITE_Y_LSB
 
 		lda	VDC_SPRITE_X_LSB	; load its x register

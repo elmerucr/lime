@@ -38,7 +38,28 @@
 // bit 1: character rom visible to cpu
 // bits 2-7: unused
 //
-// Register 3
+// Register 3 - CPU Multiplier for both mc6809 / mc68000 mode
+// (READ/WRITE)
+// 7 6 5 4 3 2 1 0
+//             | |
+//             +-+-- 0b00 = 1 MHz, 0b01 = 2 MHz, 0b10 = 4 MHz, 0b11 = 8 MHz
+//
+// Register 4 - File data read when a binary is inserted
+// (READ)
+// Each read  to this register gives next byte
+//
+// Register 8 - Controller 0 (NES Style)
+// (READ) (0b1 when buttons are pressed)
+// 7 6 5 4 3 2 1 0
+// | | | | | | | |
+// | | | | | | | +-- Up
+// | | | | | | +---- Down
+// | | | | | +------ Left
+// | | | | +-------- Right
+// | | | +---------- A
+// | | +------------ B
+// | +-------------- Select
+// +---------------- Start
 //
 // ---------------------------------------------------------------------
 

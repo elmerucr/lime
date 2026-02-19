@@ -13,6 +13,12 @@
 #include "stats.hpp"
 #include <thread>
 #include <chrono>
+#include <ctime>
+
+#include <unistd.h>
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 
 host_t::host_t(system_t *s)
 {
@@ -83,6 +89,25 @@ enum events_output_state host_t::events_process_events()
 			    if ((event.key.scancode == SDL_SCANCODE_F) && alt_pressed) {
 					events_wait_until_key_released(SDL_SCANCODE_F);
 					video_toggle_fullscreen();
+				} else if ((event.key.scancode == SDL_SCANCODE_P) && alt_pressed) {
+					// TODO: this is ugly
+					time_t rawtime = time(NULL);
+					struct tm *timeinfo = localtime(&rawtime); // or gmtime for UTC
+					char buffer[24]; // 23 characters + 1 for null terminator
+					strftime(buffer, sizeof(buffer), "lime_%Y%m%d%H%M%S.png", timeinfo);
+
+					uint8_t b[4 * VDC_XRES * VDC_YRES];
+					for (int i=0; i<(VDC_XRES*VDC_YRES); i++) {
+						b[(i << 2) + 0] = (system->core->vdc->buffer[i] & 0xff0000) >> 16;
+						b[(i << 2) + 1] = (system->core->vdc->buffer[i] & 0x00ff00) >>  8;
+						b[(i << 2) + 2] = (system->core->vdc->buffer[i] & 0x0000ff) >>  0;
+						b[(i << 2) + 3] = 0xff;
+					}
+
+					printf("[host] Saving screenshot: %s\n", buffer);
+					chdir(home);
+					stbi_write_png(buffer, VDC_XRES, VDC_YRES, 4, (void *)b, 4*VDC_XRES);
+
 				} else if ((event.key.scancode == SDL_SCANCODE_R) && alt_pressed) {
 					events_wait_until_key_released(SDL_SCANCODE_R);
 					osd_notify_frames_remaining = 90;

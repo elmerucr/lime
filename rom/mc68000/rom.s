@@ -42,7 +42,7 @@ TERMINAL_HEIGHT	equ	$16	; 22 rows
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.9.20260130"
+	dc.b	"rom mc68000 0.9.20260215"
 
 	align	2
 
@@ -279,7 +279,7 @@ exc_lvl6_irq_auto				; coupled to vdc
 
 	move.b	#4,D1				; start with sprite 4 (letter 'l')
 .2	move.b	D1,VDC_CURRENT_SPRITE
-	move.b	#90,VDC_SPRITE_Y_LSB		; base position for each letter
+	move.b	#88,VDC_SPRITE_Y_LSB		; base position for each letter
 
 	move.b	VDC_SPRITE_X_LSB,D0		; store x for current sprite in D0
 	sub.b	logo_animation,D0		; subtract logo_an x value from D0

@@ -180,9 +180,9 @@ Source: "rom.s"
                             	    42: 
 00:00010000 01000000        	    43: 	dc.l	$01000000	; initial ssp at end of ram
 00:00010004 00010020        	    44: 	dc.l	_start		; reset vector
-00:00010008 726F6D206D633638	    45: 	dc.b	"rom mc68000 0.9.20260130"
+00:00010008 726F6D206D633638	    45: 	dc.b	"rom mc68000 0.9.20260215"
 00:00010010 30303020302E392E
-00:00010018 3230323630313330
+00:00010018 3230323630323135
                             	    46: 
                             	    47: 	align	2
                             	    48: 
@@ -419,7 +419,7 @@ Source: "rom.s"
                             	   279: 
 00:000102A0 123C0004        	   280: 	move.b	#4,D1				; start with sprite 4 (letter 'l')
 00:000102A4 13C100000407    	   281: .2	move.b	D1,VDC_CURRENT_SPRITE
-00:000102AA 13FC005A00000423	   282: 	move.b	#90,VDC_SPRITE_Y_LSB		; base position for each letter
+00:000102AA 13FC005800000423	   282: 	move.b	#88,VDC_SPRITE_Y_LSB		; base position for each letter
                             	   283: 
 00:000102B2 103900000421    	   284: 	move.b	VDC_SPRITE_X_LSB,D0		; store x for current sprite in D0
 00:000102B8 903900006000    	   285: 	sub.b	logo_animation,D0		; subtract logo_an x value from D0

@@ -1,5 +1,7 @@
 # Version ...
 
+* Host: Save screenshot in homedir with <Alt+P>
+
 # Version 0.12.20260131-alpha
 
 * vdc: proper scaling for layers and sprites (1x, 2x, 4x, 8x) in both directions

@@ -146,9 +146,9 @@ FE00                  ROM_START               equ     $fe00
                       
 FC00                                  org     $fc00
                       
-FC00 726F6D206D633638                 fcn     "rom mc6809 0.11 20260130"
+FC00 726F6D206D633638                 fcn     "rom mc6809 0.11 20260215"
      303920302E313120
-     3230323630313330
+     3230323630323135
      00
 FC19 10CE0200         reset           lds     #$0200          ; sets system stackpointer + enables nmi
 FC1D CEFE00                           ldu     #$fe00          ; sets user stackpointer
@@ -308,7 +308,7 @@ FD64 9700             1               sta     logo_animation
 FD66 C604                             ldb     #$04                    ; set current sprite to 4
 FD68 F70407           2               stb     VDC_CURRENT_SPRITE
                       
-FD6B 865A                             lda     #90                     ; set default y value
+FD6B 8658                             lda     #88                     ; set default y value
 FD6D B70423                           sta     VDC_SPRITE_Y_LSB
                       
 FD70 B60421                           lda     VDC_SPRITE_X_LSB        ; load its x register
