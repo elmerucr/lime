@@ -240,28 +240,30 @@ void host_t::save_screenshot()
 	osd_notify->terminal->printf("  saving %s", buffer);
 
 	// create buffer that supports double y resolution
-	uint32_t b[VDC_XRES * 2 * VDC_YRES];
+	uint32_t b[2 * VDC_XRES * 2 * VDC_YRES];
 
 	// redo scanline blending
 	uint32_t *cur_pix_src = system->core->vdc->buffer;
 	uint32_t *nxt_pix_src = cur_pix_src + VDC_XRES;
 	uint32_t *cur_pix_dst = b;
-	uint32_t *nxt_pix_dst = cur_pix_dst + VDC_XRES;
+	uint32_t *nxt_pix_dst = cur_pix_dst + (2 * VDC_XRES);
 	for (int y = 0; y < VDC_YRES; y++) {
 		if (y == (VDC_YRES - 1)) nxt_pix_src = cur_pix_src;
 		for (int x = 0; x < VDC_XRES; x++) {
 			*cur_pix_dst++ = *cur_pix_src;
+			*cur_pix_dst++ = *cur_pix_src;
+			*nxt_pix_dst++ = video_scanlines ? video_blend(*cur_pix_src, *nxt_pix_src) : *cur_pix_src;
 			*nxt_pix_dst++ = video_scanlines ? video_blend(*cur_pix_src, *nxt_pix_src) : *cur_pix_src;
 			cur_pix_src++;
 			nxt_pix_src++;
 		}
-		cur_pix_dst += VDC_XRES;
-		nxt_pix_dst += VDC_XRES;
+		cur_pix_dst += (2 * VDC_XRES);
+		nxt_pix_dst += (2 * VDC_XRES);
 	}
 
 	// reorganize byte ordering fot png format (rgba, in that order)
-	uint8_t c[4 * VDC_XRES * 2 * VDC_YRES];
-	for (int i=0; i<(VDC_XRES*2*VDC_YRES); i++) {
+	uint8_t c[4 * 2 * VDC_XRES * 2 * VDC_YRES];
+	for (int i=0; i<(2 *VDC_XRES*2*VDC_YRES); i++) {
 		uint8_t alpha = (b[i] & 0xff000000) >> 24;
 		c[(i << 2) + 0] = ((b[i] & 0xff0000) >> 16) * alpha / 255;
 		c[(i << 2) + 1] = ((b[i] & 0x00ff00) >>  8) * alpha / 255;
@@ -271,7 +273,7 @@ void host_t::save_screenshot()
 
 	// write png
 	chdir(home);
-	stbi_write_png(buffer, VDC_XRES, 2 * VDC_YRES, 4, (void *)c, 4 * VDC_XRES);
+	stbi_write_png(buffer, 2 * VDC_XRES, 2 * VDC_YRES, 4, (void *)c, 8 * VDC_XRES);
 }
 
 void host_t::video_update_screen()

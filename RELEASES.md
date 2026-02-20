@@ -1,6 +1,6 @@
 # Version ...
 
-* Host: Save screenshot in homedir with <Alt+P>
+* 20260220 Host: Save screenshot in homedir with <Alt+P>
 
 # Version 0.12.20260131-alpha
 
