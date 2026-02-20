@@ -90,36 +90,19 @@ enum events_output_state host_t::events_process_events()
 					events_wait_until_key_released(SDL_SCANCODE_F);
 					video_toggle_fullscreen();
 				} else if ((event.key.scancode == SDL_SCANCODE_P) && alt_pressed) {
-					// TODO: this is ugly
-					time_t rawtime = time(NULL);
-					struct tm *timeinfo = localtime(&rawtime); // or gmtime for UTC
-					char buffer[24]; // 23 characters + 1 for null terminator
-					strftime(buffer, sizeof(buffer), "lime_%Y%m%d%H%M%S.png", timeinfo);
-
-					uint8_t b[4 * VDC_XRES * VDC_YRES];
-					for (int i=0; i<(VDC_XRES*VDC_YRES); i++) {
-						b[(i << 2) + 0] = (system->core->vdc->buffer[i] & 0xff0000) >> 16;
-						b[(i << 2) + 1] = (system->core->vdc->buffer[i] & 0x00ff00) >>  8;
-						b[(i << 2) + 2] = (system->core->vdc->buffer[i] & 0x0000ff) >>  0;
-						b[(i << 2) + 3] = 0xff;
-					}
-
-					printf("[host] Saving screenshot: %s\n", buffer);
-					chdir(home);
-					stbi_write_png(buffer, VDC_XRES, VDC_YRES, 4, (void *)b, 4*VDC_XRES);
-
+					save_screenshot();
 				} else if ((event.key.scancode == SDL_SCANCODE_R) && alt_pressed) {
 					events_wait_until_key_released(SDL_SCANCODE_R);
 					osd_notify_frames_remaining = 90;
 					osd_notify->terminal->clear();
-					for (int i=0; i<((21-12) / 2); i++) osd_notify->terminal->cursor_right();
+					for (int i=0; i<((45-12) / 2); i++) osd_notify->terminal->cursor_right();
 					osd_notify->terminal->printf("system reset");
 					system->core->reset();
 				} else if ((event.key.scancode == SDL_SCANCODE_S) && alt_pressed) {
 					video_toggle_scanlines();
 					osd_notify_frames_remaining = 90;
 					osd_notify->terminal->clear();
-					for (int i=0; i<((21-13) / 2); i++) osd_notify->terminal->cursor_right();
+					for (int i=0; i<((45-13) / 2); i++) osd_notify->terminal->cursor_right();
 					osd_notify->terminal->printf("scanlines %s", video_scanlines ? "on" : "off");
 				} else if ((event.key.scancode == SDL_SCANCODE_D) && alt_pressed) {
 					if (video_scanlines) {
@@ -130,14 +113,14 @@ enum events_output_state host_t::events_process_events()
 						}
 						osd_notify_frames_remaining = 90;
 						osd_notify->terminal->clear();
-						for (int i=0; i<((21-19) / 2); i++) osd_notify->terminal->cursor_right();
+						for (int i=0; i<((45-19) / 2); i++) osd_notify->terminal->cursor_right();
 						osd_notify->terminal->printf("brightness %2i of 15", video_scanlines_alpha / 17);
 					}
 				} else if ((event.key.scancode == SDL_SCANCODE_A) && alt_pressed) {
 					system->core->vdc->change_crt_contrast();
 					osd_notify_frames_remaining = 90;
 					osd_notify->terminal->clear();
-					for (int i=0; i<((21-17) / 2); i++) osd_notify->terminal->cursor_right();
+					for (int i=0; i<((45-17) / 2); i++) osd_notify->terminal->cursor_right();
 					osd_notify->terminal->printf("contrast %2i of 15", system->core->vdc->get_crt_contrast() / 17);
                 } else if ((event.key.scancode == SDL_SCANCODE_Q) && alt_pressed) {
                     events_wait_until_key_released(SDL_SCANCODE_Q);
@@ -243,6 +226,52 @@ enum events_output_state host_t::events_process_events()
 
 	if (return_value == QUIT_EVENT) printf("[SDL] detected quit event\n");
 	return return_value;
+}
+
+void host_t::save_screenshot()
+{
+	time_t rawtime = time(NULL);
+	struct tm *timeinfo = localtime(&rawtime); // or gmtime for UTC
+	char buffer[35]; // 34 characters + 1 for null terminator
+	strftime(buffer, sizeof(buffer), "lime_screenshot_%Y%m%d%H%M%S.png", timeinfo);
+
+	osd_notify_frames_remaining = 90;
+	osd_notify->terminal->clear();
+	osd_notify->terminal->printf("  saving %s", buffer);
+
+	// create buffer that supports double y resolution
+	uint32_t b[VDC_XRES * 2 * VDC_YRES];
+
+	// redo scanline blending
+	uint32_t *cur_pix_src = system->core->vdc->buffer;
+	uint32_t *nxt_pix_src = cur_pix_src + VDC_XRES;
+	uint32_t *cur_pix_dst = b;
+	uint32_t *nxt_pix_dst = cur_pix_dst + VDC_XRES;
+	for (int y = 0; y < VDC_YRES; y++) {
+		if (y == (VDC_YRES - 1)) nxt_pix_src = cur_pix_src;
+		for (int x = 0; x < VDC_XRES; x++) {
+			*cur_pix_dst++ = *cur_pix_src;
+			*nxt_pix_dst++ = video_scanlines ? video_blend(*cur_pix_src, *nxt_pix_src) : *cur_pix_src;
+			cur_pix_src++;
+			nxt_pix_src++;
+		}
+		cur_pix_dst += VDC_XRES;
+		nxt_pix_dst += VDC_XRES;
+	}
+
+	// reorganize byte ordering fot png format (rgba, in that order)
+	uint8_t c[4 * VDC_XRES * 2 * VDC_YRES];
+	for (int i=0; i<(VDC_XRES*2*VDC_YRES); i++) {
+		uint8_t alpha = (b[i] & 0xff000000) >> 24;
+		c[(i << 2) + 0] = ((b[i] & 0xff0000) >> 16) * alpha / 255;
+		c[(i << 2) + 1] = ((b[i] & 0x00ff00) >>  8) * alpha / 255;
+		c[(i << 2) + 2] = ((b[i] & 0x0000ff) >>  0) * alpha / 255;
+		c[(i << 2) + 3] = 0xff;
+	}
+
+	// write png
+	chdir(home);
+	stbi_write_png(buffer, VDC_XRES, 2 * VDC_YRES, 4, (void *)c, 4 * VDC_XRES);
 }
 
 void host_t::video_update_screen()
@@ -405,7 +434,7 @@ void host_t::video_init()
 	printf("[SDL] Display window dimension: %u x %u pixels\n", video_window_width, video_window_height);
 
 	osd_stats = new osd_t(system, 47, 3);
-	osd_notify = new osd_t(system, 21, 1);
+	osd_notify = new osd_t(system, 45, 1);
 	osd_notify->terminal->clear();
 
 	// create renderer and link it to window

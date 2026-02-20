@@ -135,6 +135,8 @@ private:
 	SDL_Texture		*viewer_texture;
 	SDL_FRect		viewer_texture_placement;
 
+	void			save_screenshot();
+
     inline uint32_t video_blend(uint32_t c0, uint32_t c1) {
 		return
 			((((c0 & 0x00ff00ff) + (c1 & 0x00ff00ff)) >> 1) & 0x00ff00ff) |
