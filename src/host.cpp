@@ -239,21 +239,23 @@ void host_t::save_screenshot()
 	osd_notify->terminal->clear();
 	osd_notify->terminal->printf("  saving %s", buffer);
 
-	// create buffer that supports double y resolution
+	// Create a buffer that supports double x and y resolution and keeps
+	// data in uint32_t format (argb).
 	uint32_t b[2 * VDC_XRES * 2 * VDC_YRES];
 
-	// redo scanline blending
+	// redo scanline blending in this buffer; we can't use the buffers
+	// from the textures, they can't be read
 	uint32_t *cur_pix_src = system->core->vdc->buffer;
 	uint32_t *nxt_pix_src = cur_pix_src + VDC_XRES;
 	uint32_t *cur_pix_dst = b;
 	uint32_t *nxt_pix_dst = cur_pix_dst + (2 * VDC_XRES);
 	for (int y = 0; y < VDC_YRES; y++) {
-		if (y == (VDC_YRES - 1)) nxt_pix_src = cur_pix_src;
+		if (y == (VDC_YRES - 1)) nxt_pix_src = cur_pix_src;	// last scanline effect gets data from last real scanline
 		for (int x = 0; x < VDC_XRES; x++) {
 			*cur_pix_dst++ = *cur_pix_src;
-			*cur_pix_dst++ = *cur_pix_src;
+			*cur_pix_dst++ = *cur_pix_src;	// each second pixel gets same value
 			*nxt_pix_dst++ = video_scanlines ? video_blend(*cur_pix_src, *nxt_pix_src) : *cur_pix_src;
-			*nxt_pix_dst++ = video_scanlines ? video_blend(*cur_pix_src, *nxt_pix_src) : *cur_pix_src;
+			*nxt_pix_dst++ = video_scanlines ? video_blend(*cur_pix_src, *nxt_pix_src) : *cur_pix_src;	// each second pixel gets same value
 			cur_pix_src++;
 			nxt_pix_src++;
 		}
@@ -261,14 +263,15 @@ void host_t::save_screenshot()
 		nxt_pix_dst += (2 * VDC_XRES);
 	}
 
-	// reorganize byte ordering fot png format (rgba, in that order)
+	// Reorganize byte ordering for png format (rgba, in that byte order),
+	// make a buffer 4 times the elements of the 'b' buffer.
 	uint8_t c[4 * 2 * VDC_XRES * 2 * VDC_YRES];
 	for (int i=0; i<(2 *VDC_XRES*2*VDC_YRES); i++) {
-		uint8_t alpha = (b[i] & 0xff000000) >> 24;
-		c[(i << 2) + 0] = ((b[i] & 0xff0000) >> 16) * alpha / 255;
-		c[(i << 2) + 1] = ((b[i] & 0x00ff00) >>  8) * alpha / 255;
-		c[(i << 2) + 2] = ((b[i] & 0x0000ff) >>  0) * alpha / 255;
-		c[(i << 2) + 3] = 0xff;
+		uint8_t alpha = (b[i] & 0xff000000) >> 24;					// take alpha from buffer
+		c[(i << 2) + 0] = ((b[i] & 0xff0000) >> 16) * alpha / 255;	// adjust for alpha
+		c[(i << 2) + 1] = ((b[i] & 0x00ff00) >>  8) * alpha / 255;	// adjust for alpha
+		c[(i << 2) + 2] = ((b[i] & 0x0000ff) >>  0) * alpha / 255;	// adjust for alpha
+		c[(i << 2) + 3] = 0xff;										// alpha fixed at 255
 	}
 
 	// write png
