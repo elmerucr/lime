@@ -122,58 +122,60 @@ void debugger_t::redraw()
 		uint32_t usp = system->core->mc68000->getUSP();
 		status1->printf(
 			"---------------------------------Motorola 68000---------------------------------\n"
-			"             D0:%08x   D4:%08x    A0:%08x   A4:%08x\n"
-			"             D1:%08x   D5:%08x    A1:%08x   A5:%08x\n"
-			"             D2:%08x   D6:%08x    A2:%08x   A6:%08x\n"
-			"             D3:%08x   D7:%08x    A3:%08x   A7:%08x\n\n"
-			"               PC:%08x    SR:%04x (%s)    IPL:%i\n\n"
-			"              SSP:%08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n"
-			"              USP:%08x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x %02x%02x\n",
+			"   D0:%08x  D4:%08x  A0:%08x  A4:%08x    +e:%02x%02x     +e:%02x%02x\n"
+			"   D1:%08x  D5:%08x  A1:%08x  A5:%08x    +c:%02x%02x     +c:%02x%02x\n"
+			"   D2:%08x  D6:%08x  A2:%08x  A6:%08x    +a:%02x%02x     +a:%02x%02x\n"
+			"   D3:%08x  D7:%08x  A3:%08x  A7:%08x    +8:%02x%02x     +8:%02x%02x\n"
+			"                                                         +6:%02x%02x     +6:%02x%02x\n"
+			"     PC:%08x  SR:%04x (%s)  IPL:%i      +4:%02x%02x     +4:%02x%02x\n"
+			"                                                         +2:%02x%02x     +2:%02x%02x\n"
+			"               SSP:%08x  USP:%08x             SSP+0:%02x%02x  USP+0:%02x%02x\n",
 
 			system->core->mc68000->getD(0),
 			system->core->mc68000->getD(4),
 			system->core->mc68000->getA(0),
 			system->core->mc68000->getA(4),
+			system->core->read8(isp+14), system->core->read8(isp+15),
+			system->core->read8(usp+14), system->core->read8(usp+15),
 
 			system->core->mc68000->getD(1),
 			system->core->mc68000->getD(5),
 			system->core->mc68000->getA(1),
 			system->core->mc68000->getA(5),
+			system->core->read8(isp+12), system->core->read8(isp+13),
+			system->core->read8(usp+12), system->core->read8(usp+13),
 
 			system->core->mc68000->getD(2),
 			system->core->mc68000->getD(6),
 			system->core->mc68000->getA(2),
 			system->core->mc68000->getA(6),
+			system->core->read8(isp+10), system->core->read8(isp+11),
+			system->core->read8(usp+10), system->core->read8(usp+11),
 
 			system->core->mc68000->getD(3),
 			system->core->mc68000->getD(7),
 			system->core->mc68000->getA(3),
 			system->core->mc68000->getA(7),
+			system->core->read8(isp+8), system->core->read8(isp+9),
+			system->core->read8(usp+8), system->core->read8(usp+9),
+
+			system->core->read8(isp+6), system->core->read8(isp+7),
+			system->core->read8(usp+6), system->core->read8(usp+7),
 
 			system->core->mc68000->getPC(),
 			system->core->mc68000->getSR(),
 			text_buffer,
 			system->core->mc68000->getIPL(),
+			system->core->read8(isp+4), system->core->read8(isp+5),
+			system->core->read8(usp+4), system->core->read8(usp+5),
+
+			system->core->read8(isp+2), system->core->read8(isp+3),
+			system->core->read8(usp+2), system->core->read8(usp+3),
 
 			isp,
-			system->core->read8(isp+0), system->core->read8(isp+1),
-			system->core->read8(isp+2), system->core->read8(isp+3),
-			system->core->read8(isp+4), system->core->read8(isp+5),
-			system->core->read8(isp+6), system->core->read8(isp+7),
-			system->core->read8(isp+8), system->core->read8(isp+9),
-			system->core->read8(isp+10), system->core->read8(isp+11),
-			system->core->read8(isp+12), system->core->read8(isp+13),
-			system->core->read8(isp+14), system->core->read8(isp+15),
-
 			usp,
-			system->core->read8(usp+0), system->core->read8(usp+1),
-			system->core->read8(usp+2), system->core->read8(usp+3),
-			system->core->read8(usp+4), system->core->read8(usp+5),
-			system->core->read8(usp+6), system->core->read8(usp+7),
-			system->core->read8(usp+8), system->core->read8(usp+9),
-			system->core->read8(usp+10), system->core->read8(usp+11),
-			system->core->read8(usp+12), system->core->read8(usp+13),
-			system->core->read8(usp+14), system->core->read8(usp+15)
+			system->core->read8(isp+0), system->core->read8(isp+1),
+			system->core->read8(usp+0), system->core->read8(usp+1)
 		);
 
 		status1->printf(
@@ -181,7 +183,7 @@ void debugger_t::redraw()
 		);
 		uint32_t pc = system->core->mc68000->getPC();
 		uint32_t new_pc;
-		for (int i=0; i<5; i++) {
+		for (int i=0; i<6; i++) {
 			new_pc = pc + system->core->mc68000->disassemble(text_buffer, pc);
 			if (system->core->mc68000->debugger.breakpoints.isSetAt(pc)) {
 				status1->fg_color = 0xffe04040;	// orange
