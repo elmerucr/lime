@@ -1,5 +1,6 @@
 # Version ...
 
+* 20260226 Debugger: Better stack views for m68k
 * 20260220 Host: Save screenshot in user homedir with <Alt+P>
 
 # Version 0.12.20260131-alpha
