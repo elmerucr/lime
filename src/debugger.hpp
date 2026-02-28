@@ -19,6 +19,7 @@ private:
 	font_cbm_8x8_t debugger_cbm_font;
 	terminal_t *status1;
 	terminal_t *mc6809_status;
+	terminal_t *stack_status;
 	terminal_t *exception_status;
 	terminal_t *vdc_status;
 	system_t *system;

@@ -77,6 +77,7 @@ debugger_t::debugger_t(system_t *s)
 
 	status1 = new terminal_t(system, 80, 27, PICOTRON_V5_1A, (LIME_COLOR_00 & 0x00ffffff) | 0xe0000000);
 	mc6809_status = new terminal_t(system, 60, 2, PICOTRON_V5_1A, 0xff000000);
+	stack_status = new terminal_t(system, 34, 15, PICOTRON_V5_1A, 0xff000000);
 	exception_status = new terminal_t(system, 22, 5, PICOTRON_V5_1A, 0xff000000);
 	vdc_status = new terminal_t(system, 20, 6, PICOTRON_V5_1A, 0xff000000);
 }
@@ -86,6 +87,7 @@ debugger_t::~debugger_t()
 	delete vdc_status;
 	delete exception_status;
 	delete status1;
+	delete stack_status;
 	delete mc6809_status;
 	delete terminal;
 	delete [] buffer;
@@ -204,35 +206,48 @@ void debugger_t::redraw()
 		uint16_t ssp = system->core->mc6809->get_sp() & 0xffff;
 		uint16_t usp = system->core->mc6809->get_us() & 0xffff;
 
+
+		status1->printf("---------------------------------Motorola 6809----------------------------------\n\n");
 		system->core->mc6809->status(text_buffer, 1024);
 		mc6809_status->printf("%s", text_buffer);
-		status1->printf("---------------------------------Motorola 6809----------------------------------\n");
-		status1->printf(
-			"\n\n\n                   system stack: %04x %02x %02x %02x %02x %02x %02x %02x %02x",
-			ssp, system->core->read8(ssp), system->core->read8(ssp+1), system->core->read8(ssp+2),
-			system->core->read8(ssp+3), system->core->read8(ssp+4), system->core->read8(ssp+5),
-			system->core->read8(ssp+6), system->core->read8(ssp+7)
-		);
-		status1->printf(
-			"\n                     user stack: %04x %02x %02x %02x %02x %02x %02x %02x %02x",
-			usp, system->core->read8(usp), system->core->read8(usp+1), system->core->read8(usp+2),
-			system->core->read8(usp+3), system->core->read8(usp+4), system->core->read8(usp+5),
-			system->core->read8(usp+6), system->core->read8(usp+7)
-		);
-
 		for (int y = 0; y < mc6809_status->height; y++) {
 			for (int x = 0; x < mc6809_status->width; x++) {
 				status1->tiles[((2 + y) * status1->width) + 13 + x] =
 					mc6809_status->tiles[(y * mc6809_status->width) + x];
 			}
 		}
+		// status1->printf(
+		// 	"\n\n\n                   system stack: %04x %02x %02x %02x %02x %02x %02x %02x %02x",
+		// 	ssp, system->core->read8(ssp), system->core->read8(ssp+1), system->core->read8(ssp+2),
+		// 	system->core->read8(ssp+3), system->core->read8(ssp+4), system->core->read8(ssp+5),
+		// 	system->core->read8(ssp+6), system->core->read8(ssp+7)
+		// );
+		// status1->printf(
+		// 	"\n                     user stack: %04x %02x %02x %02x %02x %02x %02x %02x %02x",
+		// 	usp, system->core->read8(usp), system->core->read8(usp+1), system->core->read8(usp+2),
+		// 	system->core->read8(usp+3), system->core->read8(usp+4), system->core->read8(usp+5),
+		// 	system->core->read8(usp+6), system->core->read8(usp+7)
+		// );
 
-
-		status1->printf("\n\n------------------------disassembler--------------------------------------------\n");
+		status1->printf("\n\n ---------------disassembler---------------\n\n");
 		uint16_t pc = system->core->mc6809->get_pc();
-		for (int i=0; i<9; i++) {
+		for (int i=0; i<12; i++) {
 			pc += disassemble_instruction_status1(pc);
 			status1->putchar('\n');
+		}
+
+		stack_status->clear();
+		stack_status->printf("--------------stacks--------------\n");
+		stack_status->printf("          sp         us\n\n");
+		for (uint8_t i=9; i>0; i--) {
+			stack_status->printf("        %04x:%02x    %04x:%02x\n", (ssp+i) & 0xffff, system->core->read8(ssp+i), (usp+i) & 0xffff, system->core->read8(usp+i));
+		}
+		stack_status->printf("        %04x:%02x    %04x:%02x\n", ssp, system->core->read8(ssp), usp, system->core->read8(usp));
+		for (int y = 0; y < stack_status->height; y++) {
+			for (int x = 0; x < stack_status->width; x++) {
+			status1->tiles[((5 + y) * status1->width) + 45 + x] =
+				stack_status->tiles[(y * stack_status->width) + x];
+			}
 		}
 	}
 
@@ -893,7 +908,8 @@ uint32_t debugger_t::disassemble_instruction_status1(uint16_t address)
 		status1->fg_color = 0xffe04040;	// orange
 	}
 	cycles = system->core->mc6809->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
-	status1->printf(",%s", text_buffer);
+	text_buffer[41] = 0;	// make sure it's not wider than 40 chars
+	status1->printf("  ,%s", text_buffer);
 	status1->fg_color = PICOTRON_V5_1A;
 
 	return cycles;
