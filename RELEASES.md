@@ -1,5 +1,6 @@
 # Version ...
 
+* 20260405 Compiles with SDL 3.4.4 on macOS Tahoe 26.4
 * 20260226 Debugger: Better stack views for m68k
 * 20260220 Host: Save screenshot in user homedir with <Alt+P>
 
