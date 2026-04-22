@@ -130,6 +130,7 @@ Run with:
 * [vAmiga](https://dirkwhoffmann.github.io/vAmiga/) - An Amiga 500, 1000, or 2000 on your Apple Macintosh by Dirk W. Hoffmann.
 * [VICE](http://vice-emu.sourceforge.net) - The Versatile Commodore Emulator.
 * [VirtualC64](https://dirkwhoffmann.github.io/virtualc64/) - A Commodore 64 on your Apple Macintosh by Dirk W. Hoffmann.
+* [vrEmu6502](https://github.com/visrealm/vrEmu6502) - 6502/65C02 emulator library (C99)
 
 ### Other
 
