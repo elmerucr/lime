@@ -131,6 +131,7 @@ Run with:
 * [VICE](http://vice-emu.sourceforge.net) - The Versatile Commodore Emulator.
 * [VirtualC64](https://dirkwhoffmann.github.io/virtualc64/) - A Commodore 64 on your Apple Macintosh by Dirk W. Hoffmann.
 * [vrEmu6502](https://github.com/visrealm/vrEmu6502) - 6502/65C02 emulator library (C99)
+* [z80](https://github.com/superzazu/z80) - A z80 emulator written in C99 by Nicolas Allemand.
 
 ### Other
 

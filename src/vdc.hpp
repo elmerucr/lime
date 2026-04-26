@@ -85,12 +85,12 @@ struct layer_t {
 	//
 	// bit 7 6 5 4 3 2 1 0
 	//     | | | |
-	//     | | +-+--------- bits coding for horizontal size (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
-	//     +-+------------- bits coding for vertical size (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
+	//     | | +-+--------- bits coding for horizontal stretch (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
+	//     +-+------------- bits coding for vertical stretch (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
 	//
 	// -----------------------------------------------------------------
-	uint8_t flags1_bit45_width;
-	uint8_t flags1_bit67_height;
+	uint8_t flags1_bit45_hstretch;
+	uint8_t flags1_bit67_vstretch;
 
 	uint8_t colors[4];
 
@@ -113,7 +113,7 @@ struct sprite_t {
 	//     | | | |
 	//     | | | +--------- x pos relative to screen (0) or associated layer (1)
 	//     | | +----------- y pos relative to screen (0) or associated layer (1)
-	//     +-+------------- transparency of sprite (0b00 = no transp., 0b01/0b01/0b11 variious degrees)
+	//     +-+------------- transparency of sprite (0b00 = no transp., 0b01/0b01/0b11 various degrees)
 	//
 	// -----------------------------------------------------------------
 	bool flags0_bit0_visible;
@@ -130,15 +130,15 @@ struct sprite_t {
 	//     | | | |   | | +- flip h  (1)
 	//     | | | |   | +--- flip v  (1)
 	//     | | | |   +----- flip xy (1)
-	//     | | +-+--------- bits coding for horizontal size (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
-	//     +-+------------- bits coding for vertical size (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
+	//     | | +-+--------- bits coding for horizontal stretch (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
+	//     +-+------------- bits coding for vertical stretch (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
 	//
 	// -----------------------------------------------------------------
 	bool flags1_bit0_flip_h;
 	bool flags1_bit1_flip_v;
 	bool flags1_bit2_flip_xy;
-	uint8_t flags1_bit45_width;
-	uint8_t flags1_bit67_height;
+	uint8_t flags1_bit45_hstretch;
+	uint8_t flags1_bit67_vstretch;
 
 	uint8_t index;
 
