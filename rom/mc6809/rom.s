@@ -66,10 +66,10 @@ reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldy	#VDC_SPRITE_X_MSB	; y points to start of sprite registers
 4		lda	,x+			; copy data
 		sta	,y+
-		cmpy	#VDC_SPRITE_X_MSB+7	; did we copy 5 values?
+		cmpy	#VDC_SPRITE_X_MSB+8	; did we copy 5 values?
 		bne	4b			; not yet, continue at 2
 		incb				; we did, set next active sprite
-		cmpx	#logo_data+56		; did we reach end of data?
+		cmpx	#logo_data+64		; did we reach end of data?
 		bne	3b			; no, continue at 1
 
 ; set variable for letter wobble
@@ -145,14 +145,14 @@ sound_reset	pshu	y,b,a
 		pulu	y,b,a
 		rts
 
-logo_data	fcb	0,152,0,72,%111,0,$1c		; icon top left
-		fcb	0,160,0,72,%111,0,$1d		; icon top right
-		fcb	0,152,0,80,%111,0,$1e		; icon bottom left
-		fcb	0,160,0,80,%111,0,$1f		; icon bottom right
-		fcb	0,147,0,88,%111,0,$6c		; l
-		fcb	0,152,0,88,%111,0,$69		; i
-		fcb	0,158,0,88,%111,0,$6d		; m
-		fcb	0,166,0,88,%111,0,$65		; e
+logo_data	fcb	0,152,0,72,%111,0,0,$1c		; icon top left
+		fcb	0,160,0,72,%111,0,0,$1d		; icon top right
+		fcb	0,152,0,80,%111,0,0,$1e		; icon bottom left
+		fcb	0,160,0,80,%111,0,0,$1f		; icon bottom right
+		fcb	0,147,0,88,%111,0,0,$6c		; l
+		fcb	0,152,0,88,%111,0,0,$69		; i
+		fcb	0,158,0,88,%111,0,0,$6d		; m
+		fcb	0,166,0,88,%111,0,0,$65		; e
 
 exc_irq		lda	TIMER_SR		; load timer status register
 		beq	exc_vdc

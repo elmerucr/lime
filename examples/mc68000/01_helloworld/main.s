@@ -5,7 +5,7 @@ main	move.b	#$37,VDC_BG_COLOR	; pink background color
 	clr.b	VDC_CURRENT_SPRITE
 	clr.b	VDC_SPRITE_INDEX
 	move.b	#%00000101,VDC_SPRITE_FLAGS0
-	move.w	#$0800,VDC_SPRITE_TILESET_ADDR
+	move.b	#$08,VDC_SPRITE_TILESET_PAGE
 	move.b	#56,VDC_SPRITE_X_LSB
 	clr.b	VDC_SPRITE_Y_LSB
 

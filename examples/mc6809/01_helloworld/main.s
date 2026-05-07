@@ -23,8 +23,8 @@ main		clr	VDC_CURRENT_LAYER	; points to layer 0
 		clr	VDC_SPRITE_INDEX
 		lda	#%00000101
 		sta	VDC_SPRITE_FLAGS0
-		ldd #$0800
-		std VDC_SPRITE_TILESET_ADDRESS
+		lda #$08
+		std VDC_SPRITE_TILESET_PAGE
 		lda	#56
 		sta	VDC_SPRITE_X_LSB
 		clr	VDC_SPRITE_Y_LSB

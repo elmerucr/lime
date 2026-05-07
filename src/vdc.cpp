@@ -285,10 +285,6 @@ uint8_t vdc_t::io_read8(uint16_t address)
 			return
 				(layer[current_layer].flags1_bit45_hstretch  << 4) |
 				(layer[current_layer].flags1_bit67_vstretch << 6) ;
-		case 0x16:
-			return (layer[current_layer].colors_address & 0xff00) >> 8;
-		case 0x17:
-			return layer[current_layer].colors_address & 0xff;
 		case 0x18:
 			return layer[current_layer].colors[0];
 		case 0x19:
@@ -300,11 +296,13 @@ uint8_t vdc_t::io_read8(uint16_t address)
 		case 0x1c:
 			return (layer[current_layer].tiles_address & 0xff00) >> 8;
 		case 0x1d:
-			return layer[current_layer].tiles_address & 0xff;
+			return (layer[current_layer].colors_address & 0xff00) >> 8;
+		// case 0x1d:
+		// 	return layer[current_layer].tiles_address & 0xff;
 		case 0x1e:
 			return (layer[current_layer].tileset_address & 0xff00) >> 8;
-		case 0x1f:
-			return layer[current_layer].tileset_address & 0xff;
+		// case 0x1f:
+		// 	return layer[current_layer].tileset_address & 0xff;
 
 		// sprites
 		case 0x20:
@@ -329,7 +327,7 @@ uint8_t vdc_t::io_read8(uint16_t address)
 				(sprite[current_sprite].flags1_bit2_flip_xy  ? 0b00000100 : 0) |
 				(sprite[current_sprite].flags1_bit45_hstretch << 4           ) |
 				(sprite[current_sprite].flags1_bit67_vstretch << 6           ) ;
-		case 0x26:
+		case 0x27:
 			return sprite[current_sprite].index;
 		case 0x28:
 			return sprite[current_sprite].colors[0];
@@ -341,8 +339,8 @@ uint8_t vdc_t::io_read8(uint16_t address)
 			return sprite[current_sprite].colors[3];
 		case 0x2e:
 			return (sprite[current_sprite].tileset_address & 0xff00) >> 8;
-		case 0x2f:
-			return sprite[current_sprite].tileset_address & 0xff;
+		// case 0x2f:
+		// 	return sprite[current_sprite].tileset_address & 0xff;
 
 		default:
 			return 0;
@@ -435,12 +433,6 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			layer[current_layer].flags1_bit45_hstretch  = (value & 0b00110000) >> 4;
 			layer[current_layer].flags1_bit67_vstretch = (value & 0b11000000) >> 6;
 			break;
-		case 0x16:
-			layer[current_layer].colors_address = (layer[current_layer].colors_address & 0x00ff) | (value << 8);
-			break;
-		case 0x17:
-			layer[current_layer].colors_address = (layer[current_layer].colors_address & 0xff00) | (value & 0xfe);
-			break;
 		case 0x18:
 			layer[current_layer].colors[0] = value;
 			break;
@@ -454,16 +446,13 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			layer[current_layer].colors[3] = value;
 			break;
 		case 0x1c:
-			layer[current_layer].tiles_address = (layer[current_layer].tiles_address & 0x00ff) | (value << 8);
+			layer[current_layer].tiles_address = value << 8;
 			break;
 		case 0x1d:
-			layer[current_layer].tiles_address = (layer[current_layer].tiles_address & 0xff00) | (value & 0xfe);
+			layer[current_layer].colors_address = value << 8;
 			break;
 		case 0x1e:
-			layer[current_layer].tileset_address = (layer[current_layer].tileset_address & 0x00ff) | (value << 8);
-			break;
-		case 0x1f:
-			layer[current_layer].tileset_address = (layer[current_layer].tileset_address & 0xff00) | (value & 0xfe);
+			layer[current_layer].tileset_address = value << 8;
 			break;
 
 		// sprites
@@ -494,7 +483,7 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			sprite[current_sprite].flags1_bit45_hstretch  = (value & 0b00110000) >> 4;
 			sprite[current_sprite].flags1_bit67_vstretch = (value & 0b11000000) >> 6;
 			break;
-		case 0x26:
+		case 0x27:
 			sprite[current_sprite].index = value;
 			break;
 		case 0x28:
@@ -510,11 +499,11 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			sprite[current_sprite].colors[3] = value;
 			break;
 		case 0x2e:
-			sprite[current_sprite].tileset_address = (sprite[current_sprite].tileset_address & 0x00ff) | (value << 8);
+			sprite[current_sprite].tileset_address = value << 8;
 			break;
-		case 0x2f:
-			sprite[current_sprite].tileset_address = (sprite[current_sprite].tileset_address & 0xff00) | (value & 0xfe);
-			break;
+		// case 0x2f:
+		// 	sprite[current_sprite].tileset_address = (sprite[current_sprite].tileset_address & 0xff00) | (value & 0xfe);
+		// 	break;
 
 		default:
 			break;

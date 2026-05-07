@@ -65,6 +65,7 @@
 0413                  VDC_LAYER_Y_LSB         equ     $0413
 0414                  VDC_LAYER_FLAGS0        equ     $0414
 0415                  VDC_LAYER_FLAGS1        equ     $0415
+0416                  VDC_LAYER_FLAGS2        equ     $0416
 0418                  VDC_LAYER_COLOR0        equ     $0418
 0419                  VDC_LAYER_COLOR1        equ     $0419
 041A                  VDC_LAYER_COLOR2        equ     $041a
@@ -78,12 +79,13 @@
 0423                  VDC_SPRITE_Y_LSB        equ     $0423
 0424                  VDC_SPRITE_FLAGS0       equ     $0424
 0425                  VDC_SPRITE_FLAGS1       equ     $0425
-0426                  VDC_SPRITE_INDEX        equ     $0426
+0426                  VDC_SPRITE_FLAGS2       equ     $0426
+0427                  VDC_SPRITE_INDEX        equ     $0427
 0428                  VDC_SPRITE_COLOR0       equ     $0428
 0429                  VDC_SPRITE_COLOR1       equ     $0429
 042A                  VDC_SPRITE_COLOR2       equ     $042a
 042B                  VDC_SPRITE_COLOR3       equ     $042b
-042E                  VDC_SPRITE_TILESET_ADDRESS      equ     $042e
+042E                  VDC_SPRITE_TILESET_PAGE equ     $042e
                       
 1000                  VDC_TILESET_ADDRESS     equ     $1000
 4000                  VDC_LAYER0_TILES        equ     $4000
@@ -131,13 +133,13 @@ FE00                  ROM_START               equ     $fe00
 5FFB                                  org     RAM_START-5                     ; allocate 5 bytes for code_preamble
                       
 5FFB 00               code_preamble   fcb     $00                             ; first byte
-5FFC 0050                             fdb     graph_preamble-RAM_START        ; size (16 bit unsigned)
+5FFC 004F                             fdb     graph_preamble-RAM_START        ; size (16 bit unsigned)
 5FFE 6000                             fdb     RAM_START                       ; where (16 bit unsigned)
                       
 6000                  code            include "main.s"
 6000 7F0406           main            clr     VDC_CURRENT_LAYER       ; points to layer 0
 6003 8605                             lda     #%00000101
-6005 B70414                           sta     VDC_LAYER_FLAGS0        ; activate, use transparency ofr 0b00
+6005 B70414                           sta     VDC_LAYER_FLAGS0        ; activate, use transparency for 0b00
                       
 6008 8620                             lda     #' '
 600A 8E4000                           ldx     #VDC_LAYER0_TILES
@@ -149,7 +151,7 @@ FE00                  ROM_START               equ     $fe00
 6016 B70404                           sta     VDC_BG_COLOR
                       
                                       ; print string
-6019 8E6043                           ldx     #text
+6019 8E6042                           ldx     #text
 601C 108E4000                         ldy     #VDC_LAYER0_TILES
 6020 A680             1               lda     ,x+
 6022 2704                             beq     2f
@@ -157,33 +159,33 @@ FE00                  ROM_START               equ     $fe00
 6026 20F8                             bra     1b
                       
 6028 7F0407           2               clr     VDC_CURRENT_SPRITE
-602B 7F0426                           clr     VDC_SPRITE_INDEX
+602B 7F0427                           clr     VDC_SPRITE_INDEX
 602E 8605                             lda     #%00000101
 6030 B70424                           sta     VDC_SPRITE_FLAGS0
-6033 CC0800                           ldd #$0800
-6036 FD042E                           std VDC_SPRITE_TILESET_ADDRESS
-6039 8638                             lda     #56
-603B B70421                           sta     VDC_SPRITE_X_LSB
-603E 7F0423                           clr     VDC_SPRITE_Y_LSB
+6033 8608                             lda #$08
+6035 FD042E                           std VDC_SPRITE_TILESET_PAGE
+6038 8638                             lda     #56
+603A B70421                           sta     VDC_SPRITE_X_LSB
+603D 7F0423                           clr     VDC_SPRITE_Y_LSB
                       
-6041 20FE             1               bra     1b                      ; loop / do nothing
+6040 20FE             1               bra     1b                      ; loop / do nothing
                       
-6043 48656C6C6F207720 text            fcn     "Hello w rld!"          ; 'o' replaced by sprite
+6042 48656C6C6F207720 text            fcn     "Hello w rld!"          ; 'o' replaced by sprite
      726C642100
                       
-6050 00               graph_preamble  fcb     $00                             ; first byte
-6051 0010                             fdb     postamble-tiles                 ; size (16 bit unsigned)
-6053 0800                             fdb     $0800                           ; where (16 bit unsigned)
+604F 00               graph_preamble  fcb     $00                             ; first byte
+6050 0010                             fdb     postamble-tiles                 ; size (16 bit unsigned)
+6052 0800                             fdb     $0800                           ; where (16 bit unsigned)
                       
-6055                  tiles           include "tiles.s"
-6055 0150                             fdb     %0000000101010000
-6057 06A4                             fdb     %0000011010100100
-6059 1999                             fdb     %0001100110011001
-605B 1AA9                             fdb     %0001101010101001
-605D 1999                             fdb     %0001100110011001
-605F 1959                             fdb     %0001100101011001
-6061 06A4                             fdb     %0000011010100100
-6063 0150                             fdb     %0000000101010000
+6054                  tiles           include "tiles.s"
+6054 0150                             fdb     %0000000101010000
+6056 06A4                             fdb     %0000011010100100
+6058 1999                             fdb     %0001100110011001
+605A 1AA9                             fdb     %0001101010101001
+605C 1999                             fdb     %0001100110011001
+605E 1959                             fdb     %0001100101011001
+6060 06A4                             fdb     %0000011010100100
+6062 0150                             fdb     %0000000101010000
                       
-6065 FF0000           postamble       fcb     $ff,$00,$00
-6068 6000                             fdb     main                            ; execution address
+6064 FF0000           postamble       fcb     $ff,$00,$00
+6067 6000                             fdb     main                            ; execution address

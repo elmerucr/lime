@@ -42,7 +42,7 @@ TERMINAL_HEIGHT	equ	$16	; 22 rows
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.9.20260215"
+	dc.b	"rom mc68000 0.9.20260507"
 
 	align	2
 
@@ -412,10 +412,10 @@ vdc_init_logo
 	movea.l	#VDC_SPRITE_X_MSB,A1
 
 .2	move.b	(A0)+,(A1)+
-	cmpa.l	#VDC_SPRITE_X_MSB+7,A1
+	cmpa.l	#VDC_SPRITE_X_MSB+8,A1
 	bne	.2
 	addq	#1,D0
-	cmpa.l	#logo_data+56,A0	; 8 * 7 bytes = 56 bytes
+	cmpa.l	#logo_data+64,A0	; 8 * 8 bytes = 64 bytes
 	bne	.1
 
 	rts
@@ -566,14 +566,14 @@ file_loading4	dc.b	$0a,$0a," jumping to $",0
 
 	align	2
 logo_data
-	dc.b	0,152,0,72,%111,0,$1c	; icon top left
-	dc.b	0,160,0,72,%111,0,$1d	; icon top right
-	dc.b	0,152,0,80,%111,0,$1e	; icon bottom left
-	dc.b	0,160,0,80,%111,0,$1f	; icon bottom right
-	dc.b	0,147,0,88,%111,0,$6c	; l
-	dc.b	0,152,0,88,%111,0,$69	; i
-	dc.b	0,158,0,88,%111,0,$6d	; m
-	dc.b	0,166,0,88,%111,0,$65	; e
+	dc.b	0,152,0,72,%111,0,0,$1c	; icon top left
+	dc.b	0,160,0,72,%111,0,0,$1d	; icon top right
+	dc.b	0,152,0,80,%111,0,0,$1e	; icon bottom left
+	dc.b	0,160,0,80,%111,0,0,$1f	; icon bottom right
+	dc.b	0,147,0,88,%111,0,0,$6c	; l
+	dc.b	0,152,0,88,%111,0,0,$69	; i
+	dc.b	0,158,0,88,%111,0,0,$6d	; m
+	dc.b	0,166,0,88,%111,0,0,$65	; e
 
 
 logo_tiles
