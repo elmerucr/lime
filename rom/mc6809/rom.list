@@ -88,13 +88,13 @@
 0429                  VDC_SPRITE_COLOR1       equ     $0429
 042A                  VDC_SPRITE_COLOR2       equ     $042a
 042B                  VDC_SPRITE_COLOR3       equ     $042b
-042E                  VDC_SPRITE_TILESET_ADDRESS      equ     $042e
+042E                  VDC_SPRITE_TILESET_PAGE equ     $042e
                       
 1000                  VDC_TILESET_ADDRESS     equ     $1000
-4000                  VDC_LAYER0_TILES        equ     $4000
-4800                  VDC_LAYER1_TILES        equ     $4800
-5000                  VDC_LAYER2_TILES        equ     $5000
-5800                  VDC_LAYER3_TILES        equ     $5800
+3000                  VDC_LAYER0_TILES        equ     $3000
+3000                  VDC_LAYER1_TILES        equ     $3000
+3000                  VDC_LAYER2_TILES        equ     $3000
+3000                  VDC_LAYER3_TILES        equ     $3000
                       
                       ; timer
 0440                  TIMER_SR                equ     $0440
@@ -204,8 +204,8 @@ FC7E 26F8                             bne     1b
 FC80 8EFD59                           ldx     #vdc_interrupt
 FC83 BF0220                           stx     VECTOR_VDC_INDIRECT
                       
-                      ; set raster irq on scanline 175
-FC86 86AF                             lda     #$af
+                      ; set raster irq on scanline 179
+FC86 86B3                             lda     #$b3
 FC88 B7040F                           sta     VDC_IRQ_SCANLINE_LSB
 FC8B 8601                             lda     #%00000001
 FC8D B70401                           sta     VDC_CR          ; enable irq's for vdc

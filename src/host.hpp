@@ -115,7 +115,7 @@ private:
     SDL_Renderer	*video_renderer;
 	bool			vsync;
 	bool			video_scanlines = true;
-	uint8_t			video_scanlines_alpha = 0xcc;
+	uint8_t			video_scanlines_alpha = 0xaa;
 
     SDL_Texture		*vdc_texture;
 	uint8_t			vdc_texture_bytes_per_pixel;

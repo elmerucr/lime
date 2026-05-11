@@ -65,7 +65,7 @@ void vdc_t::reset()
 		sprite[i].colors[1] = 0b01;
 		sprite[i].colors[2] = 0b10;
 		sprite[i].colors[3] = 0b11;
-		sprite[i].tileset_address = VDC_TILESET_ADDRESS;
+		sprite[i].tileset_address = 0x1000;
 	}
 
 	for (int i=0; i<4; i++) {
@@ -77,11 +77,13 @@ void vdc_t::reset()
 		layer[i].flags0_bit3_color_memory = false;
         layer[i].flags1_bit45_hstretch  = 0;
 		layer[i].flags1_bit67_vstretch = 0;
+		layer[i].hsize = 1;
+		layer[i].vsize = 6;
 		layer[i].colors[0] = 0b00;
 		layer[i].colors[1] = 0b01;
 		layer[i].colors[2] = 0b10;
 		layer[i].colors[3] = 0b11;
-		layer[i].tileset_address = VDC_TILESET_ADDRESS;
+		layer[i].tileset_address = 0x800;
 	}
 
 	layer[0].tiles_address = VDC_LAYER0_TILES_ADDRESS & 0xfffe;
@@ -136,31 +138,40 @@ void vdc_t::draw_scanline(uint16_t scanline)
 
 void vdc_t::draw_scanline_layer(layer_t *l, uint16_t sl)
 {
-	uint16_t y = (l->y + sl) & ((0x100 << l->flags1_bit67_vstretch) - 1);
+	uint16_t y = (l->y + sl) % ((32 * l->vsize) << l->flags1_bit67_vstretch);
 
 	y >>= l->flags1_bit67_vstretch;
 
-	uint8_t y_in_tile = y % 8;
+	uint8_t y_in_tile = y % l->vsize;
 
 	for (uint16_t scr_x = 0; scr_x < VDC_XRES; scr_x++)
 	{
-		uint16_t x = (l->x + scr_x) & ((0x200 << l->flags1_bit45_hstretch) - 1);
+		uint16_t x = (l->x + scr_x) % (((128 * 4 * l->hsize) << l->flags1_bit45_hstretch));
 
 		x >>= l->flags1_bit45_hstretch;
 
+		// px = pixel in byte being read?
 		uint8_t  px = x % 4;
 
-		uint16_t tile_index = (l->tiles_address  + ((y >> 3) << 6) + (x >> 3)) & 0xffff;
+		// << 7 heeft te maken met aantal (niet zichtbare) tiles per lijn = 128
+		uint16_t index = (((y / l->vsize) << 7) + (x / (4 * l->hsize))) & 0xffff;
+		uint16_t tile_index = (l->tiles_address  + index) & 0xffff;
 		if (!l->flags0_bit1_bitmapped) tile_index = ram[tile_index];
 
-		uint8_t  color_index = ram[(l->colors_address + ((y >> 3) << 6) + (x >> 3)) & 0xffff];
+		uint8_t color = ram[(l->colors_address + index) & 0xffff];
 
+		// messy.... TODO
 		// result has value 0b00, 0b01, 0b10 or 0b11
-		uint8_t result = (ram[(l->tileset_address + (tile_index << 4) + (y_in_tile << 1) + ((x & 0x4) ? 1 : 0)) & 0xffff] >> (2 * (3 - px))) & 0b11;
+		uint8_t result = (ram[(
+			l->tileset_address +
+			(tile_index * l->vsize * l->hsize) +
+			(y_in_tile * l->hsize) +
+			((x >> 2) % l->hsize)
+		) & 0xffff] >> (2 * (3 - px))) & 0b11;
 
 		// if NOT (transparent AND 0b00) then pixel must be drawn
 		if (!(l->flags0_bit2_transparent && !result)) {
-			buffer[(VDC_XRES * sl) + scr_x] = (l->flags0_bit3_color_memory && (result == 0b11)) ? crt_palette[color_index] : crt_palette[l->colors[result]];
+			buffer[(VDC_XRES * sl) + scr_x] = (l->flags0_bit3_color_memory && (result == 0b11)) ? crt_palette[color] : crt_palette[l->colors[result]];
 		}
 	}
 }
@@ -284,7 +295,11 @@ uint8_t vdc_t::io_read8(uint16_t address)
 		case 0x15:
 			return
 				(layer[current_layer].flags1_bit45_hstretch  << 4) |
-				(layer[current_layer].flags1_bit67_vstretch << 6) ;
+				(layer[current_layer].flags1_bit67_vstretch << 6)  ;
+		case 0x16:
+			return layer[current_layer].hsize;
+		case 0x17:
+			return layer[current_layer].vsize;
 		case 0x18:
 			return layer[current_layer].colors[0];
 		case 0x19:
@@ -432,6 +447,16 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 		case 0x15:
 			layer[current_layer].flags1_bit45_hstretch  = (value & 0b00110000) >> 4;
 			layer[current_layer].flags1_bit67_vstretch = (value & 0b11000000) >> 6;
+			break;
+		case 0x16:
+			layer[current_layer].hsize = value;
+			if (value == 0) layer[current_layer].hsize = 1;
+			if (value > 4) layer[current_layer].hsize = 4;
+			break;
+		case 0x17:
+			layer[current_layer].vsize = value;
+			if (value == 0) layer[current_layer].vsize = 1;
+			if (value > 16) layer[current_layer].vsize = 16;
 			break;
 		case 0x18:
 			layer[current_layer].colors[0] = value;

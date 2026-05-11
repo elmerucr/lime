@@ -31,10 +31,10 @@ rndb		equ	$6017	; 1 byte
 rndc		equ	$6018	; 1 byte
 rndx		equ	$6019	; 1 byte
 
-TERMINAL_HPITCH	equ	$40	; 64
+TERMINAL_HPITCH	equ	$80	; 128
 TERMINAL_VPITCH	equ	$20	; 32
-TERMINAL_WIDTH	equ	$28	; 40 columns
-TERMINAL_HEIGHT	equ	$16	; 22 rows
+TERMINAL_WIDTH	equ	$50	; 80 columns
+TERMINAL_HEIGHT	equ	$1e	; 30 rows
 ;TERMINAL_SIZE	equ	(TERMINAL_HPITCH*TERMINAL_VPITCH)
 
 
@@ -42,7 +42,7 @@ TERMINAL_HEIGHT	equ	$16	; 22 rows
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.9.20260507"
+	dc.b	"rom mc68000 0.9.20260511"
 
 	align	2
 
@@ -64,7 +64,7 @@ _start
 	jsr	terminal_clear
 
 	move.b	#$68,logo_animation.w		; init variable for letter wobble
-	move.b	#$af,VDC_IRQ_SCANLINE_LSB	; set rasterline 175
+	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
 	move.b	#%00000001,VDC_CR		; enable irq's for vdc
 
 	andi.w	#$00ff,SR			; jump to user mode, IPL reg = 0b000
@@ -380,9 +380,9 @@ vdc_init_layer0
 vdc_copy_rom_font
 	move.b	CORE_ROMS.w,-(SP)
 
-	or.b	#%00000010,CORE_ROMS.w			; make rom font visible to cpu
-	movea.l	#VDC_TILESET_ADDRESS,A0
-	movea.l	#VDC_TILESET_ADDRESS+$1000,A1
+	or.b	#%00000110,CORE_ROMS.w			; make rom font visible to cpu
+	movea.l	#$800,A0
+	movea.l	#$2000,A1
 
 .1	move.l	(A0),(A0)+				; copy rom font to underlying ram
 	cmpa	A1,A0
@@ -464,12 +464,12 @@ terminal_putchar
 
 	addq.w	#1,D0			; move cursor one step to the right
 	move.w	D0,D1
-	andi.w	#%111111,D1
-	cmp.w	#TERMINAL_WIDTH,D1	; are we at pos 40 or higher?
+	andi.w	#%1111111,D1
+	cmp.w	#TERMINAL_WIDTH,D1	; are we at pos 80 or higher?
 	blo	.3			; no
 
 .1	addi.w	#TERMINAL_HPITCH,D0	; yes, move cursor one line down
-.2	andi.w	#%1111111111000000,D0	; cursor to beginning of line (carriage return)
+.2	andi.w	#%1111111110000000,D0	; cursor to beginning of line (carriage return)
 
 	cmp.w	#(TERMINAL_HPITCH*TERMINAL_HEIGHT),D0	; check for cursor out of screen
 	blo	.3			; no

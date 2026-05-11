@@ -75,6 +75,7 @@
 #include "rom_mc68000.hpp"
 #include "rom_mc6809.hpp"
 #include "font_cbm_8x8.hpp"
+#include "font_4x6.hpp"
 #include "timer.hpp"
 #include "sound.hpp"
 #include "clocks.hpp"
@@ -85,8 +86,9 @@
 #define     VDC_SUB_PAGE      0x00
 #define     TIMER_SUB_PAGE    0x40
 #define     CORE_SUB_PAGE     0x80
-#define	SOUND_IO_PAGE       0x000500
-#define CBM_FONT_PAGE       0x001000
+#define SOUND_IO_PAGE       0x000500
+#define FONT_4X6_PAGE		0x000800
+#define FONT_CBM_PAGE       0x001000
 #define MC6809_ROM_ADDRESS  0x00fc00
 #define MC68000_ROM_ADDRESS 0x010000
 
@@ -104,8 +106,9 @@ private:
 	rom_mc6809_t *rom_mc6809;
 
 	// memory configuration address $02 in core bank
-	bool system_rom_visible;	// bit 0
-	bool character_rom_visible;	// bit 1
+	bool system_rom_visible;		// bit 0
+	bool character_cbm_rom_visible;	// bit 1
+	bool character_4x6_rom_visible;	// bit 2
 
 	// irq related
 	uint8_t dev_number_exceptions;		// unique number assigned by exception unit
@@ -136,7 +139,8 @@ public:
 	clocks *cpu_to_core_clock;
 	clocks *core_to_sid_clock;
 
-	font_cbm_8x8_t *font;
+	font_cbm_8x8_t *font_cbm;
+	font_4x6_t *font_4x6;
 	timer_ic *timer;
 	sound_ic *sound;
 

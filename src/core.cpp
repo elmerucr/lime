@@ -43,7 +43,8 @@ core_t::core_t(system_t *s)
 
 	core_to_sid_clock = new clocks(CORE_CYCLES_PER_FRAME, SID_CYCLES_PER_FRAME);
 
-	font = new font_cbm_8x8_t();
+	font_cbm = new font_cbm_8x8_t();
+	font_4x6 = new font_4x6_t();
 
 	// register core as an interrupt device
 	dev_number_exceptions = exceptions->connect_device("core");
@@ -59,7 +60,8 @@ core_t::core_t(system_t *s)
 core_t::~core_t()
 {
 	delete [] file_data;
-	delete font;
+	delete font_4x6;
+	delete font_cbm;
 	delete core_to_sid_clock;
 	delete cpu_to_core_clock;
 	delete sound;
@@ -140,8 +142,9 @@ uint8_t core_t::io_read8(uint32_t address)
 		case 0x02:
 			// core roms
 			return
-				(system_rom_visible    ? 0b00000001 : 0b00000000) |
-				(character_rom_visible ? 0b00000010 : 0b00000000) ;
+				(system_rom_visible        ? 0b00000001 : 0b00000000) |
+				(character_cbm_rom_visible ? 0b00000010 : 0b00000000) |
+				(character_4x6_rom_visible ? 0b00000100 : 0b00000000) ;
 		case 0x03:
 			return cpu_multiplier;
 		case 0x04:
@@ -196,8 +199,9 @@ void core_t::io_write8(uint32_t address, uint8_t value)
 		}
 		break;
 	case 0x02:
-		system_rom_visible    = (value & 0b00000001) ? true : false;
-		character_rom_visible = (value & 0b00000010) ? true : false;
+		system_rom_visible        = (value & 0b00000001) ? true : false;
+		character_cbm_rom_visible = (value & 0b00000010) ? true : false;
+		character_4x6_rom_visible = (value & 0b00000100) ? true : false;
 		break;
 	case 0x03:
 		cpu_multiplier = value & 0b11;
@@ -228,9 +232,15 @@ uint8_t core_t::read8(uint32_t address)
 		}
 	} else if ((address & 0xffff00) == SOUND_IO_PAGE) {
 		return sound->io_read_byte(address);
-	} else if ((address & 0xfff000) == CBM_FONT_PAGE) {
-		if (character_rom_visible) {
-			return font->io_read8(address);
+	} else if ((address & 0xfff800) == FONT_4X6_PAGE) {
+		if (character_4x6_rom_visible) {
+			return font_4x6->io_read8(address);
+		} else {
+			return vdc->ram[address];
+		}
+	} else if ((address & 0xfff000) == FONT_CBM_PAGE) {
+		if (character_cbm_rom_visible) {
+			return font_cbm->io_read8(address);
 		} else {
 			return vdc->ram[address];
 		}
@@ -287,7 +297,8 @@ void core_t::reset()
 	bin_attached = false;
 
 	system_rom_visible = true;
-	character_rom_visible = false;
+	character_cbm_rom_visible = false;
+	character_4x6_rom_visible = false;
 
 	sound->reset();
 	timer->reset();

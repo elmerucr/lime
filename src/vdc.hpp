@@ -85,12 +85,22 @@ struct layer_t {
 	//
 	// bit 7 6 5 4 3 2 1 0
 	//     | | | |
-	//     | | +-+--------- bits coding for horizontal stretch (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
-	//     +-+------------- bits coding for vertical stretch (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
+	//     | | +-+--------- horizontal stretch (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
+	//     +-+------------- vertical stretch (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
 	//
 	// -----------------------------------------------------------------
 	uint8_t flags1_bit45_hstretch;
 	uint8_t flags1_bit67_vstretch;
+
+	// -----------------------------------------------------------------
+	// in bytes, 1 bytes codes for 4 pixels
+	// valid: 1, 2, 3, 4
+	uint8_t hsize;
+
+	// -----------------------------------------------------------------
+	// in bytes, 1 pixel thick
+	// values from 1 .. 16
+	uint8_t vsize;
 
 	uint8_t colors[4];
 
@@ -130,8 +140,8 @@ struct sprite_t {
 	//     | | | |   | | +- flip h  (1)
 	//     | | | |   | +--- flip v  (1)
 	//     | | | |   +----- flip xy (1)
-	//     | | +-+--------- bits coding for horizontal stretch (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
-	//     +-+------------- bits coding for vertical stretch (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
+	//     | | +-+--------- horizontal stretch (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
+	//     +-+------------- vertical stretch (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
 	//
 	// -----------------------------------------------------------------
 	bool flags1_bit0_flip_h;
@@ -251,7 +261,7 @@ public:
 		LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00, LIME_COLOR_00
 	};
 
-	uint8_t crt_contrast{0xcc};
+	uint8_t crt_contrast{0xee};
 	uint32_t crt_palette[256];
 	void calculate_crt_palette_entry(uint8_t c);
 	void calculate_crt_palette();

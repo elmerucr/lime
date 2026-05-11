@@ -13,7 +13,7 @@
 // ---------------------------------------------------------------------
 #define LIME_MAJOR_VERSION			0
 #define LIME_MINOR_VERSION			12
-#define LIME_BUILD					20260507
+#define LIME_BUILD					20260511
 #define LIME_YEAR					2026
 
 // ---------------------------------------------------------------------
@@ -21,21 +21,21 @@
 // ---------------------------------------------------------------------
 #define	VDC_RAM						0x1000000	// 16mb
 #define	VDC_RAM_MASK				(VDC_RAM-1)
-#define VDC_XRES					320			// 40 tiles
-#define VDC_YRES					176			// 22 tiles
-#define VDC_SCANLINES				(176+32)	// 176 visible, 32 vblank
+#define VDC_XRES					320			// 40 tiles @ 8, 80 tiles @ 4
+#define VDC_YRES					180			// 22.5 tiles @ 8, 30 tiles @ 6
+#define VDC_SCANLINES				(180+28)	// 176 visible, 32 vblank
 
 #define VDC_TILESET_ADDRESS			0x1000
 
 #define VDC_LAYER0_COLORS_ADDRESS	0x2000
-#define VDC_LAYER1_COLORS_ADDRESS	0x2800
-#define VDC_LAYER2_COLORS_ADDRESS	0x3000
-#define VDC_LAYER3_COLORS_ADDRESS	0x3800
+#define VDC_LAYER1_COLORS_ADDRESS	0x2000
+#define VDC_LAYER2_COLORS_ADDRESS	0x2000
+#define VDC_LAYER3_COLORS_ADDRESS	0x2000
 
-#define VDC_LAYER0_TILES_ADDRESS	0x4000
-#define VDC_LAYER1_TILES_ADDRESS	0x4800
-#define VDC_LAYER2_TILES_ADDRESS	0x5000
-#define VDC_LAYER3_TILES_ADDRESS	0x5800
+#define VDC_LAYER0_TILES_ADDRESS	0x3000
+#define VDC_LAYER1_TILES_ADDRESS	0x3000
+#define VDC_LAYER2_TILES_ADDRESS	0x3000
+#define VDC_LAYER3_TILES_ADDRESS	0x3000
 
 // ---------------------------------------------------------------------
 // system / host
@@ -53,7 +53,7 @@
 // debugger
 // ---------------------------------------------------------------------
 #define DEBUGGER_XRES				640
-#define	DEBUGGER_YRES				352
+#define	DEBUGGER_YRES				360
 
 // ---------------------------------------------------------------------
 // audio

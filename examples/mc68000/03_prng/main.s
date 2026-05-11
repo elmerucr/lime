@@ -1,5 +1,5 @@
 main	move.b	#$16,VDC_BG_COLOR	; c64 blue background color
-	move.b	#$0e,$6004.w		; c64 lightblue fg color
+	move.b	#$1e,$6004.w		; c64 lightblue fg color
 	clr.b	VDC_CURRENT_LAYER
 	;andi.b	#%11110111,VDC_LAYER_FLAGS0	; turn off color per tile
 
