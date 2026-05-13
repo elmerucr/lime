@@ -1,5 +1,5 @@
 Sections:
-00: "org0001:1fff7" (1FFF7-2007F)
+00: "org0001:1fff7" (1FFF7-20088)
 
 
 Source: "base.s"
@@ -97,14 +97,14 @@ Source: "../../../rom/mc68000/definitions.i"
                             	    84: VDC_TILESET_ADDRESS		equ	$1000
                             	    85: 
                             	    86: VDC_LAYER0_COLORS		equ	$2000
-                            	    87: VDC_LAYER1_COLORS		equ	$2800
-                            	    88: VDC_LAYER2_COLORS		equ	$3000
-                            	    89: VDC_LAYER3_COLORS		equ	$3800
+                            	    87: VDC_LAYER1_COLORS		equ	$2000
+                            	    88: VDC_LAYER2_COLORS		equ	$2000
+                            	    89: VDC_LAYER3_COLORS		equ	$2000
                             	    90: 
-                            	    91: VDC_LAYER0_TILES		equ	$4000
-                            	    92: VDC_LAYER1_TILES		equ	$4800
-                            	    93: VDC_LAYER2_TILES		equ	$5000
-                            	    94: VDC_LAYER3_TILES		equ	$5800
+                            	    91: VDC_LAYER0_TILES		equ	$3000
+                            	    92: VDC_LAYER1_TILES		equ	$3000
+                            	    93: VDC_LAYER2_TILES		equ	$3000
+                            	    94: VDC_LAYER3_TILES		equ	$3000
                             	    95: 
                             	    96: ; sound devices
                             	    97: SID0_F				equ	$0500
@@ -147,7 +147,7 @@ Source: "base.s"
                             	     8: 		org	RAM_START-9			; allocate 9 bytes for preamble
                             	     9: 
 00:0001FFF7 01              	    10: 		dc.b	$01				; first byte
-00:0001FFF8 0000005D        	    11: 		dc.l	graph_preamble-RAM_START	; size (16 bit unsigned)
+00:0001FFF8 00000066        	    11: 		dc.l	graph_preamble-RAM_START	; size (16 bit unsigned)
 00:0001FFFC 00020000        	    12: 		dc.l	RAM_START			; where (16 bit unsigned)
                             	    13: 
                             	    14: 		include	"main.s"
@@ -156,52 +156,53 @@ Source: "main.s"
 00:00020000 13FC003700000404	     1: main	move.b	#$37,VDC_BG_COLOR	; pink background color
 00:00020008 423900000406    	     2: 	clr.b	VDC_CURRENT_LAYER
 00:0002000E 023900F700000414	     3: 	andi.b	#%11110111,VDC_LAYER_FLAGS0	; turn off color per tile
-                            	     4: 
-00:00020016 423900000407    	     5: 	clr.b	VDC_CURRENT_SPRITE
-00:0002001C 423900000427    	     6: 	clr.b	VDC_SPRITE_INDEX
-00:00020022 13FC000500000424	     7: 	move.b	#%00000101,VDC_SPRITE_FLAGS0
-00:0002002A 13FC00080000042E	     8: 	move.b	#$08,VDC_SPRITE_TILESET_PAGE
-00:00020032 13FC003800000421	     9: 	move.b	#56,VDC_SPRITE_X_LSB
-00:0002003A 423900000423    	    10: 	clr.b	VDC_SPRITE_Y_LSB
-                            	    11: 
-00:00020040 103C0002        	    12: 	move.b	#2,D0
-00:00020044 41F900020050    	    13: 	lea.l	hello,A0
-00:0002004A 4E4F            	    14: 	trap	#15
-                            	    15: 
-00:0002004C 6000FFFE        	    16: .1	bra	.1
-                            	    17: 
-00:00020050 48656C6C6F207720	    18: hello	dc.b	"Hello w rld!",0
-00:00020058 726C6421
-00:0002005C 00
-                            	    19: 
+00:00020016 33FCFFFB00000412	     4: 	move.w	#$fffb,VDC_LAYER_Y_MSB
+                            	     5: 
+00:0002001E 423900000407    	     6: 	clr.b	VDC_CURRENT_SPRITE
+00:00020024 423900000427    	     7: 	clr.b	VDC_SPRITE_INDEX
+00:0002002A 13FC000500000424	     8: 	move.b	#%00000101,VDC_SPRITE_FLAGS0
+00:00020032 13FC00080000042E	     9: 	move.b	#$08,VDC_SPRITE_TILESET_PAGE
+00:0002003A 13FC001B00000421	    10: 	move.b	#27,VDC_SPRITE_X_LSB
+00:00020042 423900000423    	    11: 	clr.b	VDC_SPRITE_Y_LSB
+                            	    12: 
+00:00020048 103C0002        	    13: 	move.b	#2,D0
+00:0002004C 41F900020058    	    14: 	lea.l	hello,A0
+00:00020052 4E4F            	    15: 	trap	#15
+                            	    16: 
+00:00020054 6000FFFE        	    17: .1	bra	.1
+                            	    18: 
+00:00020058 48656C6C6F205720	    19: hello	dc.b	"Hello W  rld!",0
+00:00020060 20726C6421
+00:00020065 00
+                            	    20: 
 
 Source: "base.s"
                             	    15: 
-00:0002005D 01              	    16: graph_preamble	dc.b	$01				; first byte
-00:0002005E 00000010        	    17: 		dc.l	postamble-tiles			; size (16 bit unsigned)
-00:00020062 00000800        	    18: 		dc.l	$0800				; where (16 bit unsigned)
+00:00020066 01              	    16: graph_preamble	dc.b	$01				; first byte
+00:00020067 00000010        	    17: 		dc.l	postamble-tiles			; size (16 bit unsigned)
+00:0002006B 00000800        	    18: 		dc.l	$0800				; where (16 bit unsigned)
                             	    19: 
                             	    20: tiles		include	"tiles.s"
 
 Source: "tiles.s"
-00:00020066 0150            	     1: 		dc.w	%0000000101010000
-00:00020068 06A4            	     2: 		dc.w	%0000011010100100
-00:0002006A 1999            	     3: 		dc.w	%0001100110011001
-00:0002006C 1AA9            	     4: 		dc.w	%0001101010101001
-00:0002006E 1999            	     5: 		dc.w	%0001100110011001
-00:00020070 1959            	     6: 		dc.w	%0001100101011001
-00:00020072 06A4            	     7: 		dc.w	%0000011010100100
-00:00020074 0150            	     8: 		dc.w	%0000000101010000
+00:0002006F 0150            	     1: 		dc.w	%0000000101010000
+00:00020071 06A4            	     2: 		dc.w	%0000011010100100
+00:00020073 1999            	     3: 		dc.w	%0001100110011001
+00:00020075 1AA9            	     4: 		dc.w	%0001101010101001
+00:00020077 1999            	     5: 		dc.w	%0001100110011001
+00:00020079 1959            	     6: 		dc.w	%0001100101011001
+00:0002007B 06A4            	     7: 		dc.w	%0000011010100100
+00:0002007D 0150            	     8: 		dc.w	%0000000101010000
                             	     9: 
 
 Source: "base.s"
                             	    21: 
-00:00020076 FE              	    22: postamble	dc.b	$fe,$00,$00,$00,$00
-00:00020077 00
-00:00020078 00
-00:00020079 00
-00:0002007A 00
-00:0002007B 00020000        	    23: 		dc.l	main				; execution address
+00:0002007F FE              	    22: postamble	dc.b	$fe,$00,$00,$00,$00
+00:00020080 00
+00:00020081 00
+00:00020082 00
+00:00020083 00
+00:00020084 00020000        	    23: 		dc.l	main				; execution address
                             	    24: 
 
 
@@ -211,21 +212,23 @@ VDC_BG_COLOR                     E:00000404
 VDC_CURRENT_LAYER                E:00000406
 VDC_CURRENT_SPRITE               E:00000407
 VDC_LAYER_FLAGS0                 E:00000414
+VDC_LAYER_Y_MSB                  E:00000412
 VDC_SPRITE_FLAGS0                E:00000424
 VDC_SPRITE_INDEX                 E:00000427
 VDC_SPRITE_TILESET_PAGE          E:0000042E
 VDC_SPRITE_X_LSB                 E:00000421
 VDC_SPRITE_Y_LSB                 E:00000423
-graph_preamble                   A:0002005D
-hello                            A:00020050
+graph_preamble                   A:00020066
+hello                            A:00020058
 main                             A:00020000
-postamble                        A:00020076
-tiles                            A:00020066
+postamble                        A:0002007F
+tiles                            A:0002006F
 
 Symbols by value:
 00000404 VDC_BG_COLOR
 00000406 VDC_CURRENT_LAYER
 00000407 VDC_CURRENT_SPRITE
+00000412 VDC_LAYER_Y_MSB
 00000414 VDC_LAYER_FLAGS0
 00000421 VDC_SPRITE_X_LSB
 00000423 VDC_SPRITE_Y_LSB
@@ -234,7 +237,7 @@ Symbols by value:
 0000042E VDC_SPRITE_TILESET_PAGE
 00020000 RAM_START
 00020000 main
-00020050 hello
-0002005D graph_preamble
-00020066 tiles
-00020076 postamble
+00020058 hello
+00020066 graph_preamble
+0002006F tiles
+0002007F postamble

@@ -279,7 +279,7 @@ exc_lvl6_irq_auto				; coupled to vdc
 
 	move.b	#4,D1				; start with sprite 4 (letter 'l')
 .2	move.b	D1,VDC_CURRENT_SPRITE
-	move.b	#88,VDC_SPRITE_Y_LSB		; base position for each letter
+	move.b	#92,VDC_SPRITE_Y_LSB		; base position for each letter
 
 	move.b	VDC_SPRITE_X_LSB,D0		; store x for current sprite in D0
 	sub.b	logo_animation,D0		; subtract logo_an x value from D0
@@ -566,14 +566,14 @@ file_loading4	dc.b	$0a,$0a," jumping to $",0
 
 	align	2
 logo_data
-	dc.b	0,152,0,72,%111,0,0,$1c	; icon top left
-	dc.b	0,160,0,72,%111,0,0,$1d	; icon top right
-	dc.b	0,152,0,80,%111,0,0,$1e	; icon bottom left
-	dc.b	0,160,0,80,%111,0,0,$1f	; icon bottom right
-	dc.b	0,147,0,88,%111,0,0,$6c	; l
-	dc.b	0,152,0,88,%111,0,0,$69	; i
-	dc.b	0,158,0,88,%111,0,0,$6d	; m
-	dc.b	0,166,0,88,%111,0,0,$65	; e
+	dc.b	0,152,0,76,%111,0,0,$1c	; icon top left
+	dc.b	0,160,0,76,%111,0,0,$1d	; icon top right
+	dc.b	0,152,0,84,%111,0,0,$1e	; icon bottom left
+	dc.b	0,160,0,84,%111,0,0,$1f	; icon bottom right
+	dc.b	0,147,0,92,%111,0,0,$6c	; l
+	dc.b	0,152,0,92,%111,0,0,$69	; i
+	dc.b	0,158,0,92,%111,0,0,$6d	; m
+	dc.b	0,166,0,92,%111,0,0,$65	; e
 
 
 logo_tiles

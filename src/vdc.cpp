@@ -146,7 +146,7 @@ void vdc_t::draw_scanline_layer(layer_t *l, uint16_t sl)
 
 	for (uint16_t scr_x = 0; scr_x < VDC_XRES; scr_x++)
 	{
-		uint16_t x = (l->x + scr_x) % (((128 * 4 * l->hsize) << l->flags1_bit45_hstretch));
+		uint16_t x = (l->x + scr_x) % ((128 * 4 * l->hsize) << l->flags1_bit45_hstretch);
 
 		x >>= l->flags1_bit45_hstretch;
 

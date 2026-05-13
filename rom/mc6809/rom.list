@@ -155,18 +155,18 @@ FC00 726F6D206D633638                 fcn     "rom mc6809 0.11 20260215"
 FC19 10CE0200         reset           lds     #$0200          ; sets system stackpointer + enables nmi
 FC1D CEFE00                           ldu     #$fe00          ; sets user stackpointer
                       
-FC20 B60482                           lda     CORE_ROMS       ; make font visible to cpu
-FC23 8A02                             ora     #%00000010
+FC20 B60482                           lda     CORE_ROMS       ; make fonts visible to cpu
+FC23 8A06                             ora     #%00000110
 FC25 B70482                           sta     CORE_ROMS
                       
-FC28 8E1000                           ldx     #VDC_TILESET_ADDRESS    ; copy font from rom to ram
+FC28 8E0800                           ldx     #$800   ; copy font from rom to ram
 FC2B A684             1               lda     ,x
 FC2D A780                             sta     ,x+
-FC2F 8C2000                           cmpx    #VDC_TILESET_ADDRESS+$1000
+FC2F 8C2000                           cmpx    #$2000
 FC32 26F7                             bne     1b
                       
 FC34 B60482                           lda     CORE_ROMS               ; turn off font rom
-FC37 84FD                             anda    #%11111101
+FC37 84F9                             anda    #%11111001
 FC39 B70482                           sta     CORE_ROMS
                       
 FC3C 8EFDEC                           ldx     #logo_tiles
@@ -262,14 +262,14 @@ FCDF B7053B                           sta     SID1_V                  ; sid 1 vo
 FCE2 3726                             pulu    y,b,a
 FCE4 39                               rts
                       
-FCE5 009800480700001C logo_data       fcb     0,152,0,72,%111,0,0,$1c         ; icon top left
-FCED 00A000480700001D                 fcb     0,160,0,72,%111,0,0,$1d         ; icon top right
-FCF5 009800500700001E                 fcb     0,152,0,80,%111,0,0,$1e         ; icon bottom left
-FCFD 00A000500700001F                 fcb     0,160,0,80,%111,0,0,$1f         ; icon bottom right
-FD05 009300580700006C                 fcb     0,147,0,88,%111,0,0,$6c         ; l
-FD0D 0098005807000069                 fcb     0,152,0,88,%111,0,0,$69         ; i
-FD15 009E00580700006D                 fcb     0,158,0,88,%111,0,0,$6d         ; m
-FD1D 00A6005807000065                 fcb     0,166,0,88,%111,0,0,$65         ; e
+FCE5 0098004C0700001C logo_data       fcb     0,152,0,76,%111,0,0,$1c         ; icon top left
+FCED 00A0004C0700001D                 fcb     0,160,0,76,%111,0,0,$1d         ; icon top right
+FCF5 009800540700001E                 fcb     0,152,0,84,%111,0,0,$1e         ; icon bottom left
+FCFD 00A000540700001F                 fcb     0,160,0,84,%111,0,0,$1f         ; icon bottom right
+FD05 0093005C0700006C                 fcb     0,147,0,92,%111,0,0,$6c         ; l
+FD0D 0098005C07000069                 fcb     0,152,0,92,%111,0,0,$69         ; i
+FD15 009E005C0700006D                 fcb     0,158,0,92,%111,0,0,$6d         ; m
+FD1D 00A6005C07000065                 fcb     0,166,0,92,%111,0,0,$65         ; e
                       
 FD25 B60440           exc_irq         lda     TIMER_SR                ; load timer status register
 FD28 2716                             beq     exc_vdc
@@ -310,7 +310,7 @@ FD6C 9700             1               sta     logo_animation
 FD6E C604                             ldb     #$04                    ; set current sprite to 4
 FD70 F70407           2               stb     VDC_CURRENT_SPRITE
                       
-FD73 8658                             lda     #88                     ; set default y value
+FD73 865C                             lda     #92                     ; set default y value
 FD75 B70423                           sta     VDC_SPRITE_Y_LSB
                       
 FD78 B60421                           lda     VDC_SPRITE_X_LSB        ; load its x register

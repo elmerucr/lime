@@ -38,18 +38,18 @@ rndx		equ	$ff
 reset		lds	#$0200		; sets system stackpointer + enables nmi
 		ldu	#$fe00		; sets user stackpointer
 
-		lda	CORE_ROMS	; make font visible to cpu
-		ora	#%00000010
+		lda	CORE_ROMS	; make fonts visible to cpu
+		ora	#%00000110
 		sta	CORE_ROMS
 
-		ldx	#VDC_TILESET_ADDRESS	; copy font from rom to ram
+		ldx	#$800	; copy font from rom to ram
 1		lda	,x
 		sta	,x+
-		cmpx	#VDC_TILESET_ADDRESS+$1000
+		cmpx	#$2000
 		bne	1b
 
 		lda	CORE_ROMS		; turn off font rom
-		anda	#%11111101
+		anda	#%11111001
 		sta	CORE_ROMS
 
 		ldx	#logo_tiles
@@ -145,14 +145,14 @@ sound_reset	pshu	y,b,a
 		pulu	y,b,a
 		rts
 
-logo_data	fcb	0,152,0,72,%111,0,0,$1c		; icon top left
-		fcb	0,160,0,72,%111,0,0,$1d		; icon top right
-		fcb	0,152,0,80,%111,0,0,$1e		; icon bottom left
-		fcb	0,160,0,80,%111,0,0,$1f		; icon bottom right
-		fcb	0,147,0,88,%111,0,0,$6c		; l
-		fcb	0,152,0,88,%111,0,0,$69		; i
-		fcb	0,158,0,88,%111,0,0,$6d		; m
-		fcb	0,166,0,88,%111,0,0,$65		; e
+logo_data	fcb	0,152,0,76,%111,0,0,$1c		; icon top left
+		fcb	0,160,0,76,%111,0,0,$1d		; icon top right
+		fcb	0,152,0,84,%111,0,0,$1e		; icon bottom left
+		fcb	0,160,0,84,%111,0,0,$1f		; icon bottom right
+		fcb	0,147,0,92,%111,0,0,$6c		; l
+		fcb	0,152,0,92,%111,0,0,$69		; i
+		fcb	0,158,0,92,%111,0,0,$6d		; m
+		fcb	0,166,0,92,%111,0,0,$65		; e
 
 exc_irq		lda	TIMER_SR		; load timer status register
 		beq	exc_vdc
@@ -193,7 +193,7 @@ vdc_interrupt	lda	VDC_CURRENT_SPRITE
 		ldb	#$04			; set current sprite to 4
 2		stb	VDC_CURRENT_SPRITE
 
-		lda	#88			; set default y value
+		lda	#92			; set default y value
 		sta	VDC_SPRITE_Y_LSB
 
 		lda	VDC_SPRITE_X_LSB	; load its x register
