@@ -105,6 +105,8 @@ void vdc_t::reset()
 	irq_scanline = 0;
 	new_scanline = true;
 
+	border_color = 0x00;
+	border_size = 0x00;
 	bg_color = 0x00;
 
 	irq_line = true;
