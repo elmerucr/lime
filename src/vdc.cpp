@@ -78,7 +78,7 @@ void vdc_t::reset()
         layer[i].flags1_bit45_hstretch  = 0;
 		layer[i].flags1_bit67_vstretch = 0;
 		layer[i].hsize = 1;
-		layer[i].vsize = 6;
+		layer[i].vsize = 8;
 		layer[i].colors[0] = 0b00;
 		layer[i].colors[1] = 0b01;
 		layer[i].colors[2] = 0b10;
@@ -117,22 +117,28 @@ void vdc_t::draw_scanline(uint16_t scanline)
 {
 	if (scanline < VDC_YRES) {
 
-		for (int x=0; x<VDC_XRES; x++) {
-			buffer[(VDC_XRES * scanline) + x] = crt_palette[bg_color];
-		}
+        if ((scanline >= border_size) && (scanline < (VDC_YRES - border_size))) {
+            for (int x=0; x<VDC_XRES; x++) {
+                buffer[(VDC_XRES * scanline) + x] = crt_palette[bg_color];
+            }
 
-		for (int l=3; l>=0; l--) {
-			if (layer[l].flags0_bit0_visible) {
-				draw_scanline_layer(&layer[l], scanline);
-			}
+            for (int l=3; l>=0; l--) {
+                if (layer[l].flags0_bit0_visible) {
+                    draw_scanline_layer(&layer[l], scanline);
+                }
 
-			for (uint8_t i=0; i<64; i++) {
-				uint8_t s = (64 * l) + (63 - i);
-			    if (sprite[s].flags0_bit0_visible) {
-					draw_scanline_sprite(&sprite[s], scanline, &layer[l]);
-				}
-			}
-		}
+                for (uint8_t i=0; i<64; i++) {
+                    uint8_t s = (64 * l) + (63 - i);
+                    if (sprite[s].flags0_bit0_visible) {
+                        draw_scanline_sprite(&sprite[s], scanline, &layer[l]);
+                    }
+                }
+            }
+        } else {
+            for (int x=0; x<VDC_XRES; x++) {
+                buffer[(VDC_XRES * scanline) + x] = crt_palette[border_color];
+            }
+        }
 	}
 }
 
@@ -146,7 +152,7 @@ void vdc_t::draw_scanline_layer(layer_t *l, uint16_t sl)
 
 	for (uint16_t scr_x = 0; scr_x < VDC_XRES; scr_x++)
 	{
-		uint16_t x = (l->x + scr_x) % ((128 * 4 * l->hsize) << l->flags1_bit45_hstretch);
+		uint16_t x = (l->x + scr_x) % (((128 * 4 * l->hsize) << l->flags1_bit45_hstretch));
 
 		x >>= l->flags1_bit45_hstretch;
 
@@ -249,9 +255,9 @@ uint8_t vdc_t::io_read8(uint16_t address)
 			// control register
 			return generate_interrupts ? 0b1 : 0b0;
 		case 0x02:
+            return border_color;
 		case 0x03:
-			// reserved
-			return 0;
+			return border_size;
 		case 0x04:
 			return bg_color;
 		case 0x05:
@@ -376,8 +382,10 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			generate_interrupts = (value & 0b1) ? true : false;
 			break;
 		case 0x02:
+            border_color = value;
+            break;
 		case 0x03:
-			// reserved
+			border_size = value;
 			break;
 		case 0x04:
 			bg_color = value;

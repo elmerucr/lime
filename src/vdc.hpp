@@ -161,6 +161,9 @@ class vdc_t {
 private:
 	font_cbm_8x8_t font;
 
+    uint8_t border_color;
+    uint8_t border_size;
+
 	uint8_t bg_color;
 
 	uint16_t current_scanline;

@@ -75,7 +75,7 @@
 #include "rom_mc68000.hpp"
 #include "rom_mc6809.hpp"
 #include "font_cbm_8x8.hpp"
-#include "font_4x6.hpp"
+#include "font_4x8.hpp"
 #include "timer.hpp"
 #include "sound.hpp"
 #include "clocks.hpp"
@@ -140,7 +140,7 @@ public:
 	clocks *core_to_sid_clock;
 
 	font_cbm_8x8_t *font_cbm;
-	font_4x6_t *font_4x6;
+	font_4x8_t *font_4x8;
 	timer_ic *timer;
 	sound_ic *sound;
 

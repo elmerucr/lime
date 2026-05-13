@@ -44,7 +44,7 @@ core_t::core_t(system_t *s)
 	core_to_sid_clock = new clocks(CORE_CYCLES_PER_FRAME, SID_CYCLES_PER_FRAME);
 
 	font_cbm = new font_cbm_8x8_t();
-	font_4x6 = new font_4x6_t();
+	font_4x8 = new font_4x8_t();
 
 	// register core as an interrupt device
 	dev_number_exceptions = exceptions->connect_device("core");
@@ -60,7 +60,7 @@ core_t::core_t(system_t *s)
 core_t::~core_t()
 {
 	delete [] file_data;
-	delete font_4x6;
+	delete font_4x8;
 	delete font_cbm;
 	delete core_to_sid_clock;
 	delete cpu_to_core_clock;
@@ -234,7 +234,7 @@ uint8_t core_t::read8(uint32_t address)
 		return sound->io_read_byte(address);
 	} else if ((address & 0xfff800) == FONT_4X6_PAGE) {
 		if (character_4x6_rom_visible) {
-			return font_4x6->io_read8(address);
+			return font_4x8->io_read8(address);
 		} else {
 			return vdc->ram[address];
 		}
