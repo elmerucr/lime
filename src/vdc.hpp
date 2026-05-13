@@ -93,14 +93,15 @@ struct layer_t {
 	uint8_t flags1_bit67_vstretch;
 
 	// -----------------------------------------------------------------
-	// in bytes, 1 bytes codes for 4 pixels
-	// valid: 1, 2, 3, 4
-	uint8_t hsize;
-
+	// flags2
+	//
+	// bit 7 6 5 4 3 2 1 0
+	//         | |     | |
+	//         | |     +-+- hor size (0b00 = 4, 0b01 = 8, 0b10 = 16, 0b11 = 32)
+	//         +-+--------- ver size (0b00 = 4, 0b01 = 8, 0b10 = 16, 0b11 = 32)
 	// -----------------------------------------------------------------
-	// in bytes, 1 pixel thick
-	// values from 1 .. 16
-	uint8_t vsize;
+	uint8_t flags2_bit01_hsize;
+	uint8_t flags2_bit45_vsize;
 
 	uint8_t colors[4];
 

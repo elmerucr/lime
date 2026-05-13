@@ -1,8 +1,9 @@
 # Version ...
 
+* 20260513 Horizontal border
+* 20260513 Support different tile sizes in layer (4, 8, 16, 32 pixels h and w)
+* 20260513 Adding 4x8 font rom
 * 20260511 revert from 176 to 180 visible scanlines again
-* 20260511 Support different tile sizes in layer
-* 20260508 Adding 4x6 font rom (punch)
 * 20260405 Compiles with SDL 3.4.4 on macOS Tahoe 26.4
 * 20260226 Debugger: Better stack views for m68k
 * 20260220 Host: Save screenshot in user homedir with <Alt+P>
