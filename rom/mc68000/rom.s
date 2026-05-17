@@ -34,7 +34,7 @@ rndx		equ	$6019	; 1 byte
 TERMINAL_HPITCH	equ	$80	; 128
 TERMINAL_VPITCH	equ	$20	; 32
 TERMINAL_WIDTH	equ	$50	; 80 columns
-TERMINAL_HEIGHT	equ	$1e	; 30 rows
+TERMINAL_HEIGHT	equ	$16	; 22 rows
 ;TERMINAL_SIZE	equ	(TERMINAL_HPITCH*TERMINAL_VPITCH)
 
 
@@ -295,7 +295,12 @@ exc_lvl6_irq_auto				; coupled to vdc
 
 .end	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w
 
-	movem.l	(SP)+,D0-D1
+	move.b	$606.w,D1
+	beq	.4
+	move.b	#1,D0
+	trap	#15
+
+.4	movem.l	(SP)+,D0-D1
 	move.b	(SP)+,VDC_CURRENT_SPRITE
 	rte
 

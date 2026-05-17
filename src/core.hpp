@@ -87,6 +87,7 @@
 #define     TIMER_SUB_PAGE    0x40
 #define     CORE_SUB_PAGE     0x80
 #define SOUND_IO_PAGE       0x000500
+#define KEYBOARD_IO_PAGE	0x000600
 #define FONT_4X6_PAGE		0x000800
 #define FONT_CBM_PAGE       0x001000
 #define MC6809_ROM_ADDRESS  0x00fc00

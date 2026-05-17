@@ -9,6 +9,7 @@
 #include "core.hpp"
 #include "common.hpp"
 #include "host.hpp"
+#include "keyboard.hpp"
 #include <unistd.h>
 
 core_t::core_t(system_t *s)
@@ -232,6 +233,8 @@ uint8_t core_t::read8(uint32_t address)
 		}
 	} else if ((address & 0xffff00) == SOUND_IO_PAGE) {
 		return sound->io_read_byte(address);
+	} else if ((address & 0xffff00) == KEYBOARD_IO_PAGE) {
+		return system->keyboard->io_read8(address);
 	} else if ((address & 0xfff800) == FONT_4X6_PAGE) {
 		if (character_4x6_rom_visible) {
 			return font_4x8->io_read8(address);
@@ -283,8 +286,9 @@ void core_t::write8(uint32_t address, uint8_t value)
 				break;
 		}
 	} else if ((address & 0xffff00) == SOUND_IO_PAGE) {
-		// sound page
 		sound->io_write_byte(address, value);
+	} else if ((address & 0xffff00) == KEYBOARD_IO_PAGE) {
+		system->keyboard->io_write8(address, value);
 	} else {
 		vdc->ram[address] = value;
 	}
