@@ -275,7 +275,7 @@ void keyboard_t::io_write8(uint16_t address, uint8_t value)
 	switch (address & 0xff) {
 		case 0x01:
 			// control register
-			if (value & 0b100000000) head = tail;
+			if (value & 0b10000000) purge();
 			break;
 		case 0x02:
 			repeat_delay_ms = (repeat_delay_ms & 0x00ff) | (value << 8);

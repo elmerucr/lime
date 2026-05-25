@@ -5,14 +5,6 @@
  * Copyright © 2026 elmerucr. All rights reserved.
  */
 
-/*
- * Inspired by:
- *
- * https://hackaday.io/project/6309-vga-graphics-over-spi-and-serial-vgatonic/log/20759-a-tiny-4x6-pixel-font-that-will-fit-on-almost-any-microcontroller-license-mit
- *
- * Atari E80 / Altirra fonts
- */
-
 #include <cstdint>
 
 #ifndef FONT_4X8_HPP
@@ -518,7 +510,7 @@ public:
 		0b1110,
 		0b0000,
 
-		0b1110,	// $33 '3'
+		0b1100,	// $33 '3'
 		0b0010,
 		0b0010,
 		0b0100,
@@ -538,11 +530,11 @@ public:
 
 		0b1110,	// $35 '5'
 		0b1000,
-		0b1110,
+		0b1100,
 		0b0010,
 		0b0010,
 		0b1010,
-		0b1100,
+		0b0100,
 		0b0000,
 
 		0b0110,	// $36 '6'

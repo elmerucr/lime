@@ -12,37 +12,44 @@
 ;
 ; ----------------------------------------------------------------------
 
+; rom v0.10
+; adjusted (again) for 320x180 resolution
+
 ; rom v0.9
 ; adjusted for 320x176 screen resolution
 
-	include	"definitions.i"
+	include	"definitions.inc"
 
-logo_animation	equ	$6000	; 1 byte
-binary_ready	equ	$6001	; 1 byte
-cursor_pos	equ	$6002	; 1 word
-cursor_color	equ	$6004	; 1 byte
-; available slot
-terminal_chars	equ	$6006	; 1 long
-terminal_colors	equ	$600a	; 1 long
-chunk_length	equ	$600e	; 1 long
-exec_address	equ	$6012	; 1 long
-rnda		equ	$6016	; 1 byte
-rndb		equ	$6017	; 1 byte
-rndc		equ	$6018	; 1 byte
-rndx		equ	$6019	; 1 byte
-
+; constants
 TERMINAL_HPITCH	equ	$80	; 128
 TERMINAL_VPITCH	equ	$20	; 32
 TERMINAL_WIDTH	equ	$50	; 80 columns
-TERMINAL_HEIGHT	equ	$16	; 22 rows
-;TERMINAL_SIZE	equ	(TERMINAL_HPITCH*TERMINAL_VPITCH)
+TERMINAL_HEIGHT	equ	$14	; 20 rows
 
+	offset	$6000
+
+logo_animation	ds.b	1
+binary_ready	ds.b	1
+cursor_pos	ds.w	1
+cursor_color	ds.b	1
+cursor_visible	ds.b	1
+terminal_chars	ds.l	1
+terminal_colors	ds.l	1
+chunk_length	ds.l	1
+exec_address	ds.l	1
+rnda		ds.b	1
+rndb		ds.b	1
+rndc		ds.b	1
+rndx		ds.b	1
+
+
+	section	code
 
 	org	$00010000	; rom based at $10000
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.9.20260511"
+	dc.b	"rom mc68000 0.10.20260525"
 
 	align	2
 
@@ -55,7 +62,7 @@ _start
 	bne	.1
 
 	jsr	init_vector_table
-	jsr	vdc_init_layer0
+	;jsr	vdc_init_layer0
 	jsr	vdc_copy_rom_font
 	jsr	vdc_copy_logo_tiles
 	jsr	vdc_init_logo
@@ -71,23 +78,31 @@ _start
 
 	clr.b	binary_ready.w
 
-	clr.l	rnda				; init random generator, clears all: rnda, rndb, rndc and rndx
+	clr.l	rnda				; init random generator, clears all: rnda, rndb, rndc, rndx
 
-loop	;bsr	rnd_impl
-	;move.b	D0,D1
-	;move.b	#1,D0
-	;trap	#15
+loop
+	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w	; use controller inputs for bg color
 	tst.b	binary_ready.w
 	beq	loop				; loop forever, wait for events
 
-_jump	clr.b	CORE_CR				; no irq when new bin inserted
-	clr.b	VDC_CR				; stop interrupts at scanline 179
+_jump	clr.b	CORE_CR				; stop irq's when new bin inserted
+	clr.b	VDC_CR				; stop VDC interrupts (at rasterline 179)
 	clr.b	D0
 .1	move.b	D0,VDC_CURRENT_SPRITE
 	clr.b	VDC_SPRITE_FLAGS0
 	addq.b	#1,D0
 	cmp.b	#8,D0
 	bne	.1
+
+	jsr	vdc_init_layer0
+
+	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
+
+.test	move.b	$606.w,D1
+	beq	.test
+	move.b	#1,D0
+	trap	#15
+	bra	.test
 
 	pea	file_loading4
 	bsr	terminal_putstring
@@ -98,7 +113,7 @@ _jump	clr.b	CORE_CR				; no irq when new bin inserted
 	bsr	terminal_put_hex_number
 	addq.l	#6,SP
 
-	move.l	#$000c0000,D0
+	move.l	#$000c0000,D0			; wait loop
 .2	subq.l	#1,D0
 	bne	.2
 
@@ -236,7 +251,7 @@ exc_lvl2_irq_auto
 	rte
 
 
-exc_lvl4_irq_auto					; coupled to timer
+exc_lvl4_irq_auto		; coupled to timer
 	movem.l	D0-D1/A0,-(SP)
 	movea.l	#VEC_TIMER0,A0
 	move.b	#%00000001,D0	; D0 contains the bit to be tested
@@ -293,14 +308,7 @@ exc_lvl6_irq_auto				; coupled to vdc
 	cmp.b	#8,D1				; did we reach sprite 8?
 	bne	.2				; not yet, jump to .2
 
-.end	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w
-
-	move.b	$606.w,D1
-	beq	.4
-	move.b	#1,D0
-	trap	#15
-
-.4	movem.l	(SP)+,D0-D1
+.end	movem.l	(SP)+,D0-D1
 	move.b	(SP)+,VDC_CURRENT_SPRITE
 	rte
 
@@ -317,11 +325,13 @@ exc_trap15_handler
 	bsr	terminal_putchar
 	addq.l	#2,SP
 	rte
+
 .1	cmp.b	#2,D0
 	bne	.2
 	move.l	A0,-(SP)
 	bsr	terminal_putstring
 	addq.l	#4,SP
+
 .2	rte
 
 timer_default_handler
@@ -376,8 +386,14 @@ init_vector_table
 
 vdc_init_layer0
 	move.b	VDC_CURRENT_LAYER.w,-(SP)
+
+	move.b	#$0c,VDC_BORDER_COLOR.w;	; dark grey / black
+	move.b	#$0a,VDC_BORDER_SIZE.w;
+	move.b	#$16,VDC_BG_COLOR.w;		; C64 blue
 	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current
 	move.b	#%1101,VDC_LAYER_FLAGS0.w	;
+	move.w	#$fff6,VDC_LAYER_Y_MSB.w
+
 	move.b	(SP)+,VDC_CURRENT_LAYER.w
 	rts
 
@@ -436,7 +452,7 @@ vdc_disable_logo
 terminal_init
 	move.l	#VDC_LAYER0_TILES,terminal_chars
 	move.l	#VDC_LAYER0_COLORS,terminal_colors
-	move.b	#$02,cursor_color
+	move.b	#$1e,cursor_color
 	rts
 
 
@@ -502,13 +518,13 @@ terminal_putstring
 
 
 terminal_put_hex_number
-	move.b	(4,SP),D0	; D0 contains no of digits to print
+	move.b	4(SP),D0	; D0 contains no of digits to print
 	beq	.2		; if this is 0, end this function
 
 	subq.b	#1,D0		; reduce number of digits to print by 1
 	beq	.1		; if this is 0 (now), only one digit to print
 
-	move.l	(6,SP),D1	; D1 contains the number to be printed
+	move.l	6(SP),D1	; D1 contains the number to be printed
 
 	lsr.l	#4,D1
 	move.l	D1,-(SP)
@@ -516,7 +532,7 @@ terminal_put_hex_number
 	jsr	terminal_put_hex_number
 	addq.l	#6,SP
 
-.1	move.l	(6,SP),D0
+.1	move.l	6(SP),D0
 	andi.l	#$f,D0
 	lea	hex_values,A0
 	move.b	(A0,D0),-(SP)
@@ -564,7 +580,7 @@ rnd_impl
 
 
 file_error	dc.b	$0a,"error: not a valid binary",0
-file_loading1	dc.b	$0a,"  size    from     to",0
+file_loading1	dc.b	$0a,"  size    from    to",0
 file_loading2	dc.b	$0a,"$",0
 file_loading3	dc.b	" $",0
 file_loading4	dc.b	$0a,$0a," jumping to $",0
@@ -620,3 +636,7 @@ logo_tiles
 
 hex_values
 	dc.b	"0123456789abcdef"
+
+	include	"ehbasicm68k.s"
+
+end_of_rom
