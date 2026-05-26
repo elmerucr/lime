@@ -49,7 +49,7 @@ rndx		ds.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-	dc.b	"rom mc68000 0.10.20260525"
+version	dc.b	"rom mc68000 0.10.20260526",0
 
 	align	2
 
@@ -62,13 +62,13 @@ _start
 	bne	.1
 
 	jsr	init_vector_table
-	;jsr	vdc_init_layer0
 	jsr	vdc_copy_rom_font
 	jsr	vdc_copy_logo_tiles
 	jsr	vdc_init_logo
 	jsr	sound_reset
 	jsr	terminal_init
 	jsr	terminal_clear
+	jsr	terminal_welcome
 
 	move.b	#$68,logo_animation.w		; init variable for letter wobble
 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
@@ -83,12 +83,17 @@ _start
 loop
 	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w	; use controller inputs for bg color
 	tst.b	binary_ready.w
-	beq	loop				; loop forever, wait for events
+	bne.s	binaryready
+	move.b	(KEYBOARD_STATE+1).w,D0		; check status of esc key
+	beq.s	loop
+	btst	#0,D0				; check bit0
+	bne.s	loop
 
-_jump	clr.b	CORE_CR				; stop irq's when new bin inserted
+binaryready
+	clr.b	CORE_CR				; stop irq's when new bin inserted
 	clr.b	VDC_CR				; stop VDC interrupts (at rasterline 179)
 	clr.b	D0
-.1	move.b	D0,VDC_CURRENT_SPRITE
+.1	move.b	D0,VDC_CURRENT_SPRITE		; make sprite 0-7 inactive
 	clr.b	VDC_SPRITE_FLAGS0
 	addq.b	#1,D0
 	cmp.b	#8,D0
@@ -98,11 +103,8 @@ _jump	clr.b	CORE_CR				; stop irq's when new bin inserted
 
 	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
 
-.test	move.b	$606.w,D1
-	beq	.test
-	move.b	#1,D0
-	trap	#15
-	bra	.test
+	tst.b	binary_ready.w
+	beq.s	scr_edit
 
 	pea	file_loading4
 	bsr	terminal_putstring
@@ -121,6 +123,21 @@ _jump	clr.b	CORE_CR				; stop irq's when new bin inserted
 
 	movea.l	exec_address,A0
 	jmp	(A0)
+
+
+scr_edit
+	move.b	$606.w,D1
+	beq	scr_edit
+	move.b	#1,D0
+	trap	#15
+	bra	scr_edit
+
+
+terminal_flip_cursor
+	move.w	cursor_pos,D0
+	movea.l	#VDC_LAYER0_TILES,A0
+	eori.b	#$80,(A0,D0)
+	rts
 
 
 exc_addr_error
@@ -147,13 +164,13 @@ exc_lvl1_irq_auto
 
 exc_lvl2_irq_auto
 	movem.l	D0-D1,-(SP)
-	move.b	CORE_SR,D0				; did core cause an irq?
-	beq	.3					; no
-	move.b	D0,CORE_SR				; yes, acknowledge
+	move.b	CORE_SR.w,D0			; did core cause an irq?
+	beq	.3				; no
+	move.b	D0,CORE_SR.w			; yes, acknowledge
 
-	move.b	CORE_FILE_DATA.w,D0			; get first byte
-	cmp	#1,D0
-	bne	.2					; it's not a valid file
+	move.b	CORE_FILE_DATA.w,D0		; get first byte
+	cmp.b	#1,D0
+	bne	.2				; it's not a valid file
 
 	pea	file_loading1
 	bsr	terminal_putstring
@@ -338,7 +355,6 @@ timer_default_handler
 	move.b	#$12,VDC_BG_COLOR.w
 	rts
 
-
 sound_reset
 	movem.l	D0/A0,-(SP)
 
@@ -387,8 +403,8 @@ init_vector_table
 vdc_init_layer0
 	move.b	VDC_CURRENT_LAYER.w,-(SP)
 
-	move.b	#$0c,VDC_BORDER_COLOR.w;	; dark grey / black
-	move.b	#$0a,VDC_BORDER_SIZE.w;
+	move.b	#$0c,VDC_BORDER_COLOR.w		; dark grey / black
+	move.b	#$0a,VDC_BORDER_SIZE.w
 	move.b	#$16,VDC_BG_COLOR.w;		; C64 blue
 	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current
 	move.b	#%1101,VDC_LAYER_FLAGS0.w	;
@@ -468,9 +484,11 @@ terminal_clear
 	bne	.1
 
 	clr.w	cursor_pos
+	jsr	terminal_flip_cursor
 	rts
 
 terminal_putchar
+	jsr	terminal_flip_cursor	; deactivate the cursor
 	movea.l	terminal_chars,A0
 	movea.l	terminal_colors,A1
 	move.w	cursor_pos,D0
@@ -497,10 +515,12 @@ terminal_putchar
 
 	subi.w	#TERMINAL_HPITCH,D0	; move cursor one line up
 	move.w	D0,cursor_pos
-	jsr	terminal_add_bottom_row
+	bsr	terminal_add_bottom_row
+	bsr	terminal_flip_cursor	; activate the cursor
 	rts
 
 .3	move.w	D0,cursor_pos
+	bsr	terminal_flip_cursor	; activate the cursor
 	rts
 
 
@@ -559,6 +579,18 @@ terminal_add_bottom_row
 	movem.l	(SP)+,A2-A3
 	rts
 
+terminal_welcome
+	pea	welcome
+	jsr	terminal_putstring
+	addq.l	#4,SP
+	pea	version
+	jsr	terminal_putstring
+	addq.l	#4,SP
+	move.b	#$0a,-(SP)
+	jsr	terminal_putchar
+	addq.l	#2,SP
+	rts
+
 ; see: https://www.stix.id.au/wiki/Fast_8-bit_pseudorandom_number_generator
 rnd_impl
 	addq.b	#1,rndx.w
@@ -579,6 +611,7 @@ rnd_impl
 	rts
 
 
+welcome		dc.b	"lime virtual computer system",$0a,0
 file_error	dc.b	$0a,"error: not a valid binary",0
 file_loading1	dc.b	$0a,"  size    from    to",0
 file_loading2	dc.b	$0a,"$",0
