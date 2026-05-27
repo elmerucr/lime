@@ -13,7 +13,7 @@
 // ---------------------------------------------------------------------
 #define LIME_MAJOR_VERSION			0
 #define LIME_MINOR_VERSION			12
-#define LIME_BUILD					20260524
+#define LIME_BUILD					20260527
 #define LIME_YEAR					2026
 
 // ---------------------------------------------------------------------
@@ -176,6 +176,10 @@
 #define PICOTRON_V5_1D	0xff'ff'ec'27
 #define PICOTRON_V5_1E	0xff'ff'a3'00
 #define PICOTRON_V5_1F	0xff'eb'6b'00
+
+// ------
+#define ATARI_BG		0xff'20'50'7d
+#define ATARI_FG		0xff'76'b5'e2
 
 // ---------------------------------------------------------------------
 // Ascii values (some of them are petscii)

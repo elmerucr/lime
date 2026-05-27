@@ -49,7 +49,7 @@ rndx		ds.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	_start		; reset vector
-version	dc.b	"rom mc68000 0.10.20260526",0
+version	dc.b	"rom mc68000 0.10.20260527",0
 
 	align	2
 
@@ -405,7 +405,7 @@ vdc_init_layer0
 
 	move.b	#$0c,VDC_BORDER_COLOR.w		; dark grey / black
 	move.b	#$0a,VDC_BORDER_SIZE.w
-	move.b	#$16,VDC_BG_COLOR.w;		; C64 blue
+	move.b	#$40,VDC_BG_COLOR.w;		; Atari Basic BG
 	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current
 	move.b	#%1101,VDC_LAYER_FLAGS0.w	;
 	move.w	#$fff6,VDC_LAYER_Y_MSB.w
@@ -468,7 +468,7 @@ vdc_disable_logo
 terminal_init
 	move.l	#VDC_LAYER0_TILES,terminal_chars
 	move.l	#VDC_LAYER0_COLORS,terminal_colors
-	move.b	#$1e,cursor_color
+	move.b	#$41,cursor_color
 	rts
 
 
@@ -493,24 +493,32 @@ terminal_putchar
 	movea.l	terminal_colors,A1
 	move.w	cursor_pos,D0
 
-	cmp.b	#$0a,(4,SP)		; check for newline
-	beq	.1
-	cmp.b	#$0d,(4,SP)		; check for carriage return
-	beq	.2
+	cmp.b	#$0a,4(SP)		; check for newline
+	beq	.nwln
+	cmp.b	#$0d,4(SP)		; check for carriage return
+	beq	.crt
+	cmp.b	#$1d,4(SP)		; cursor right
+	beq	.cr
+	cmp.b	#$11,4(SP)		; cursor down
+	beq	.cd
+	cmp.b	#$91,4(SP)		; cursor up
+	beq	.cu
+	cmp.b	#$9d,4(SP)		; cursor left
+	beq	.cl
 
 	move.b	(4,SP),(A0,D0.w)	; print char
 	move.b	cursor_color,(A1,D0.w)	; set color
 
-	addq.w	#1,D0			; move cursor one step to the right
+.cr	addq.w	#1,D0			; move cursor one step to the right
 	move.w	D0,D1
 	andi.w	#%1111111,D1
 	cmp.w	#TERMINAL_WIDTH,D1	; are we at pos 80 or higher?
 	blo	.3			; no
 
-.1	addi.w	#TERMINAL_HPITCH,D0	; yes, move cursor one line down
-.2	andi.w	#%1111111110000000,D0	; cursor to beginning of line (carriage return)
+.nwln	addi.w	#TERMINAL_HPITCH,D0	; yes, move cursor one line down
+.crt	andi.w	#%1111111110000000,D0	; cursor to beginning of line (carriage return)
 
-	cmp.w	#(TERMINAL_HPITCH*TERMINAL_HEIGHT),D0	; check for cursor out of screen
+.2	cmp.w	#(TERMINAL_HPITCH*TERMINAL_HEIGHT),D0	; check for cursor out of screen
 	blo	.3			; no
 
 	subi.w	#TERMINAL_HPITCH,D0	; move cursor one line up
@@ -523,6 +531,27 @@ terminal_putchar
 	bsr	terminal_flip_cursor	; activate the cursor
 	rts
 
+.cd	addi.w	#TERMINAL_HPITCH,D0	; yes, move cursor one line down
+	bra	.2
+	rts
+
+.cu	subi.w	#TERMINAL_HPITCH,D0	; move cursor one line up
+	bpl.s	.3
+	addi.w	#TERMINAL_HPITCH,D0	; move cursor one line down
+	bra.s	.3
+
+.cl	tst.w	D0
+	bne.s	.cl0
+	bsr	terminal_flip_cursor
+	rts
+.cl0	move.w	D0,D1
+	andi.w	#$7f,D1
+	tst.w	D1
+	bne	.cl1
+	addi.w	#(TERMINAL_WIDTH-1),D0
+	bra	.cu
+.cl1	subq.w	#1,D0
+	bra.s	.3
 
 terminal_putstring
 	movea.l	(4,SP),A0
@@ -565,16 +594,24 @@ terminal_add_bottom_row
 	movem.l	A2-A3,-(SP)
 
 	movea.l	terminal_chars,A0
-	lea	(TERMINAL_HPITCH,A0),A1
+	lea	TERMINAL_HPITCH(A0),A1
 	movea.l	terminal_colors,A2
-	lea	(TERMINAL_HPITCH,A2),A3
+	lea	TERMINAL_HPITCH(A2),A3
 
-	move.w	#(TERMINAL_HPITCH*TERMINAL_HEIGHT),D0	; use terminal size, then lowest row is filled properly
+	move.w	#(TERMINAL_HPITCH*(TERMINAL_HEIGHT-1)),D0	; use terminal size minus lowest row
 	lsr.w	#2,D0			; divide by 4
 .1	move.l	(A1)+,(A0)+		; do 4 bytes at once
 	move.l	(A3)+,(A2)+		; do 4 bytes at once
 	subq.w	#1,D0
 	bne	.1
+
+	move.b	#TERMINAL_HPITCH,D0	; do last row
+	move.b	#' ',D1
+	move.b	cursor_color,D2
+.2	move.b	D1,(A0)+
+	move.b	D2,(A2)+
+	subq.b	#1,D0
+	bne.s	.2
 
 	movem.l	(SP)+,A2-A3
 	rts
