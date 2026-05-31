@@ -1,31 +1,33 @@
-; ----------------------------------------------------------------------
+;-----------------------------------------------------------------------
 ; rom.s (assembles with vasmm68k_mot)
 ; lime
 ;
 ; Copyright © 2025-2026 elmerucr. All rights reserved.
-; ----------------------------------------------------------------------
-
-; ----------------------------------------------------------------------
+;
+;-----------------------------------------------------------------------
 ; - Calling convention: D0-D1/A0-A1 are scratch registers, and need to
 ;   be caller saved when to be kept
 ; - tab size: 8
 ;
-; ----------------------------------------------------------------------
-
+;-----------------------------------------------------------------------
 ; rom v0.10
 ; adjusted (again) for 320x180 resolution
-
+;
 ; rom v0.9
 ; adjusted for 320x176 screen resolution
+;
+;-----------------------------------------------------------------------
 
 	include	"definitions.inc"
 
+;-----------------------------------------------------------------------
 ; constants
 TERMINAL_HPITCH	equ	$80	; 128 tiles
 TERMINAL_VPITCH	equ	$20	; 32 tiles
 TERMINAL_WIDTH	equ	$50	; 80 columns visible
 TERMINAL_HEIGHT	equ	$14	; 20 rows
 
+;-----------------------------------------------------------------------
 		rsset	$6000
 
 logo_animation	rs.b	1
@@ -42,56 +44,10 @@ rndb		rs.b	1
 rndc		rs.b	1
 rndx		rs.b	1
 
-; ======================================================================
-		rsreset
-
-ram_strt
-		rs.l	0	; don't need stack spave here!
-ram_base	rs.b	0
-
-LAB_WARM	rs.w	1	; BASIC warm start entry point
-Wrmjpv		rs.l	1	; BASIC warm start jump vector
-
-Usrjmp		rs.w	1	; USR function JMP address
-Usrjpv		rs.l	1	; USR function JMP vector
-; system dependant i/o vectors
-; these are in RAM and are set at start-up
-
-V_INPT	rs.w	1		* non halting scan input device entry point
-V_INPTv	rs.l	1		* non halting scan input device jump vector
-
-V_OUTP	rs.w	1		* send byte to output device entry point
-V_OUTPv	rs.l	1		* send byte to output device jump vector
-
-V_LOAD	rs.w	1		* load BASIC program entry point
-V_LOADv	rs.l	1		* load BASIC program jump vector
-
-V_SAVE	rs.w	1		* save BASIC program entry point
-V_SAVEv	rs.l	1		* save BASIC program jump vector
-
-V_CTLC	rs.w	1		* save CTRL-C check entry point
-V_CTLCv	rs.l	1		* save CTRL-C check jump vector
-
-Itemp	rs.l	1		* temporary integer	(for GOTO etc)
-
-Smeml	rs.l	1		* start of memory	(start of program)
-Sfncl	rs.l	1		* start of functions	(end of Program)
-Svarl	rs.l	1		* start of variables	(end of functions)
-Sstrl	rs.l	1		* start of strings	(end of variables)
-Sarryl	rs.l	1		* start of arrays	(end of strings)
-Earryl	rs.l	1		* end of arrays		(start of free mem)
-Sstorl	rs.l	1		* string storage	(moving down)
-Ememl	rs.l	1		* end of memory		(upper bound of RAM)
-Sutill	rs.l	1		* string utility ptr
-Clinel	rs.l	1		* current line		(Basic line number)
-Blinel	rs.l	1		* break line		(Basic line number)
-
-prg_start	rs.b	0	; first memory address
-		even
-ram_top		EQU	$40000	; length in bytes of RAM
-; ======================================================================
+;-----------------------------------------------------------------------
 
 	section	code
+
 	org	$00010000	; rom based at $10000
 
 	dc.l	$01000000	; initial ssp at end of ram
@@ -164,7 +120,6 @@ start_binary
 
 
 screen_editor
-	bsr	code_start
 .1	move.b	$606.w,D1
 	beq.s	.1
 	move.b	#1,D0
@@ -554,6 +509,8 @@ terminal_putchar
 	beq	.cu
 	cmp.b	#$9d,4(SP)		; cursor left
 	beq	.cl
+	cmp.b	#$08,4(SP)		; backspace
+	beq	.bs
 
 	move.b	(4,SP),(A0,D0.w)	; print char
 	move.b	cursor_color,(A1,D0.w)	; set color
@@ -591,7 +548,7 @@ terminal_putchar
 
 .cl	tst.w	D0
 	bne.s	.cl0
-	bsr	terminal_flip_cursor
+	bsr	terminal_flip_cursor	; we're at top left corner
 	rts
 .cl0	move.w	D0,D1
 	andi.w	#$7f,D1
@@ -601,6 +558,35 @@ terminal_putchar
 	bra	.cu
 .cl1	subq.w	#1,D0
 	bra.s	.3
+
+.bs	move.w	D0,D1
+	beq	.3		; do nothing if we're at position 0 (left top)
+	andi.b	#$7f,D1		; the byte in D1 now contains the current column
+	bne	.bs0		; it's column 0
+	subi.w	#(TERMINAL_HPITCH-(TERMINAL_WIDTH-1)),D0
+	move.b	#' ',(A0,D0)
+	move.b	cursor_color,(A1,D0)
+	bra	.3
+
+.bs0	move.l	D2,-(SP)
+
+	move.w	D0,D2
+.bs1	move.b	(A0,D2),-1(A0,D2)
+	move.b	(A1,D2),-1(A1,D2)
+	addq.w	#1,D2
+	addq.b	#1,D1
+	cmp.b	#TERMINAL_WIDTH,D1
+	bne	.bs1
+
+	subq.w	#1,D2
+	move.b	#' ',(A0,D2)
+	move.b	cursor_color,(A1,D2)
+
+	move.l	(SP)+,D2
+
+	subq.w	#1,D0
+
+	bra	.3
 
 terminal_putstring
 	movea.l	(4,SP),A0
@@ -755,74 +741,5 @@ logo_tiles
 
 hex_values
 	dc.b	"0123456789abcdef"
-
-; ======================================================================
-
-VEC_IN	; TODO
-	move.l	d1,-(sp)		* save d1
-	moveq	#7,d0			* get status
-	trap	#15			* do I/O function
-	move.b	d1,d0			* copy status
-	bne.s	RETCHR			* branch if character waiting
-
-	move.l	(sp)+,d1		* restore d1
-	ori.b	#$00,d0			* set z flag
-*	ANDI.b	#$FE,CCR		* clear carry, flag we not got byte
-*					* done by ORI.b
-	rts
-RETCHR
-	moveq	#5,d0			* get byte
-	trap	#15			* do I/O function
-	move.b	d1,d0			* copy byte
-	move.l	(sp)+,d1		* restore d1
-	ori.b	#$00,d0			* set z flag on received byte
-	ori.b	#1,CCR			* set carry, flag we got a byte
-	rts
-
-
-code_start
-	movea.l	#$20000,A0
-	move.l	#ram_top,D0
-
-LAB_COLD
-	cmp.l	#$4000,D0
-	bge.s	LAB_sizeok
-	; PANIC HERE
-	nop
-	nop
-	nop
-
-LAB_sizeok
-	movea.l	A0,A3
-	adda.l	D0,A0		; A0 is top of RAM
-	move.l	A0,Ememl(A3)	; set end of mem
-	;lea	ram_base(A3),SP	; set stack to RAM start + 1k
-				; we keep the original SP
-	movea.l	A3,A0
-
-	move.w	#$4ef9,d0	; JMP opcode in D0
-	;movea.l	sp,a0		; point to start of vector table
-
-	move.w	d0,(a0)+		; LAB_WARM
-	lea	(LAB_COLD,pc),a1	; initial warm start vector
-	move.l	a1,(a0)+		; set vector
-
-	MOVE.w	d0,(a0)+		; Usrjmp
-	lea	(LAB_FCER,PC),a1	; initial user function vector
-					; "Function call" error
-	move.l	a1,(a0)+		; set vector
-
-	move.w	d0,(a0)+		; V_INPT JMP opcode
-	lea	(VEC_IN,PC),a1		; get byte from input device vector
-	move.l	a1,(a0)+		; set vector
-
-	rts
-
-* do function call error
-
-LAB_FCER
-	moveq		#$08,d7		; error code $08 "Function call" error
-	;bra.s		LAB_XERR	; do error #d7, then warm start
-; ======================================================================
 
 end_of_rom
