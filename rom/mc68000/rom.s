@@ -21,39 +21,86 @@
 	include	"definitions.inc"
 
 ; constants
-TERMINAL_HPITCH	equ	$80	; 128
-TERMINAL_VPITCH	equ	$20	; 32
-TERMINAL_WIDTH	equ	$50	; 80 columns
+TERMINAL_HPITCH	equ	$80	; 128 tiles
+TERMINAL_VPITCH	equ	$20	; 32 tiles
+TERMINAL_WIDTH	equ	$50	; 80 columns visible
 TERMINAL_HEIGHT	equ	$14	; 20 rows
 
-	offset	$6000
+		rsset	$6000
 
-logo_animation	ds.b	1
-binary_ready	ds.b	1
-cursor_pos	ds.w	1
-cursor_color	ds.b	1
-cursor_visible	ds.b	1
-terminal_chars	ds.l	1
-terminal_colors	ds.l	1
-chunk_length	ds.l	1
-exec_address	ds.l	1
-rnda		ds.b	1
-rndb		ds.b	1
-rndc		ds.b	1
-rndx		ds.b	1
+logo_animation	rs.b	1
+binary_ready	rs.b	1
+cursor_pos	rs.w	1
+cursor_color	rs.b	1
+cursor_visible	rs.b	1
+terminal_chars	rs.l	1
+terminal_colors	rs.l	1
+chunk_length	rs.l	1
+exec_address	rs.l	1
+rnda		rs.b	1
+rndb		rs.b	1
+rndc		rs.b	1
+rndx		rs.b	1
 
+; ======================================================================
+		rsreset
+
+ram_strt
+		rs.l	0	; don't need stack spave here!
+ram_base	rs.b	0
+
+LAB_WARM	rs.w	1	; BASIC warm start entry point
+Wrmjpv		rs.l	1	; BASIC warm start jump vector
+
+Usrjmp		rs.w	1	; USR function JMP address
+Usrjpv		rs.l	1	; USR function JMP vector
+; system dependant i/o vectors
+; these are in RAM and are set at start-up
+
+V_INPT	rs.w	1		* non halting scan input device entry point
+V_INPTv	rs.l	1		* non halting scan input device jump vector
+
+V_OUTP	rs.w	1		* send byte to output device entry point
+V_OUTPv	rs.l	1		* send byte to output device jump vector
+
+V_LOAD	rs.w	1		* load BASIC program entry point
+V_LOADv	rs.l	1		* load BASIC program jump vector
+
+V_SAVE	rs.w	1		* save BASIC program entry point
+V_SAVEv	rs.l	1		* save BASIC program jump vector
+
+V_CTLC	rs.w	1		* save CTRL-C check entry point
+V_CTLCv	rs.l	1		* save CTRL-C check jump vector
+
+Itemp	rs.l	1		* temporary integer	(for GOTO etc)
+
+Smeml	rs.l	1		* start of memory	(start of program)
+Sfncl	rs.l	1		* start of functions	(end of Program)
+Svarl	rs.l	1		* start of variables	(end of functions)
+Sstrl	rs.l	1		* start of strings	(end of variables)
+Sarryl	rs.l	1		* start of arrays	(end of strings)
+Earryl	rs.l	1		* end of arrays		(start of free mem)
+Sstorl	rs.l	1		* string storage	(moving down)
+Ememl	rs.l	1		* end of memory		(upper bound of RAM)
+Sutill	rs.l	1		* string utility ptr
+Clinel	rs.l	1		* current line		(Basic line number)
+Blinel	rs.l	1		* break line		(Basic line number)
+
+prg_start	rs.b	0	; first memory address
+		even
+ram_top		EQU	$40000	; length in bytes of RAM
+; ======================================================================
 
 	section	code
-
 	org	$00010000	; rom based at $10000
 
 	dc.l	$01000000	; initial ssp at end of ram
-	dc.l	_start		; reset vector
-version	dc.b	"rom mc68000 0.10.20260527",0
+	dc.l	start		; reset vector
+version	dc.b	"rom mc68000 0.10.20260531",0
 
 	align	2
 
-_start
+start
 	move.l	#$00010000,A0			; set usp
 	move.l	A0,USP
 
@@ -80,31 +127,22 @@ _start
 
 	clr.l	rnda				; init random generator, clears all: rnda, rndb, rndc, rndx
 
-loop
+loop_logo_screen
 	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w	; use controller inputs for bg color
 	tst.b	binary_ready.w
-	bne.s	binaryready
+	bne.s	start_binary
 	move.b	(KEYBOARD_STATE+1).w,D0		; check status of esc key
-	beq.s	loop
+	beq.s	loop_logo_screen		; not pressed
 	btst	#0,D0				; check bit0
-	bne.s	loop
+	bne.s	loop_logo_screen		; pressed & released
+	jsr	vdc_init_terminal
+	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
+	bra.s	screen_editor
 
-binaryready
-	clr.b	CORE_CR				; stop irq's when new bin inserted
-	clr.b	VDC_CR				; stop VDC interrupts (at rasterline 179)
-	clr.b	D0
-.1	move.b	D0,VDC_CURRENT_SPRITE		; make sprite 0-7 inactive
-	clr.b	VDC_SPRITE_FLAGS0
-	addq.b	#1,D0
-	cmp.b	#8,D0
-	bne	.1
-
-	jsr	vdc_init_layer0
+start_binary
+	jsr	vdc_init_terminal
 
 	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
-
-	tst.b	binary_ready.w
-	beq.s	scr_edit
 
 	pea	file_loading4
 	bsr	terminal_putstring
@@ -125,12 +163,13 @@ binaryready
 	jmp	(A0)
 
 
-scr_edit
-	move.b	$606.w,D1
-	beq	scr_edit
+screen_editor
+	bsr	code_start
+.1	move.b	$606.w,D1
+	beq.s	.1
 	move.b	#1,D0
 	trap	#15
-	bra	scr_edit
+	bra.s	.1
 
 
 terminal_flip_cursor
@@ -141,11 +180,12 @@ terminal_flip_cursor
 
 
 exc_addr_error
-	bra	exc_addr_error			; TODO: bsod when this happens?
+	move.b	#$10,VDC_BG_COLOR.w	; black
+.1	bra	.1
 
 
 exc_illegal_instr
-	move.b	#$12,VDC_BG_COLOR.w
+	move.b	#$12,VDC_BG_COLOR.w	; red
 .1	bra.s	.1
 
 
@@ -400,7 +440,16 @@ init_vector_table
 	rts
 
 
-vdc_init_layer0
+vdc_init_terminal
+	clr.b	CORE_CR				; stop irq's when new bin inserted
+	clr.b	VDC_CR				; stop VDC interrupts (at rasterline 179)
+	clr.b	D0
+.1	move.b	D0,VDC_CURRENT_SPRITE		; make sprite 0-7 inactive
+	clr.b	VDC_SPRITE_FLAGS0
+	addq.b	#1,D0
+	cmp.b	#8,D0
+	bne	.1
+
 	move.b	VDC_CURRENT_LAYER.w,-(SP)
 
 	move.b	#$0c,VDC_BORDER_COLOR.w		; dark grey / black
@@ -707,6 +756,73 @@ logo_tiles
 hex_values
 	dc.b	"0123456789abcdef"
 
-	include	"ehbasicm68k.s"
+; ======================================================================
+
+VEC_IN	; TODO
+	move.l	d1,-(sp)		* save d1
+	moveq	#7,d0			* get status
+	trap	#15			* do I/O function
+	move.b	d1,d0			* copy status
+	bne.s	RETCHR			* branch if character waiting
+
+	move.l	(sp)+,d1		* restore d1
+	ori.b	#$00,d0			* set z flag
+*	ANDI.b	#$FE,CCR		* clear carry, flag we not got byte
+*					* done by ORI.b
+	rts
+RETCHR
+	moveq	#5,d0			* get byte
+	trap	#15			* do I/O function
+	move.b	d1,d0			* copy byte
+	move.l	(sp)+,d1		* restore d1
+	ori.b	#$00,d0			* set z flag on received byte
+	ori.b	#1,CCR			* set carry, flag we got a byte
+	rts
+
+
+code_start
+	movea.l	#$20000,A0
+	move.l	#ram_top,D0
+
+LAB_COLD
+	cmp.l	#$4000,D0
+	bge.s	LAB_sizeok
+	; PANIC HERE
+	nop
+	nop
+	nop
+
+LAB_sizeok
+	movea.l	A0,A3
+	adda.l	D0,A0		; A0 is top of RAM
+	move.l	A0,Ememl(A3)	; set end of mem
+	;lea	ram_base(A3),SP	; set stack to RAM start + 1k
+				; we keep the original SP
+	movea.l	A3,A0
+
+	move.w	#$4ef9,d0	; JMP opcode in D0
+	;movea.l	sp,a0		; point to start of vector table
+
+	move.w	d0,(a0)+		; LAB_WARM
+	lea	(LAB_COLD,pc),a1	; initial warm start vector
+	move.l	a1,(a0)+		; set vector
+
+	MOVE.w	d0,(a0)+		; Usrjmp
+	lea	(LAB_FCER,PC),a1	; initial user function vector
+					; "Function call" error
+	move.l	a1,(a0)+		; set vector
+
+	move.w	d0,(a0)+		; V_INPT JMP opcode
+	lea	(VEC_IN,PC),a1		; get byte from input device vector
+	move.l	a1,(a0)+		; set vector
+
+	rts
+
+* do function call error
+
+LAB_FCER
+	moveq		#$08,d7		; error code $08 "Function call" error
+	;bra.s		LAB_XERR	; do error #d7, then warm start
+; ======================================================================
 
 end_of_rom

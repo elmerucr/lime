@@ -43,6 +43,7 @@
 	include	"ehbasicm68k.inc"	* RAM offset definitions
 
 	section	code
+	org	$18000
 	;org	$020000			* past the vectors in a real system
 
 * the following code is simulator specific, change to suit your system
@@ -3742,7 +3743,7 @@ LAB_22B6
 LAB_22BA
 	movem.l	a1/d1,-(sp)			* save other regs
 	CMPA.l	a0,a4				* is string on the descriptor stack
-	BNE.s		LAB_22BD			* skip pop if not
+	BNE.s	LAB_22BD			* skip pop if not
 
 	ADDQ.w	#$06,a4			* else update stack pointer
 LAB_22BD
@@ -7787,4 +7788,4 @@ LAB_SMSG
 * RIGHT$	. RIGHT$(<sexpr>,<nexpr>)					* done
 * MID$	. MID$(<sexpr>,<nexpr>[,<nexpr>])				* done
 
-	END	code_start
+	;END	code_start

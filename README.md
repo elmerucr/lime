@@ -4,22 +4,22 @@
 
 Lime is a virtual computer system that draws inspiration from computing platforms such as the Commodore 64 (look and feel, SID and VIC-II), the Atari ST (Motorola 68000), the TRS-80 Color Computer (Motorola 6809 and binary format) and the Nintendo Gameboy (tiles / graphics system). Notable features include:
 
-* Motorola 6809 cpu using the [mc6809](https://github.com/elmerucr/mc6809) library
 * Motorola 68000 cpu using the [Moira](https://github.com/dirkwhoffmann/Moira) library
-* 16mb ram (mc6809 can reach the lowest 64k)
-* Screen resolution of 320x176 pixels, refresh rate of 60Hz
+* Motorola 6809 cpu using the [mc6809](https://github.com/elmerucr/mc6809) library
+* 16mb ram (mc6809 can address the lowest 64k)
+* Screen resolution of 320x180 pixels, refresh rate of 60Hz
 * Video Display Controller (VDC) for graphics processing, memory access to lowest 64k
-* Programmable using mc6809 and mc68000 assembly (see ```examples```)
+* Programmable using mc68000 and mc6809 assembly (see ```examples```)
 
 By default, lime starts in mc68000 mode.
 
 ## Screenshots
 
-![icon](./docs/20251210_screenshot_startup.png)
+![icon](./docs/20260531_screenshot_startup.png)
 
-![icon](./docs/20251009_screenshot_debug_mc6809.png)
+![icon](./docs/20260531_screenshot_basic.png)
 
-![icon](./docs/20251009_screenshot_debug_mc68000.png)
+![icon](./docs/20260531_screenshot_debug_mc68000.png)
 
 ## Binaries (apps / games)
 
@@ -42,10 +42,6 @@ Each preamble is nine bytes long and starts with the magic byte ```$01```, the n
 The postamble (nine bytes) starts with magic byte ```$fe```, the next four are zero, then four bytes follow (big endian, first ```$00```) the execution address for the binary.
 
 ## Memory Map
-
-### Motorola 6809 mode
-
-to be done
 
 ### Motorola 68000 mode
 
@@ -76,6 +72,10 @@ to be done
 0x010000 - 0x01ffff system rom (64kb)
 0x020000 - 0xffffff available ram (16256kb)
 ```
+
+### Motorola 6809 mode
+
+to be done
 
 ## Building with CMake
 
