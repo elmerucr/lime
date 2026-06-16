@@ -53,7 +53,7 @@ rndx		rs.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	start		; reset vector
-version	dc.b	"rom mc68000 0.10.20260531",0
+version	dc.b	"rom mc68000 0.10.20260616",0
 
 	align	2
 
@@ -70,11 +70,17 @@ start
 	jsr	vdc_copy_logo_tiles
 	jsr	vdc_init_logo
 	jsr	sound_reset
-	jsr	terminal_init
+
+	move.l	#VDC_LAYER0_TILES,terminal_chars
+	move.l	#VDC_LAYER0_COLORS,terminal_colors
+	move.b	#$01,cursor_color
 	jsr	terminal_clear
+	pea	logo_boot_message
+	bsr	terminal_putstring
+	addq.l	#4,SP
 
 	move.b	#$68,logo_animation.w		; init variable for letter wobble
-	move.l	#$20000,logo_scr_cnt		; counter init value before displaying message
+	move.l	#$82000,logo_scr_cnt		; counter init value before displaying message
 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
 	move.b	#%00000001,VDC_CR		; enable irq's for vdc
 
@@ -96,13 +102,12 @@ logo_screen
 	beq.s	logo_screen			; not pressed
 	btst	#0,D0				; check bit0
 	bne.s	logo_screen			; not pressed & released
+	move.b	#$41,cursor_color
 	jsr	terminal_clear
 	jsr	terminal_welcome
 	jsr	init_terminal_settings		; pressed & released
 	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
 	bra.s	screen_editor
-
-logo_screen_message
 
 
 boot_binary
@@ -172,6 +177,7 @@ exc_lvl2_irq_auto
 	beq	.3				; no
 	move.b	D0,CORE_SR.w			; yes, acknowledge
 
+	move.b	#$41,cursor_color
 	jsr	terminal_clear
 	jsr	terminal_welcome
 
@@ -474,13 +480,6 @@ vdc_init_logo
 	rts
 
 
-terminal_init
-	move.l	#VDC_LAYER0_TILES,terminal_chars
-	move.l	#VDC_LAYER0_COLORS,terminal_colors
-	move.b	#$41,cursor_color
-	rts
-
-
 terminal_clear
 	move.w	#(TERMINAL_HPITCH*TERMINAL_VPITCH),D0
 	move.b	cursor_color.w,D1
@@ -687,7 +686,8 @@ rnd_impl
 	move.b	D0,rndc.w
 	rts
 
-
+logo_boot_message	dc.b	$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a
+			dc.b	"             drop a binary file to boot or hit [esc] to start basic",0
 welcome		dc.b	"lime virtual computer system",$0a,0
 file_error	dc.b	$0a,"error: not a valid binary",0
 file_loading1	dc.b	$0a,"  size    from    to",0
