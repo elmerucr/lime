@@ -30,6 +30,7 @@ TERMINAL_HEIGHT	equ	$14	; 20 rows
 ;-----------------------------------------------------------------------
 		rsset	$6000
 
+logo_scr_cnt	rs.l	1
 logo_animation	rs.b	1
 binary_ready	rs.b	1
 cursor_pos	rs.w	1
@@ -71,33 +72,41 @@ start
 	jsr	sound_reset
 	jsr	terminal_init
 	jsr	terminal_clear
-	jsr	terminal_welcome
 
 	move.b	#$68,logo_animation.w		; init variable for letter wobble
+	move.l	#$20000,logo_scr_cnt		; counter init value before displaying message
 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
 	move.b	#%00000001,VDC_CR		; enable irq's for vdc
 
 	andi.w	#$00ff,SR			; jump to user mode, IPL reg = 0b000
 
 	clr.b	binary_ready.w
-
 	clr.l	rnda				; init random generator, clears all: rnda, rndb, rndc, rndx
 
-loop_logo_screen
+logo_screen
 	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w	; use controller inputs for bg color
-	tst.b	binary_ready.w
-	bne.s	start_binary
+
+	subq.l	#1,logo_scr_cnt
+	bne.s	.1				; didn't reach 0
+	move.b	#%1101,$414.w
+
+.1	tst.b	binary_ready.w
+	bne.s	boot_binary
 	move.b	(KEYBOARD_STATE+1).w,D0		; check status of esc key
-	beq.s	loop_logo_screen		; not pressed
+	beq.s	logo_screen			; not pressed
 	btst	#0,D0				; check bit0
-	bne.s	loop_logo_screen		; pressed & released
-	jsr	vdc_init_terminal
+	bne.s	logo_screen			; not pressed & released
+	jsr	terminal_clear
+	jsr	terminal_welcome
+	jsr	init_terminal_settings		; pressed & released
 	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
 	bra.s	screen_editor
 
-start_binary
-	jsr	vdc_init_terminal
+logo_screen_message
 
+
+boot_binary
+	jsr	init_terminal_settings
 	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
 
 	pea	file_loading4
@@ -162,6 +171,9 @@ exc_lvl2_irq_auto
 	move.b	CORE_SR.w,D0			; did core cause an irq?
 	beq	.3				; no
 	move.b	D0,CORE_SR.w			; yes, acknowledge
+
+	jsr	terminal_clear
+	jsr	terminal_welcome
 
 	move.b	CORE_FILE_DATA.w,D0		; get first byte
 	cmp.b	#1,D0
@@ -395,8 +407,8 @@ init_vector_table
 	rts
 
 
-vdc_init_terminal
-	clr.b	CORE_CR				; stop irq's when new bin inserted
+init_terminal_settings
+	clr.b	CORE_CR				; stop irq's when new bin inserted or basic mode starts
 	clr.b	VDC_CR				; stop VDC interrupts (at rasterline 179)
 	clr.b	D0
 .1	move.b	D0,VDC_CURRENT_SPRITE		; make sprite 0-7 inactive
@@ -409,7 +421,7 @@ vdc_init_terminal
 
 	move.b	#$0c,VDC_BORDER_COLOR.w		; dark grey / black
 	move.b	#$0a,VDC_BORDER_SIZE.w
-	move.b	#$40,VDC_BG_COLOR.w;		; Atari Basic BG
+	move.b	#$40,VDC_BG_COLOR.w		; Atari Basic BG
 	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current
 	move.b	#%1101,VDC_LAYER_FLAGS0.w	;
 	move.w	#$fff6,VDC_LAYER_Y_MSB.w
@@ -459,13 +471,6 @@ vdc_init_logo
 	cmpa.l	#logo_data+64,A0	; 8 * 8 bytes = 64 bytes
 	bne	.1
 
-	rts
-
-
-vdc_disable_logo
-	; stop interrupt routine
-	; make sprites 0-7 hidden, but leave other data as it is
-	; <OR> restore original chars?
 	rts
 
 

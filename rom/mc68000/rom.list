@@ -1,5 +1,5 @@
 Sections:
-00: "code" (0-850)
+00: "code" (0-878)
 
 
 Source: "rom.s"
@@ -175,836 +175,842 @@ Source: "rom.s"
                             	    30: ;-----------------------------------------------------------------------
                             	    31: 		rsset	$6000
                             	    32: 
-                            	    33: logo_animation	rs.b	1
-                            	    34: binary_ready	rs.b	1
-                            	    35: cursor_pos	rs.w	1
-                            	    36: cursor_color	rs.b	1
-                            	    37: cursor_visible	rs.b	1
-                            	    38: terminal_chars	rs.l	1
-                            	    39: terminal_colors	rs.l	1
-                            	    40: chunk_length	rs.l	1
-                            	    41: exec_address	rs.l	1
-                            	    42: rnda		rs.b	1
-                            	    43: rndb		rs.b	1
-                            	    44: rndc		rs.b	1
-                            	    45: rndx		rs.b	1
-                            	    46: 
-                            	    47: ;-----------------------------------------------------------------------
-                            	    48: 
-                            	    49: 	section	code
-                            	    50: 
-                            	    51: 	org	$00010000	; rom based at $10000
-                            	    52: 
-00:00010000 01000000        	    53: 	dc.l	$01000000	; initial ssp at end of ram
-00:00010004 00010024        	    54: 	dc.l	start		; reset vector
-00:00010008 726F6D206D633638	    55: version	dc.b	"rom mc68000 0.10.20260531",0
+                            	    33: logo_scr_cnt	rs.l	1
+                            	    34: logo_animation	rs.b	1
+                            	    35: binary_ready	rs.b	1
+                            	    36: cursor_pos	rs.w	1
+                            	    37: cursor_color	rs.b	1
+                            	    38: cursor_visible	rs.b	1
+                            	    39: terminal_chars	rs.l	1
+                            	    40: terminal_colors	rs.l	1
+                            	    41: chunk_length	rs.l	1
+                            	    42: exec_address	rs.l	1
+                            	    43: rnda		rs.b	1
+                            	    44: rndb		rs.b	1
+                            	    45: rndc		rs.b	1
+                            	    46: rndx		rs.b	1
+                            	    47: 
+                            	    48: ;-----------------------------------------------------------------------
+                            	    49: 
+                            	    50: 	section	code
+                            	    51: 
+                            	    52: 	org	$00010000	; rom based at $10000
+                            	    53: 
+00:00010000 01000000        	    54: 	dc.l	$01000000	; initial ssp at end of ram
+00:00010004 00010024        	    55: 	dc.l	start		; reset vector
+00:00010008 726F6D206D633638	    56: version	dc.b	"rom mc68000 0.10.20260531",0
 00:00010010 30303020302E3130
 00:00010018 2E32303236303533
 00:00010020 31
 00:00010021 00
-                            	    56: 
-                            	    57: 	align	2
-                            	    58: 
-                            	    59: start
-00:00010024 207C00010000    	    60: 	move.l	#$00010000,A0			; set usp
-00:0001002A 4E60            	    61: 	move.l	A0,USP
-                            	    62: 
-00:0001002C 203C00008000    	    63: 	move.l	#$8000,D0			; small delay at reset
-00:00010032 5380            	    64: .1	subq.l	#1,D0
-00:00010034 6600FFFC        	    65: 	bne	.1
-                            	    66: 
-00:00010038 4EB90001038C    	    67: 	jsr	init_vector_table
-00:0001003E 4EB90001046E    	    68: 	jsr	vdc_copy_rom_font
-00:00010044 4EB900010492    	    69: 	jsr	vdc_copy_logo_tiles
-00:0001004A 4EB9000104AA    	    70: 	jsr	vdc_init_logo
-00:00010050 4EB90001034A    	    71: 	jsr	sound_reset
-00:00010056 4EB9000104DA    	    72: 	jsr	terminal_init
-00:0001005C 4EB9000104F8    	    73: 	jsr	terminal_clear
-00:00010062 4EB900010700    	    74: 	jsr	terminal_welcome
+                            	    57: 
+                            	    58: 	align	2
+                            	    59: 
+                            	    60: start
+00:00010024 207C00010000    	    61: 	move.l	#$00010000,A0			; set usp
+00:0001002A 4E60            	    62: 	move.l	A0,USP
+                            	    63: 
+00:0001002C 203C00008000    	    64: 	move.l	#$8000,D0			; small delay at reset
+00:00010032 5380            	    65: .1	subq.l	#1,D0
+00:00010034 6600FFFC        	    66: 	bne	.1
+                            	    67: 
+00:00010038 4EB9000103B6    	    68: 	jsr	init_vector_table
+00:0001003E 4EB900010498    	    69: 	jsr	vdc_copy_rom_font
+00:00010044 4EB9000104BC    	    70: 	jsr	vdc_copy_logo_tiles
+00:0001004A 4EB9000104D4    	    71: 	jsr	vdc_init_logo
+00:00010050 4EB900010374    	    72: 	jsr	sound_reset
+00:00010056 4EB900010502    	    73: 	jsr	terminal_init
+00:0001005C 4EB900010520    	    74: 	jsr	terminal_clear
                             	    75: 
-00:00010068 11FC00686000    	    76: 	move.b	#$68,logo_animation.w		; init variable for letter wobble
-00:0001006E 13FC00B30000040F	    77: 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
-00:00010076 13FC000100000401	    78: 	move.b	#%00000001,VDC_CR		; enable irq's for vdc
-                            	    79: 
-00:0001007E 027C00FF        	    80: 	andi.w	#$00ff,SR			; jump to user mode, IPL reg = 0b000
-                            	    81: 
-00:00010082 42386001        	    82: 	clr.b	binary_ready.w
-                            	    83: 
-00:00010086 42B900006016    	    84: 	clr.l	rnda				; init random generator, clears all: rnda, rndb, rndc, rndx
+00:00010062 11FC00686004    	    76: 	move.b	#$68,logo_animation.w		; init variable for letter wobble
+00:00010068 23FC000200000000	    77: 	move.l	#$20000,logo_scr_cnt		; counter init value before displaying message
+00:00010070 6000
+00:00010072 13FC00B30000040F	    78: 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
+00:0001007A 13FC000100000401	    79: 	move.b	#%00000001,VDC_CR		; enable irq's for vdc
+                            	    80: 
+00:00010082 027C00FF        	    81: 	andi.w	#$00ff,SR			; jump to user mode, IPL reg = 0b000
+                            	    82: 
+00:00010086 42386005        	    83: 	clr.b	binary_ready.w
+00:0001008A 42B90000601A    	    84: 	clr.l	rnda				; init random generator, clears all: rnda, rndb, rndc, rndx
                             	    85: 
-                            	    86: loop_logo_screen
-00:0001008C 11F804880404    	    87: 	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w	; use controller inputs for bg color
-00:00010092 4A386001        	    88: 	tst.b	binary_ready.w
-00:00010096 661A            	    89: 	bne.s	start_binary
-00:00010098 10380681        	    90: 	move.b	(KEYBOARD_STATE+1).w,D0		; check status of esc key
-00:0001009C 67EE            	    91: 	beq.s	loop_logo_screen		; not pressed
-00:0001009E 08000000        	    92: 	btst	#0,D0				; check bit0
-00:000100A2 66E8            	    93: 	bne.s	loop_logo_screen		; pressed & released
-00:000100A4 4EB90001041E    	    94: 	jsr	vdc_init_terminal
-00:000100AA 11FC00800601    	    95: 	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
-00:000100B0 6040            	    96: 	bra.s	screen_editor
-                            	    97: 
-                            	    98: start_binary
-00:000100B2 4EB90001041E    	    99: 	jsr	vdc_init_terminal
-                            	   100: 
-00:000100B8 11FC00800601    	   101: 	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
-                            	   102: 
-00:000100BE 4879000107AF    	   103: 	pea	file_loading4
-00:000100C4 6100059C        	   104: 	bsr	terminal_putstring
-00:000100C8 588F            	   105: 	addq.l	#4,SP
+                            	    86: logo_screen
+00:00010090 11F804880404    	    87: 	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w	; use controller inputs for bg color
+                            	    88: 
+00:00010096 53B900006000    	    89: 	subq.l	#1,logo_scr_cnt
+00:0001009C 6606            	    90: 	bne.s	.1				; didn't reach 0
+00:0001009E 11FC000D0414    	    91: 	move.b	#%1101,$414.w
+                            	    92: 
+00:000100A4 4A386005        	    93: .1	tst.b	binary_ready.w
+00:000100A8 6626            	    94: 	bne.s	boot_binary
+00:000100AA 10380681        	    95: 	move.b	(KEYBOARD_STATE+1).w,D0		; check status of esc key
+00:000100AE 67E0            	    96: 	beq.s	logo_screen			; not pressed
+00:000100B0 08000000        	    97: 	btst	#0,D0				; check bit0
+00:000100B4 66DA            	    98: 	bne.s	logo_screen			; not pressed & released
+00:000100B6 4EB900010520    	    99: 	jsr	terminal_clear
+00:000100BC 4EB900010728    	   100: 	jsr	terminal_welcome
+00:000100C2 4EB900010448    	   101: 	jsr	init_terminal_settings		; pressed & released
+00:000100C8 11FC00800601    	   102: 	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
+00:000100CE 6040            	   103: 	bra.s	screen_editor
+                            	   104: 
+                            	   105: logo_screen_message
                             	   106: 
-00:000100CA 2F3900006012    	   107: 	move.l	exec_address,-(SP)
-00:000100D0 1F3C0008        	   108: 	move.b	#8,-(SP)
-00:000100D4 610005A8        	   109: 	bsr	terminal_put_hex_number
-00:000100D8 5C8F            	   110: 	addq.l	#6,SP
+                            	   107: 
+                            	   108: boot_binary
+00:000100D0 4EB900010448    	   109: 	jsr	init_terminal_settings
+00:000100D6 11FC00800601    	   110: 	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
                             	   111: 
-00:000100DA 203C000C0000    	   112: 	move.l	#$000c0000,D0			; wait loop
-00:000100E0 5380            	   113: .2	subq.l	#1,D0
-00:000100E2 6600FFFC        	   114: 	bne	.2
+00:000100DC 4879000107D7    	   112: 	pea	file_loading4
+00:000100E2 610005A6        	   113: 	bsr	terminal_putstring
+00:000100E6 588F            	   114: 	addq.l	#4,SP
                             	   115: 
-00:000100E6 61000410        	   116: 	bsr	terminal_clear
-                            	   117: 
-00:000100EA 207900006012    	   118: 	movea.l	exec_address,A0
-00:000100F0 4ED0            	   119: 	jmp	(A0)
+00:000100E8 2F3900006016    	   116: 	move.l	exec_address,-(SP)
+00:000100EE 1F3C0008        	   117: 	move.b	#8,-(SP)
+00:000100F2 610005B2        	   118: 	bsr	terminal_put_hex_number
+00:000100F6 5C8F            	   119: 	addq.l	#6,SP
                             	   120: 
-                            	   121: 
-                            	   122: screen_editor
-00:000100F2 12380606        	   123: .1	move.b	$606.w,D1
-00:000100F6 67FA            	   124: 	beq.s	.1
-00:000100F8 103C0001        	   125: 	move.b	#1,D0
-00:000100FC 4E4F            	   126: 	trap	#15
-00:000100FE 60F2            	   127: 	bra.s	.1
-                            	   128: 
+00:000100F8 203C000C0000    	   121: 	move.l	#$000c0000,D0			; wait loop
+00:000100FE 5380            	   122: .2	subq.l	#1,D0
+00:00010100 6600FFFC        	   123: 	bne	.2
+                            	   124: 
+00:00010104 6100041A        	   125: 	bsr	terminal_clear
+                            	   126: 
+00:00010108 207900006016    	   127: 	movea.l	exec_address,A0
+00:0001010E 4ED0            	   128: 	jmp	(A0)
                             	   129: 
-                            	   130: terminal_flip_cursor
-00:00010100 303900006002    	   131: 	move.w	cursor_pos,D0
-00:00010106 207C00002000    	   132: 	movea.l	#VDC_LAYER0_TILES,A0
-00:0001010C 0A3000800000    	   133: 	eori.b	#$80,(A0,D0)
-00:00010112 4E75            	   134: 	rts
-                            	   135: 
-                            	   136: 
-                            	   137: exc_addr_error
-00:00010114 11FC00100404    	   138: 	move.b	#$10,VDC_BG_COLOR.w	; black
-00:0001011A 6000FFFE        	   139: .1	bra	.1
-                            	   140: 
-                            	   141: 
-                            	   142: exc_illegal_instr
-00:0001011E 11FC00120404    	   143: 	move.b	#$12,VDC_BG_COLOR.w	; red
-00:00010124 60FE            	   144: .1	bra.s	.1
+                            	   130: 
+                            	   131: screen_editor
+00:00010110 12380606        	   132: .1	move.b	$606.w,D1
+00:00010114 67FA            	   133: 	beq.s	.1
+00:00010116 103C0001        	   134: 	move.b	#1,D0
+00:0001011A 4E4F            	   135: 	trap	#15
+00:0001011C 60F2            	   136: 	bra.s	.1
+                            	   137: 
+                            	   138: 
+                            	   139: terminal_flip_cursor
+00:0001011E 303900006006    	   140: 	move.w	cursor_pos,D0
+00:00010124 207C00002000    	   141: 	movea.l	#VDC_LAYER0_TILES,A0
+00:0001012A 0A3000800000    	   142: 	eori.b	#$80,(A0,D0)
+00:00010130 4E75            	   143: 	rts
+                            	   144: 
                             	   145: 
-                            	   146: 
-                            	   147: exc_privilege_violation
-00:00010126 11FC00150404    	   148: 	move.b	#$15,VDC_BG_COLOR.w
-00:0001012C 60FE            	   149: .1	bra.s	.1
+                            	   146: exc_addr_error
+00:00010132 11FC00100404    	   147: 	move.b	#$10,VDC_BG_COLOR.w	; black
+00:00010138 6000FFFE        	   148: .1	bra	.1
+                            	   149: 
                             	   150: 
-                            	   151: 
-                            	   152: exc_spurious_interrupt
-00:0001012E 4E73            	   153: 	rte
+                            	   151: exc_illegal_instr
+00:0001013C 11FC00120404    	   152: 	move.b	#$12,VDC_BG_COLOR.w	; red
+00:00010142 60FE            	   153: .1	bra.s	.1
                             	   154: 
                             	   155: 
-                            	   156: exc_lvl1_irq_auto
-00:00010130 4E73            	   157: 	rte
-                            	   158: 
+                            	   156: exc_privilege_violation
+00:00010144 11FC00150404    	   157: 	move.b	#$15,VDC_BG_COLOR.w
+00:0001014A 60FE            	   158: .1	bra.s	.1
                             	   159: 
-                            	   160: exc_lvl2_irq_auto
-00:00010132 48E7C000        	   161: 	movem.l	D0-D1,-(SP)
-00:00010136 10380480        	   162: 	move.b	CORE_SR.w,D0			; did core cause an irq?
-00:0001013A 67000124        	   163: 	beq	.3				; no
-00:0001013E 11C00480        	   164: 	move.b	D0,CORE_SR.w			; yes, acknowledge
-                            	   165: 
-00:00010142 10380484        	   166: 	move.b	CORE_FILE_DATA.w,D0		; get first byte
-00:00010146 B03C0001        	   167: 	cmp.b	#1,D0
-00:0001014A 66000108        	   168: 	bne	.2				; it's not a valid file
-                            	   169: 
-00:0001014E 487900010793    	   170: 	pea	file_loading1
-00:00010154 6100050C        	   171: 	bsr	terminal_putstring
-00:00010158 588F            	   172: 	addq.l	#4,SP
-                            	   173: 
-00:0001015A 4879000107A9    	   174: .start	pea	file_loading2
-00:00010160 61000500        	   175: 	bsr	terminal_putstring
-00:00010164 588F            	   176: 	addq.l	#4,SP
+                            	   160: 
+                            	   161: exc_spurious_interrupt
+00:0001014C 4E73            	   162: 	rte
+                            	   163: 
+                            	   164: 
+                            	   165: exc_lvl1_irq_auto
+00:0001014E 4E73            	   166: 	rte
+                            	   167: 
+                            	   168: 
+                            	   169: exc_lvl2_irq_auto
+00:00010150 48E7C000        	   170: 	movem.l	D0-D1,-(SP)
+00:00010154 10380480        	   171: 	move.b	CORE_SR.w,D0			; did core cause an irq?
+00:00010158 67000130        	   172: 	beq	.3				; no
+00:0001015C 11C00480        	   173: 	move.b	D0,CORE_SR.w			; yes, acknowledge
+                            	   174: 
+00:00010160 4EB900010520    	   175: 	jsr	terminal_clear
+00:00010166 4EB900010728    	   176: 	jsr	terminal_welcome
                             	   177: 
-00:00010166 4280            	   178: 	clr.l	D0
-00:00010168 10380484        	   179: 	move.b	CORE_FILE_DATA.w,D0
-00:0001016C 660000E6        	   180: 	bne	.2					; should be zero this first byte
-00:00010170 10380484        	   181: 	move.b	CORE_FILE_DATA.w,D0
-00:00010174 E188            	   182: 	lsl.l	#8,D0
-00:00010176 10380484        	   183: 	move.b	CORE_FILE_DATA.w,D0
-00:0001017A E188            	   184: 	lsl.l	#8,D0
-00:0001017C 10380484        	   185: 	move.b	CORE_FILE_DATA.w,D0
-                            	   186: 
-00:00010180 23C00000600E    	   187: 	move.l	D0,chunk_length
-                            	   188: 
-00:00010186 2F00            	   189: 	move.l	D0,-(SP)
-00:00010188 1F3C0006        	   190: 	move.b	#6,-(SP)
-00:0001018C 610004F0        	   191: 	bsr	terminal_put_hex_number
-00:00010190 5C8F            	   192: 	addq.l	#6,SP
-                            	   193: 
-00:00010192 4879000107AC    	   194: 	pea	file_loading3
-00:00010198 610004C8        	   195: 	bsr	terminal_putstring
-00:0001019C 588F            	   196: 	addq.l	#4,SP
-                            	   197: 
-00:0001019E 4281            	   198: 	clr.l	D1
-00:000101A0 12380484        	   199: 	move.b	CORE_FILE_DATA.w,D1
-00:000101A4 660000AE        	   200: 	bne	.2
-00:000101A8 12380484        	   201: 	move.b	CORE_FILE_DATA.w,D1
-00:000101AC E189            	   202: 	lsl.l	#8,D1
-00:000101AE 12380484        	   203: 	move.b	CORE_FILE_DATA.w,D1
-00:000101B2 E189            	   204: 	lsl.l	#8,D1
-00:000101B4 12380484        	   205: 	move.b	CORE_FILE_DATA.w,D1
-                            	   206: 
-00:000101B8 2F01            	   207: 	move.l	D1,-(SP)
-00:000101BA 1F3C0006        	   208: 	move.b	#6,-(SP)
-00:000101BE 610004BE        	   209: 	bsr	terminal_put_hex_number
-00:000101C2 548F            	   210: 	addq.l	#2,SP
-00:000101C4 205F            	   211: 	movea.l	(SP)+,A0
-                            	   212: 
-00:000101C6 20390000600E    	   213: 	move.l	chunk_length,D0
-                            	   214: 
-00:000101CC 10F80484        	   215: .1	move.b	CORE_FILE_DATA.w,(A0)+	; get data and store in memory
-00:000101D0 5340            	   216: 	subq	#1,D0
-00:000101D2 6600FFF8        	   217: 	bne	.1
+00:0001016C 10380484        	   178: 	move.b	CORE_FILE_DATA.w,D0		; get first byte
+00:00010170 B03C0001        	   179: 	cmp.b	#1,D0
+00:00010174 66000108        	   180: 	bne	.2				; it's not a valid file
+                            	   181: 
+00:00010178 4879000107BB    	   182: 	pea	file_loading1
+00:0001017E 6100050A        	   183: 	bsr	terminal_putstring
+00:00010182 588F            	   184: 	addq.l	#4,SP
+                            	   185: 
+00:00010184 4879000107D1    	   186: .start	pea	file_loading2
+00:0001018A 610004FE        	   187: 	bsr	terminal_putstring
+00:0001018E 588F            	   188: 	addq.l	#4,SP
+                            	   189: 
+00:00010190 4280            	   190: 	clr.l	D0
+00:00010192 10380484        	   191: 	move.b	CORE_FILE_DATA.w,D0
+00:00010196 660000E6        	   192: 	bne	.2					; should be zero this first byte
+00:0001019A 10380484        	   193: 	move.b	CORE_FILE_DATA.w,D0
+00:0001019E E188            	   194: 	lsl.l	#8,D0
+00:000101A0 10380484        	   195: 	move.b	CORE_FILE_DATA.w,D0
+00:000101A4 E188            	   196: 	lsl.l	#8,D0
+00:000101A6 10380484        	   197: 	move.b	CORE_FILE_DATA.w,D0
+                            	   198: 
+00:000101AA 23C000006012    	   199: 	move.l	D0,chunk_length
+                            	   200: 
+00:000101B0 2F00            	   201: 	move.l	D0,-(SP)
+00:000101B2 1F3C0006        	   202: 	move.b	#6,-(SP)
+00:000101B6 610004EE        	   203: 	bsr	terminal_put_hex_number
+00:000101BA 5C8F            	   204: 	addq.l	#6,SP
+                            	   205: 
+00:000101BC 4879000107D4    	   206: 	pea	file_loading3
+00:000101C2 610004C6        	   207: 	bsr	terminal_putstring
+00:000101C6 588F            	   208: 	addq.l	#4,SP
+                            	   209: 
+00:000101C8 4281            	   210: 	clr.l	D1
+00:000101CA 12380484        	   211: 	move.b	CORE_FILE_DATA.w,D1
+00:000101CE 660000AE        	   212: 	bne	.2
+00:000101D2 12380484        	   213: 	move.b	CORE_FILE_DATA.w,D1
+00:000101D6 E189            	   214: 	lsl.l	#8,D1
+00:000101D8 12380484        	   215: 	move.b	CORE_FILE_DATA.w,D1
+00:000101DC E189            	   216: 	lsl.l	#8,D1
+00:000101DE 12380484        	   217: 	move.b	CORE_FILE_DATA.w,D1
                             	   218: 
-00:000101D6 2F08            	   219: 	move.l	A0,-(SP)
-00:000101D8 4879000107AC    	   220: 	pea	file_loading3
-00:000101DE 61000482        	   221: 	bsr	terminal_putstring
-00:000101E2 588F            	   222: 	addq.l	#4,SP
-00:000101E4 205F            	   223: 	movea.l	(SP)+,A0
+00:000101E2 2F01            	   219: 	move.l	D1,-(SP)
+00:000101E4 1F3C0006        	   220: 	move.b	#6,-(SP)
+00:000101E8 610004BC        	   221: 	bsr	terminal_put_hex_number
+00:000101EC 548F            	   222: 	addq.l	#2,SP
+00:000101EE 205F            	   223: 	movea.l	(SP)+,A0
                             	   224: 
-00:000101E6 5348            	   225: 	subq.w	#1,A0			; now A0 contains the last address in which a byte was loaded
-00:000101E8 2F08            	   226: 	move.l	A0,-(SP)
-00:000101EA 1F3C0006        	   227: 	move.b	#6,-(SP)
-00:000101EE 6100048E        	   228: 	bsr	terminal_put_hex_number
-00:000101F2 5C8F            	   229: 	addq.l	#6,SP
+00:000101F0 203900006012    	   225: 	move.l	chunk_length,D0
+                            	   226: 
+00:000101F6 10F80484        	   227: .1	move.b	CORE_FILE_DATA.w,(A0)+	; get data and store in memory
+00:000101FA 5340            	   228: 	subq	#1,D0
+00:000101FC 6600FFF8        	   229: 	bne	.1
                             	   230: 
-00:000101F4 10380484        	   231: 	move.b	CORE_FILE_DATA.w,D0	; look for next chunk
-00:000101F8 B03C0001        	   232: 	cmp.b	#1,D0
-00:000101FC 6700FF5C        	   233: 	beq	.start			; yes, another data chunk
-00:00010200 B03C00FE        	   234: 	cmp.b	#$fe,D0			; no, is this a postamble?
-00:00010204 6600004E        	   235: 	bne	.2			; no = error
+00:00010200 2F08            	   231: 	move.l	A0,-(SP)
+00:00010202 4879000107D4    	   232: 	pea	file_loading3
+00:00010208 61000480        	   233: 	bsr	terminal_putstring
+00:0001020C 588F            	   234: 	addq.l	#4,SP
+00:0001020E 205F            	   235: 	movea.l	(SP)+,A0
                             	   236: 
-00:00010208 10380484        	   237: 	move.b	CORE_FILE_DATA.w,D0	; yes it's the postamble
-00:0001020C 66000046        	   238: 	bne	.2			; should be zero
-00:00010210 10380484        	   239: 	move.b	CORE_FILE_DATA.w,D0
-00:00010214 6600003E        	   240: 	bne	.2			; should be zero
-00:00010218 10380484        	   241: 	move.b	CORE_FILE_DATA.w,D0
-00:0001021C 66000036        	   242: 	bne	.2			; should be zero
-00:00010220 10380484        	   243: 	move.b	CORE_FILE_DATA.w,D0
-00:00010224 6600002E        	   244: 	bne	.2			; should be zero
-                            	   245: 
-00:00010228 4280            	   246: 	clr.l	D0
-00:0001022A 10380484        	   247: 	move.b	CORE_FILE_DATA.w,D0
-00:0001022E 66000024        	   248: 	bne	.2			; should be zero
-00:00010232 10380484        	   249: 	move.b	CORE_FILE_DATA.w,D0
-00:00010236 E188            	   250: 	lsl.l	#8,D0
-00:00010238 10380484        	   251: 	move.b	CORE_FILE_DATA.w,D0
-00:0001023C E188            	   252: 	lsl.l	#8,D0
-00:0001023E 10380484        	   253: 	move.b	CORE_FILE_DATA.w,D0	; D0 contains starting address
-00:00010242 23C000006012    	   254: 	move.l	D0,exec_address
-                            	   255: 
-00:00010248 13FC000100006001	   256: 	move.b	#1,binary_ready
-00:00010250 6000000E        	   257: 	bra	.3
-                            	   258: 
-00:00010254 487900010778    	   259: .2	pea	file_error
-00:0001025A 61000406        	   260: 	bsr	terminal_putstring
-00:0001025E 588F            	   261: 	addq.l	#4,SP
-00:00010260 4CDF0003        	   262: .3	movem.l	(SP)+,D0-D1
-00:00010264 4E73            	   263: 	rte
-                            	   264: 
-                            	   265: 
-                            	   266: exc_lvl4_irq_auto		; coupled to timer
-00:00010266 48E7C080        	   267: 	movem.l	D0-D1/A0,-(SP)
-00:0001026A 207C00000100    	   268: 	movea.l	#VEC_TIMER0,A0
-00:00010270 103C0001        	   269: 	move.b	#%00000001,D0	; D0 contains the bit to be tested
+00:00010210 5348            	   237: 	subq.w	#1,A0			; now A0 contains the last address in which a byte was loaded
+00:00010212 2F08            	   238: 	move.l	A0,-(SP)
+00:00010214 1F3C0006        	   239: 	move.b	#6,-(SP)
+00:00010218 6100048C        	   240: 	bsr	terminal_put_hex_number
+00:0001021C 5C8F            	   241: 	addq.l	#6,SP
+                            	   242: 
+00:0001021E 10380484        	   243: 	move.b	CORE_FILE_DATA.w,D0	; look for next chunk
+00:00010222 B03C0001        	   244: 	cmp.b	#1,D0
+00:00010226 6700FF5C        	   245: 	beq	.start			; yes, another data chunk
+00:0001022A B03C00FE        	   246: 	cmp.b	#$fe,D0			; no, is this a postamble?
+00:0001022E 6600004E        	   247: 	bne	.2			; no = error
+                            	   248: 
+00:00010232 10380484        	   249: 	move.b	CORE_FILE_DATA.w,D0	; yes it's the postamble
+00:00010236 66000046        	   250: 	bne	.2			; should be zero
+00:0001023A 10380484        	   251: 	move.b	CORE_FILE_DATA.w,D0
+00:0001023E 6600003E        	   252: 	bne	.2			; should be zero
+00:00010242 10380484        	   253: 	move.b	CORE_FILE_DATA.w,D0
+00:00010246 66000036        	   254: 	bne	.2			; should be zero
+00:0001024A 10380484        	   255: 	move.b	CORE_FILE_DATA.w,D0
+00:0001024E 6600002E        	   256: 	bne	.2			; should be zero
+                            	   257: 
+00:00010252 4280            	   258: 	clr.l	D0
+00:00010254 10380484        	   259: 	move.b	CORE_FILE_DATA.w,D0
+00:00010258 66000024        	   260: 	bne	.2			; should be zero
+00:0001025C 10380484        	   261: 	move.b	CORE_FILE_DATA.w,D0
+00:00010260 E188            	   262: 	lsl.l	#8,D0
+00:00010262 10380484        	   263: 	move.b	CORE_FILE_DATA.w,D0
+00:00010266 E188            	   264: 	lsl.l	#8,D0
+00:00010268 10380484        	   265: 	move.b	CORE_FILE_DATA.w,D0	; D0 contains starting address
+00:0001026C 23C000006016    	   266: 	move.l	D0,exec_address
+                            	   267: 
+00:00010272 13FC000100006005	   268: 	move.b	#1,binary_ready
+00:0001027A 6000000E        	   269: 	bra	.3
                             	   270: 
-00:00010274 1200            	   271: .1	move.b	D0,D1		; copy D0 to D1
-00:00010276 C2380440        	   272: 	and.b	TIMER_SR.w,D1
-00:0001027A 6600000C        	   273: 	bne	.2		; it was this timer
-00:0001027E 5848            	   274: 	addq	#4,A0
-00:00010280 E300            	   275: 	asl.b	D0
-00:00010282 6700000C        	   276: 	beq	.3
-00:00010286 60EC            	   277: 	bra.s	.1
-                            	   278: 
-                            	   279: 	; code for dealing with this timer
-00:00010288 11C00440        	   280: .2	move.b	D0,TIMER_SR.w	; confirm this irq
-00:0001028C 2050            	   281: 	movea.l	(A0),A0
-00:0001028E 4E90            	   282: 	jsr	(A0)
-                            	   283: 
-00:00010290 4CDF0103        	   284: .3	movem.l	(SP)+,D0-D1/A0
-00:00010294 4E73            	   285: 	rte
-                            	   286: 
-                            	   287: 
-                            	   288: exc_lvl6_irq_auto				; coupled to vdc
-00:00010296 1F3900000407    	   289: 	move.b	VDC_CURRENT_SPRITE,-(SP)
-00:0001029C 48E7C000        	   290: 	movem.l	D0-D1,-(SP)
-                            	   291: 
-00:000102A0 10380400        	   292: 	move.b	VDC_SR.w,D0
-00:000102A4 6700005E        	   293: 	beq	.end
-00:000102A8 11C00400        	   294: 	move.b	D0,VDC_SR.w			; acknowledge irq
+00:0001027E 4879000107A0    	   271: .2	pea	file_error
+00:00010284 61000404        	   272: 	bsr	terminal_putstring
+00:00010288 588F            	   273: 	addq.l	#4,SP
+00:0001028A 4CDF0003        	   274: .3	movem.l	(SP)+,D0-D1
+00:0001028E 4E73            	   275: 	rte
+                            	   276: 
+                            	   277: 
+                            	   278: exc_lvl4_irq_auto		; coupled to timer
+00:00010290 48E7C080        	   279: 	movem.l	D0-D1/A0,-(SP)
+00:00010294 207C00000100    	   280: 	movea.l	#VEC_TIMER0,A0
+00:0001029A 103C0001        	   281: 	move.b	#%00000001,D0	; D0 contains the bit to be tested
+                            	   282: 
+00:0001029E 1200            	   283: .1	move.b	D0,D1		; copy D0 to D1
+00:000102A0 C2380440        	   284: 	and.b	TIMER_SR.w,D1
+00:000102A4 6600000C        	   285: 	bne	.2		; it was this timer
+00:000102A8 5848            	   286: 	addq	#4,A0
+00:000102AA E300            	   287: 	asl.b	D0
+00:000102AC 6700000C        	   288: 	beq	.3
+00:000102B0 60EC            	   289: 	bra.s	.1
+                            	   290: 
+                            	   291: 	; code for dealing with this timer
+00:000102B2 11C00440        	   292: .2	move.b	D0,TIMER_SR.w	; confirm this irq
+00:000102B6 2050            	   293: 	movea.l	(A0),A0
+00:000102B8 4E90            	   294: 	jsr	(A0)
                             	   295: 
-00:000102AC 103900006000    	   296: 	move.b	logo_animation,D0
-00:000102B2 5200            	   297: 	addq.b	#$1,D0
-00:000102B4 B03C00B8        	   298: 	cmp.b	#$b8,D0				; did we reach x position $b8?
-00:000102B8 6600000E        	   299: 	bne	.1				; no jump to .1
-00:000102BC 13FC000100000481	   300: 	move.b	#%00000001,CORE_CR		; yes, activate irq's for binary insert (each time we reach $b8)
-                            	   301: 						; this makes sure letters wobble at least 1 time before binary
-                            	   302: 						; load process starts
-00:000102C4 103C0048        	   303: 	move.b	#$48,D0				; reset x position to $48
-                            	   304: 
-00:000102C8 13C000006000    	   305: .1	move.b	D0,logo_animation
-                            	   306: 
-00:000102CE 123C0004        	   307: 	move.b	#4,D1				; start with sprite 4 (letter 'l')
-00:000102D2 13C100000407    	   308: .2	move.b	D1,VDC_CURRENT_SPRITE
-00:000102D8 13FC005C00000423	   309: 	move.b	#92,VDC_SPRITE_Y_LSB		; base position for each letter
-                            	   310: 
-00:000102E0 103900000421    	   311: 	move.b	VDC_SPRITE_X_LSB,D0		; store x for current sprite in D0
-00:000102E6 903900006000    	   312: 	sub.b	logo_animation,D0		; subtract logo_an x value from D0
-                            	   313: 
-00:000102EC B03C0008        	   314: 	cmp.b	#8,D0
-00:000102F0 64000008        	   315: 	bcc	.3				; if more than 8, jump to .3
+00:000102BA 4CDF0103        	   296: .3	movem.l	(SP)+,D0-D1/A0
+00:000102BE 4E73            	   297: 	rte
+                            	   298: 
+                            	   299: 
+                            	   300: exc_lvl6_irq_auto				; coupled to vdc
+00:000102C0 1F3900000407    	   301: 	move.b	VDC_CURRENT_SPRITE,-(SP)
+00:000102C6 48E7C000        	   302: 	movem.l	D0-D1,-(SP)
+                            	   303: 
+00:000102CA 10380400        	   304: 	move.b	VDC_SR.w,D0
+00:000102CE 6700005E        	   305: 	beq	.end
+00:000102D2 11C00400        	   306: 	move.b	D0,VDC_SR.w			; acknowledge irq
+                            	   307: 
+00:000102D6 103900006004    	   308: 	move.b	logo_animation,D0
+00:000102DC 5200            	   309: 	addq.b	#$1,D0
+00:000102DE B03C00B8        	   310: 	cmp.b	#$b8,D0				; did we reach x position $b8?
+00:000102E2 6600000E        	   311: 	bne	.1				; no jump to .1
+00:000102E6 13FC000100000481	   312: 	move.b	#%00000001,CORE_CR		; yes, activate irq's for binary insert (each time we reach $b8)
+                            	   313: 						; this makes sure letters wobble at least 1 time before binary
+                            	   314: 						; load process starts
+00:000102EE 103C0048        	   315: 	move.b	#$48,D0				; reset x position to $48
                             	   316: 
-00:000102F4 533900000423    	   317: 	subq.b	#1,VDC_SPRITE_Y_LSB		; move letter up 1 pixel
+00:000102F2 13C000006004    	   317: .1	move.b	D0,logo_animation
                             	   318: 
-00:000102FA 5241            	   319: .3	addq	#1,D1				; move to next sprite
-00:000102FC B23C0008        	   320: 	cmp.b	#8,D1				; did we reach sprite 8?
-00:00010300 6600FFD0        	   321: 	bne	.2				; not yet, jump to .2
+00:000102F8 123C0004        	   319: 	move.b	#4,D1				; start with sprite 4 (letter 'l')
+00:000102FC 13C100000407    	   320: .2	move.b	D1,VDC_CURRENT_SPRITE
+00:00010302 13FC005C00000423	   321: 	move.b	#92,VDC_SPRITE_Y_LSB		; base position for each letter
                             	   322: 
-00:00010304 4CDF0003        	   323: .end	movem.l	(SP)+,D0-D1
-00:00010308 13DF00000407    	   324: 	move.b	(SP)+,VDC_CURRENT_SPRITE
-00:0001030E 4E73            	   325: 	rte
-                            	   326: 
-                            	   327: exc_trap14_handler
-00:00010310 B03C0000        	   328: 	cmp.b	#0,D0
-00:00010314 66000006        	   329: 	bne	.1
-00:00010318 61000410        	   330: 	bsr	rnd_impl
-00:0001031C 4E73            	   331: .1	rte
-                            	   332: 
-                            	   333: exc_trap15_handler
-00:0001031E B03C0001        	   334: 	cmp.b	#1,D0
-00:00010322 6600000C        	   335: 	bne	.1
-00:00010326 1F01            	   336: 	move.b	D1,-(SP)
-00:00010328 610001FC        	   337: 	bsr	terminal_putchar
-00:0001032C 548F            	   338: 	addq.l	#2,SP
-00:0001032E 4E73            	   339: 	rte
-                            	   340: 
-00:00010330 B03C0002        	   341: .1	cmp.b	#2,D0
-00:00010334 6600000A        	   342: 	bne	.2
-00:00010338 2F08            	   343: 	move.l	A0,-(SP)
-00:0001033A 61000326        	   344: 	bsr	terminal_putstring
-00:0001033E 588F            	   345: 	addq.l	#4,SP
-                            	   346: 
-00:00010340 4E73            	   347: .2	rte
-                            	   348: 
-                            	   349: timer_default_handler
-00:00010342 11FC00120404    	   350: 	move.b	#$12,VDC_BG_COLOR.w
-00:00010348 4E75            	   351: 	rts
+00:0001030A 103900000421    	   323: 	move.b	VDC_SPRITE_X_LSB,D0		; store x for current sprite in D0
+00:00010310 903900006004    	   324: 	sub.b	logo_animation,D0		; subtract logo_an x value from D0
+                            	   325: 
+00:00010316 B03C0008        	   326: 	cmp.b	#8,D0
+00:0001031A 64000008        	   327: 	bcc	.3				; if more than 8, jump to .3
+                            	   328: 
+00:0001031E 533900000423    	   329: 	subq.b	#1,VDC_SPRITE_Y_LSB		; move letter up 1 pixel
+                            	   330: 
+00:00010324 5241            	   331: .3	addq	#1,D1				; move to next sprite
+00:00010326 B23C0008        	   332: 	cmp.b	#8,D1				; did we reach sprite 8?
+00:0001032A 6600FFD0        	   333: 	bne	.2				; not yet, jump to .2
+                            	   334: 
+00:0001032E 4CDF0003        	   335: .end	movem.l	(SP)+,D0-D1
+00:00010332 13DF00000407    	   336: 	move.b	(SP)+,VDC_CURRENT_SPRITE
+00:00010338 4E73            	   337: 	rte
+                            	   338: 
+                            	   339: exc_trap14_handler
+00:0001033A B03C0000        	   340: 	cmp.b	#0,D0
+00:0001033E 66000006        	   341: 	bne	.1
+00:00010342 6100040E        	   342: 	bsr	rnd_impl
+00:00010346 4E73            	   343: .1	rte
+                            	   344: 
+                            	   345: exc_trap15_handler
+00:00010348 B03C0001        	   346: 	cmp.b	#1,D0
+00:0001034C 6600000C        	   347: 	bne	.1
+00:00010350 1F01            	   348: 	move.b	D1,-(SP)
+00:00010352 610001FA        	   349: 	bsr	terminal_putchar
+00:00010356 548F            	   350: 	addq.l	#2,SP
+00:00010358 4E73            	   351: 	rte
                             	   352: 
-                            	   353: sound_reset
-00:0001034A 48E78080        	   354: 	movem.l	D0/A0,-(SP)
-                            	   355: 
-00:0001034E 207C00000500    	   356: 	movea.l	#SID0_F,A0
-                            	   357: 
-00:00010354 4218            	   358: .1	clr.b	(A0)+
-00:00010356 B1FC00000540    	   359: 	cmpa.l	#SID0_F+$40,A0
-00:0001035C 6600FFF6        	   360: 	bne	.1
-                            	   361: 
-00:00010360 103C007F        	   362: 	move.b	#$7f,D0
-00:00010364 207C00000580    	   363: 	movea.l	#MIX_SID0_LEFT,A0
+00:0001035A B03C0002        	   353: .1	cmp.b	#2,D0
+00:0001035E 6600000A        	   354: 	bne	.2
+00:00010362 2F08            	   355: 	move.l	A0,-(SP)
+00:00010364 61000324        	   356: 	bsr	terminal_putstring
+00:00010368 588F            	   357: 	addq.l	#4,SP
+                            	   358: 
+00:0001036A 4E73            	   359: .2	rte
+                            	   360: 
+                            	   361: timer_default_handler
+00:0001036C 11FC00120404    	   362: 	move.b	#$12,VDC_BG_COLOR.w
+00:00010372 4E75            	   363: 	rts
                             	   364: 
-00:0001036A 10C0            	   365: .2	move.b	D0,(A0)+
-00:0001036C B1FC00000588    	   366: 	cmpa.l	#MIX_SID0_LEFT+$8,A0
-00:00010372 6600FFF6        	   367: 	bne	.2
-                            	   368: 
-00:00010376 13FC000F0000051B	   369: 	move.b	#$f,SID0_V
-00:0001037E 13FC000F0000053B	   370: 	move.b	#$f,SID1_V
-                            	   371: 
-00:00010386 4CDF0101        	   372: 	movem.l	(SP)+,D0/A0
-00:0001038A 4E75            	   373: 	rts
-                            	   374: 
-                            	   375: 
-                            	   376: init_vector_table
-00:0001038C 21FC00010114000C	   377: 	move.l	#exc_addr_error,VEC_ADDR_ERROR.w
-00:00010394 21FC0001011E0010	   378: 	move.l	#exc_illegal_instr,VEC_ILLEGAL_INSTR.w
-00:0001039C 21FC000101260020	   379: 	move.l	#exc_privilege_violation,VEC_PRIVILEGE_VIOLATION.w
-00:000103A4 21FC0001012E0060	   380: 	move.l	#exc_spurious_interrupt,VEC_SPURIOUS_INTERRUPT.w
-00:000103AC 21FC000101300064	   381: 	move.l	#exc_lvl1_irq_auto,VEC_LVL1_IRQ_AUTO.w
-00:000103B4 21FC000101320068	   382: 	move.l	#exc_lvl2_irq_auto,VEC_LVL2_IRQ_AUTO.w
-00:000103BC 21FC000102660070	   383: 	move.l	#exc_lvl4_irq_auto,VEC_LVL4_IRQ_AUTO.w
-00:000103C4 21FC000102960078	   384: 	move.l	#exc_lvl6_irq_auto,VEC_LVL6_IRQ_AUTO.w
-00:000103CC 21FC0001031000B8	   385: 	move.l	#exc_trap14_handler,VEC_TRAP14.w
-00:000103D4 21FC0001031E00BC	   386: 	move.l	#exc_trap15_handler,VEC_TRAP15.w
-00:000103DC 21FC000103420100	   387: 	move.l	#timer_default_handler,VEC_TIMER0.w
-00:000103E4 21FC000103420104	   388: 	move.l	#timer_default_handler,VEC_TIMER1.w
-00:000103EC 21FC000103420108	   389: 	move.l	#timer_default_handler,VEC_TIMER2.w
-00:000103F4 21FC00010342010C	   390: 	move.l	#timer_default_handler,VEC_TIMER3.w
-00:000103FC 21FC000103420110	   391: 	move.l	#timer_default_handler,VEC_TIMER4.w
-00:00010404 21FC000103420114	   392: 	move.l	#timer_default_handler,VEC_TIMER5.w
-00:0001040C 21FC000103420118	   393: 	move.l	#timer_default_handler,VEC_TIMER6.w
-00:00010414 21FC00010342011C	   394: 	move.l	#timer_default_handler,VEC_TIMER7.w
-00:0001041C 4E75            	   395: 	rts
-                            	   396: 
-                            	   397: 
-                            	   398: vdc_init_terminal
-00:0001041E 423900000481    	   399: 	clr.b	CORE_CR				; stop irq's when new bin inserted
-00:00010424 423900000401    	   400: 	clr.b	VDC_CR				; stop VDC interrupts (at rasterline 179)
-00:0001042A 4200            	   401: 	clr.b	D0
-00:0001042C 13C000000407    	   402: .1	move.b	D0,VDC_CURRENT_SPRITE		; make sprite 0-7 inactive
-00:00010432 423900000424    	   403: 	clr.b	VDC_SPRITE_FLAGS0
-00:00010438 5200            	   404: 	addq.b	#1,D0
-00:0001043A B03C0008        	   405: 	cmp.b	#8,D0
-00:0001043E 6600FFEC        	   406: 	bne	.1
-                            	   407: 
-00:00010442 1F380406        	   408: 	move.b	VDC_CURRENT_LAYER.w,-(SP)
+                            	   365: sound_reset
+00:00010374 48E78080        	   366: 	movem.l	D0/A0,-(SP)
+                            	   367: 
+00:00010378 207C00000500    	   368: 	movea.l	#SID0_F,A0
+                            	   369: 
+00:0001037E 4218            	   370: .1	clr.b	(A0)+
+00:00010380 B1FC00000540    	   371: 	cmpa.l	#SID0_F+$40,A0
+00:00010386 6600FFF6        	   372: 	bne	.1
+                            	   373: 
+00:0001038A 103C007F        	   374: 	move.b	#$7f,D0
+00:0001038E 207C00000580    	   375: 	movea.l	#MIX_SID0_LEFT,A0
+                            	   376: 
+00:00010394 10C0            	   377: .2	move.b	D0,(A0)+
+00:00010396 B1FC00000588    	   378: 	cmpa.l	#MIX_SID0_LEFT+$8,A0
+00:0001039C 6600FFF6        	   379: 	bne	.2
+                            	   380: 
+00:000103A0 13FC000F0000051B	   381: 	move.b	#$f,SID0_V
+00:000103A8 13FC000F0000053B	   382: 	move.b	#$f,SID1_V
+                            	   383: 
+00:000103B0 4CDF0101        	   384: 	movem.l	(SP)+,D0/A0
+00:000103B4 4E75            	   385: 	rts
+                            	   386: 
+                            	   387: 
+                            	   388: init_vector_table
+00:000103B6 21FC00010132000C	   389: 	move.l	#exc_addr_error,VEC_ADDR_ERROR.w
+00:000103BE 21FC0001013C0010	   390: 	move.l	#exc_illegal_instr,VEC_ILLEGAL_INSTR.w
+00:000103C6 21FC000101440020	   391: 	move.l	#exc_privilege_violation,VEC_PRIVILEGE_VIOLATION.w
+00:000103CE 21FC0001014C0060	   392: 	move.l	#exc_spurious_interrupt,VEC_SPURIOUS_INTERRUPT.w
+00:000103D6 21FC0001014E0064	   393: 	move.l	#exc_lvl1_irq_auto,VEC_LVL1_IRQ_AUTO.w
+00:000103DE 21FC000101500068	   394: 	move.l	#exc_lvl2_irq_auto,VEC_LVL2_IRQ_AUTO.w
+00:000103E6 21FC000102900070	   395: 	move.l	#exc_lvl4_irq_auto,VEC_LVL4_IRQ_AUTO.w
+00:000103EE 21FC000102C00078	   396: 	move.l	#exc_lvl6_irq_auto,VEC_LVL6_IRQ_AUTO.w
+00:000103F6 21FC0001033A00B8	   397: 	move.l	#exc_trap14_handler,VEC_TRAP14.w
+00:000103FE 21FC0001034800BC	   398: 	move.l	#exc_trap15_handler,VEC_TRAP15.w
+00:00010406 21FC0001036C0100	   399: 	move.l	#timer_default_handler,VEC_TIMER0.w
+00:0001040E 21FC0001036C0104	   400: 	move.l	#timer_default_handler,VEC_TIMER1.w
+00:00010416 21FC0001036C0108	   401: 	move.l	#timer_default_handler,VEC_TIMER2.w
+00:0001041E 21FC0001036C010C	   402: 	move.l	#timer_default_handler,VEC_TIMER3.w
+00:00010426 21FC0001036C0110	   403: 	move.l	#timer_default_handler,VEC_TIMER4.w
+00:0001042E 21FC0001036C0114	   404: 	move.l	#timer_default_handler,VEC_TIMER5.w
+00:00010436 21FC0001036C0118	   405: 	move.l	#timer_default_handler,VEC_TIMER6.w
+00:0001043E 21FC0001036C011C	   406: 	move.l	#timer_default_handler,VEC_TIMER7.w
+00:00010446 4E75            	   407: 	rts
+                            	   408: 
                             	   409: 
-00:00010446 11FC000C0402    	   410: 	move.b	#$0c,VDC_BORDER_COLOR.w		; dark grey / black
-00:0001044C 11FC000A0403    	   411: 	move.b	#$0a,VDC_BORDER_SIZE.w
-00:00010452 11FC00400404    	   412: 	move.b	#$40,VDC_BG_COLOR.w;		; Atari Basic BG
-00:00010458 42380406        	   413: 	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current
-00:0001045C 11FC000D0414    	   414: 	move.b	#%1101,VDC_LAYER_FLAGS0.w	;
-00:00010462 31FCFFF60412    	   415: 	move.w	#$fff6,VDC_LAYER_Y_MSB.w
-                            	   416: 
-00:00010468 11DF0406        	   417: 	move.b	(SP)+,VDC_CURRENT_LAYER.w
-00:0001046C 4E75            	   418: 	rts
+                            	   410: init_terminal_settings
+00:00010448 423900000481    	   411: 	clr.b	CORE_CR				; stop irq's when new bin inserted or basic mode starts
+00:0001044E 423900000401    	   412: 	clr.b	VDC_CR				; stop VDC interrupts (at rasterline 179)
+00:00010454 4200            	   413: 	clr.b	D0
+00:00010456 13C000000407    	   414: .1	move.b	D0,VDC_CURRENT_SPRITE		; make sprite 0-7 inactive
+00:0001045C 423900000424    	   415: 	clr.b	VDC_SPRITE_FLAGS0
+00:00010462 5200            	   416: 	addq.b	#1,D0
+00:00010464 B03C0008        	   417: 	cmp.b	#8,D0
+00:00010468 6600FFEC        	   418: 	bne	.1
                             	   419: 
-                            	   420: 
-                            	   421: vdc_copy_rom_font
-00:0001046E 1F380482        	   422: 	move.b	CORE_ROMS.w,-(SP)
-                            	   423: 
-00:00010472 003800060482    	   424: 	or.b	#%00000110,CORE_ROMS.w			; make rom font visible to cpu
-00:00010478 207C00000800    	   425: 	movea.l	#$800,A0
-00:0001047E 227C00002000    	   426: 	movea.l	#$2000,A1
-                            	   427: 
-00:00010484 20D0            	   428: .1	move.l	(A0),(A0)+				; copy rom font to underlying ram
-00:00010486 B0C9            	   429: 	cmpa	A1,A0
-00:00010488 6600FFFA        	   430: 	bne	.1
+00:0001046C 1F380406        	   420: 	move.b	VDC_CURRENT_LAYER.w,-(SP)
+                            	   421: 
+00:00010470 11FC000C0402    	   422: 	move.b	#$0c,VDC_BORDER_COLOR.w		; dark grey / black
+00:00010476 11FC000A0403    	   423: 	move.b	#$0a,VDC_BORDER_SIZE.w
+00:0001047C 11FC00400404    	   424: 	move.b	#$40,VDC_BG_COLOR.w		; Atari Basic BG
+00:00010482 42380406        	   425: 	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current
+00:00010486 11FC000D0414    	   426: 	move.b	#%1101,VDC_LAYER_FLAGS0.w	;
+00:0001048C 31FCFFF60412    	   427: 	move.w	#$fff6,VDC_LAYER_Y_MSB.w
+                            	   428: 
+00:00010492 11DF0406        	   429: 	move.b	(SP)+,VDC_CURRENT_LAYER.w
+00:00010496 4E75            	   430: 	rts
                             	   431: 
-00:0001048C 11DF0482        	   432: 	move.b	(SP)+,CORE_ROMS.w
-00:00010490 4E75            	   433: 	rts
-                            	   434: 
+                            	   432: 
+                            	   433: vdc_copy_rom_font
+00:00010498 1F380482        	   434: 	move.b	CORE_ROMS.w,-(SP)
                             	   435: 
-                            	   436: vdc_copy_logo_tiles
-00:00010492 207C00010800    	   437: 	movea.l	#logo_tiles,A0
-00:00010498 327C11C0        	   438: 	movea.w	#$11c0,A1		; start at tile $1c
+00:0001049C 003800060482    	   436: 	or.b	#%00000110,CORE_ROMS.w			; make rom font visible to cpu
+00:000104A2 207C00000800    	   437: 	movea.l	#$800,A0
+00:000104A8 227C00002000    	   438: 	movea.l	#$2000,A1
                             	   439: 
-00:0001049C 12D8            	   440: .1	move.b	(A0)+,(A1)+
-00:0001049E B1FC00010840    	   441: 	cmpa.l	#logo_tiles+64,A0	; 64 bytes = 4 tiles, 16 bytes/tile
-00:000104A4 6600FFF6        	   442: 	bne	.1
+00:000104AE 20D0            	   440: .1	move.l	(A0),(A0)+				; copy rom font to underlying ram
+00:000104B0 B0C9            	   441: 	cmpa	A1,A0
+00:000104B2 6600FFFA        	   442: 	bne	.1
                             	   443: 
-00:000104A8 4E75            	   444: 	rts
-                            	   445: 
+00:000104B6 11DF0482        	   444: 	move.b	(SP)+,CORE_ROMS.w
+00:000104BA 4E75            	   445: 	rts
                             	   446: 
-                            	   447: ; setup sprites 0 - 7 (position, flags, index)
-                            	   448: vdc_init_logo
-00:000104AA 207C000107C0    	   449: 	movea.l	#logo_data,A0
-00:000104B0 4200            	   450: 	clr.b	D0
+                            	   447: 
+                            	   448: vdc_copy_logo_tiles
+00:000104BC 207C00010828    	   449: 	movea.l	#logo_tiles,A0
+00:000104C2 327C11C0        	   450: 	movea.w	#$11c0,A1		; start at tile $1c
                             	   451: 
-00:000104B2 13C000000407    	   452: .1	move.b	D0,VDC_CURRENT_SPRITE
-00:000104B8 227C00000420    	   453: 	movea.l	#VDC_SPRITE_X_MSB,A1
-                            	   454: 
-00:000104BE 12D8            	   455: .2	move.b	(A0)+,(A1)+
-00:000104C0 B3FC00000428    	   456: 	cmpa.l	#VDC_SPRITE_X_MSB+8,A1
-00:000104C6 6600FFF6        	   457: 	bne	.2
-00:000104CA 5240            	   458: 	addq	#1,D0
-00:000104CC B1FC00010800    	   459: 	cmpa.l	#logo_data+64,A0	; 8 * 8 bytes = 64 bytes
-00:000104D2 6600FFDE        	   460: 	bne	.1
-                            	   461: 
-00:000104D6 4E75            	   462: 	rts
+00:000104C6 12D8            	   452: .1	move.b	(A0)+,(A1)+
+00:000104C8 B1FC00010868    	   453: 	cmpa.l	#logo_tiles+64,A0	; 64 bytes = 4 tiles, 16 bytes/tile
+00:000104CE 6600FFF6        	   454: 	bne	.1
+                            	   455: 
+00:000104D2 4E75            	   456: 	rts
+                            	   457: 
+                            	   458: 
+                            	   459: ; setup sprites 0 - 7 (position, flags, index)
+                            	   460: vdc_init_logo
+00:000104D4 207C000107E8    	   461: 	movea.l	#logo_data,A0
+00:000104DA 4200            	   462: 	clr.b	D0
                             	   463: 
-                            	   464: 
-                            	   465: vdc_disable_logo
-                            	   466: 	; stop interrupt routine
-                            	   467: 	; make sprites 0-7 hidden, but leave other data as it is
-                            	   468: 	; <OR> restore original chars?
-00:000104D8 4E75            	   469: 	rts
-                            	   470: 
-                            	   471: 
-                            	   472: terminal_init
-00:000104DA 23FC000020000000	   473: 	move.l	#VDC_LAYER0_TILES,terminal_chars
-00:000104E2 6006
-00:000104E4 23FC000030000000	   474: 	move.l	#VDC_LAYER0_COLORS,terminal_colors
-00:000104EC 600A
-00:000104EE 13FC004100006004	   475: 	move.b	#$41,cursor_color
-00:000104F6 4E75            	   476: 	rts
-                            	   477: 
-                            	   478: 
-                            	   479: terminal_clear
-00:000104F8 303C1000        	   480: 	move.w	#(TERMINAL_HPITCH*TERMINAL_VPITCH),D0
-00:000104FC 12386004        	   481: 	move.b	cursor_color.w,D1
-00:00010500 207900006006    	   482: 	movea.l	terminal_chars,A0
-00:00010506 22790000600A    	   483: 	movea.l	terminal_colors,A1
-                            	   484: 
-00:0001050C 10FC0020        	   485: .1	move.b	#' ',(A0)+
-00:00010510 12C1            	   486: 	move.b	D1,(A1)+
-00:00010512 5340            	   487: 	subq.w	#1,D0
-00:00010514 6600FFF6        	   488: 	bne	.1
+00:000104DC 13C000000407    	   464: .1	move.b	D0,VDC_CURRENT_SPRITE
+00:000104E2 227C00000420    	   465: 	movea.l	#VDC_SPRITE_X_MSB,A1
+                            	   466: 
+00:000104E8 12D8            	   467: .2	move.b	(A0)+,(A1)+
+00:000104EA B3FC00000428    	   468: 	cmpa.l	#VDC_SPRITE_X_MSB+8,A1
+00:000104F0 6600FFF6        	   469: 	bne	.2
+00:000104F4 5240            	   470: 	addq	#1,D0
+00:000104F6 B1FC00010828    	   471: 	cmpa.l	#logo_data+64,A0	; 8 * 8 bytes = 64 bytes
+00:000104FC 6600FFDE        	   472: 	bne	.1
+                            	   473: 
+00:00010500 4E75            	   474: 	rts
+                            	   475: 
+                            	   476: 
+                            	   477: terminal_init
+00:00010502 23FC000020000000	   478: 	move.l	#VDC_LAYER0_TILES,terminal_chars
+00:0001050A 600A
+00:0001050C 23FC000030000000	   479: 	move.l	#VDC_LAYER0_COLORS,terminal_colors
+00:00010514 600E
+00:00010516 13FC004100006008	   480: 	move.b	#$41,cursor_color
+00:0001051E 4E75            	   481: 	rts
+                            	   482: 
+                            	   483: 
+                            	   484: terminal_clear
+00:00010520 303C1000        	   485: 	move.w	#(TERMINAL_HPITCH*TERMINAL_VPITCH),D0
+00:00010524 12386008        	   486: 	move.b	cursor_color.w,D1
+00:00010528 20790000600A    	   487: 	movea.l	terminal_chars,A0
+00:0001052E 22790000600E    	   488: 	movea.l	terminal_colors,A1
                             	   489: 
-00:00010518 427900006002    	   490: 	clr.w	cursor_pos
-00:0001051E 4EB900010100    	   491: 	jsr	terminal_flip_cursor
-00:00010524 4E75            	   492: 	rts
-                            	   493: 
-                            	   494: terminal_putchar
-00:00010526 4EB900010100    	   495: 	jsr	terminal_flip_cursor	; deactivate the cursor
-00:0001052C 207900006006    	   496: 	movea.l	terminal_chars,A0
-00:00010532 22790000600A    	   497: 	movea.l	terminal_colors,A1
-00:00010538 303900006002    	   498: 	move.w	cursor_pos,D0
-                            	   499: 
-00:0001053E 0C2F000A0004    	   500: 	cmp.b	#$0a,4(SP)		; check for newline
-00:00010544 6700005C        	   501: 	beq	.nwln
-00:00010548 0C2F000D0004    	   502: 	cmp.b	#$0d,4(SP)		; check for carriage return
-00:0001054E 67000056        	   503: 	beq	.crt
-00:00010552 0C2F001D0004    	   504: 	cmp.b	#$1d,4(SP)		; cursor right
-00:00010558 67000038        	   505: 	beq	.cr
-00:0001055C 0C2F00110004    	   506: 	cmp.b	#$11,4(SP)		; cursor down
-00:00010562 6700006E        	   507: 	beq	.cd
-00:00010566 0C2F00910004    	   508: 	cmp.b	#$91,4(SP)		; cursor up
-00:0001056C 6700006E        	   509: 	beq	.cu
-00:00010570 0C2F009D0004    	   510: 	cmp.b	#$9d,4(SP)		; cursor left
-00:00010576 67000070        	   511: 	beq	.cl
-00:0001057A 0C2F00080004    	   512: 	cmp.b	#$08,4(SP)		; backspace
-00:00010580 67000088        	   513: 	beq	.bs
-                            	   514: 
-00:00010584 11AF00040000    	   515: 	move.b	(4,SP),(A0,D0.w)	; print char
-00:0001058A 13B9000060040000	   516: 	move.b	cursor_color,(A1,D0.w)	; set color
-                            	   517: 
-00:00010592 5240            	   518: .cr	addq.w	#1,D0			; move cursor one step to the right
-00:00010594 3200            	   519: 	move.w	D0,D1
-00:00010596 0241007F        	   520: 	andi.w	#%1111111,D1
-00:0001059A B27C0050        	   521: 	cmp.w	#TERMINAL_WIDTH,D1	; are we at pos 80 or higher?
-00:0001059E 65000026        	   522: 	blo	.3			; no
-                            	   523: 
-00:000105A2 06400080        	   524: .nwln	addi.w	#TERMINAL_HPITCH,D0	; yes, move cursor one line down
-00:000105A6 0240FF80        	   525: .crt	andi.w	#%1111111110000000,D0	; cursor to beginning of line (carriage return)
-                            	   526: 
-00:000105AA B07C0A00        	   527: .2	cmp.w	#(TERMINAL_HPITCH*TERMINAL_HEIGHT),D0	; check for cursor out of screen
-00:000105AE 65000016        	   528: 	blo	.3			; no
-                            	   529: 
-00:000105B2 04400080        	   530: 	subi.w	#TERMINAL_HPITCH,D0	; move cursor one line up
-00:000105B6 33C000006002    	   531: 	move.w	D0,cursor_pos
-00:000105BC 610000FE        	   532: 	bsr	terminal_add_bottom_row
-00:000105C0 6100FB3E        	   533: 	bsr	terminal_flip_cursor	; activate the cursor
-00:000105C4 4E75            	   534: 	rts
-                            	   535: 
-00:000105C6 33C000006002    	   536: .3	move.w	D0,cursor_pos
-00:000105CC 6100FB32        	   537: 	bsr	terminal_flip_cursor	; activate the cursor
-00:000105D0 4E75            	   538: 	rts
-                            	   539: 
-00:000105D2 06400080        	   540: .cd	addi.w	#TERMINAL_HPITCH,D0	; yes, move cursor one line down
-00:000105D6 6000FFD2        	   541: 	bra	.2
-00:000105DA 4E75            	   542: 	rts
-                            	   543: 
-00:000105DC 04400080        	   544: .cu	subi.w	#TERMINAL_HPITCH,D0	; move cursor one line up
-00:000105E0 6AE4            	   545: 	bpl.s	.3
-00:000105E2 06400080        	   546: 	addi.w	#TERMINAL_HPITCH,D0	; move cursor one line down
-00:000105E6 60DE            	   547: 	bra.s	.3
+00:00010534 10FC0020        	   490: .1	move.b	#' ',(A0)+
+00:00010538 12C1            	   491: 	move.b	D1,(A1)+
+00:0001053A 5340            	   492: 	subq.w	#1,D0
+00:0001053C 6600FFF6        	   493: 	bne	.1
+                            	   494: 
+00:00010540 427900006006    	   495: 	clr.w	cursor_pos
+00:00010546 4EB90001011E    	   496: 	jsr	terminal_flip_cursor
+00:0001054C 4E75            	   497: 	rts
+                            	   498: 
+                            	   499: terminal_putchar
+00:0001054E 4EB90001011E    	   500: 	jsr	terminal_flip_cursor	; deactivate the cursor
+00:00010554 20790000600A    	   501: 	movea.l	terminal_chars,A0
+00:0001055A 22790000600E    	   502: 	movea.l	terminal_colors,A1
+00:00010560 303900006006    	   503: 	move.w	cursor_pos,D0
+                            	   504: 
+00:00010566 0C2F000A0004    	   505: 	cmp.b	#$0a,4(SP)		; check for newline
+00:0001056C 6700005C        	   506: 	beq	.nwln
+00:00010570 0C2F000D0004    	   507: 	cmp.b	#$0d,4(SP)		; check for carriage return
+00:00010576 67000056        	   508: 	beq	.crt
+00:0001057A 0C2F001D0004    	   509: 	cmp.b	#$1d,4(SP)		; cursor right
+00:00010580 67000038        	   510: 	beq	.cr
+00:00010584 0C2F00110004    	   511: 	cmp.b	#$11,4(SP)		; cursor down
+00:0001058A 6700006E        	   512: 	beq	.cd
+00:0001058E 0C2F00910004    	   513: 	cmp.b	#$91,4(SP)		; cursor up
+00:00010594 6700006E        	   514: 	beq	.cu
+00:00010598 0C2F009D0004    	   515: 	cmp.b	#$9d,4(SP)		; cursor left
+00:0001059E 67000070        	   516: 	beq	.cl
+00:000105A2 0C2F00080004    	   517: 	cmp.b	#$08,4(SP)		; backspace
+00:000105A8 67000088        	   518: 	beq	.bs
+                            	   519: 
+00:000105AC 11AF00040000    	   520: 	move.b	(4,SP),(A0,D0.w)	; print char
+00:000105B2 13B9000060080000	   521: 	move.b	cursor_color,(A1,D0.w)	; set color
+                            	   522: 
+00:000105BA 5240            	   523: .cr	addq.w	#1,D0			; move cursor one step to the right
+00:000105BC 3200            	   524: 	move.w	D0,D1
+00:000105BE 0241007F        	   525: 	andi.w	#%1111111,D1
+00:000105C2 B27C0050        	   526: 	cmp.w	#TERMINAL_WIDTH,D1	; are we at pos 80 or higher?
+00:000105C6 65000026        	   527: 	blo	.3			; no
+                            	   528: 
+00:000105CA 06400080        	   529: .nwln	addi.w	#TERMINAL_HPITCH,D0	; yes, move cursor one line down
+00:000105CE 0240FF80        	   530: .crt	andi.w	#%1111111110000000,D0	; cursor to beginning of line (carriage return)
+                            	   531: 
+00:000105D2 B07C0A00        	   532: .2	cmp.w	#(TERMINAL_HPITCH*TERMINAL_HEIGHT),D0	; check for cursor out of screen
+00:000105D6 65000016        	   533: 	blo	.3			; no
+                            	   534: 
+00:000105DA 04400080        	   535: 	subi.w	#TERMINAL_HPITCH,D0	; move cursor one line up
+00:000105DE 33C000006006    	   536: 	move.w	D0,cursor_pos
+00:000105E4 610000FE        	   537: 	bsr	terminal_add_bottom_row
+00:000105E8 6100FB34        	   538: 	bsr	terminal_flip_cursor	; activate the cursor
+00:000105EC 4E75            	   539: 	rts
+                            	   540: 
+00:000105EE 33C000006006    	   541: .3	move.w	D0,cursor_pos
+00:000105F4 6100FB28        	   542: 	bsr	terminal_flip_cursor	; activate the cursor
+00:000105F8 4E75            	   543: 	rts
+                            	   544: 
+00:000105FA 06400080        	   545: .cd	addi.w	#TERMINAL_HPITCH,D0	; yes, move cursor one line down
+00:000105FE 6000FFD2        	   546: 	bra	.2
+00:00010602 4E75            	   547: 	rts
                             	   548: 
-00:000105E8 4A40            	   549: .cl	tst.w	D0
-00:000105EA 6606            	   550: 	bne.s	.cl0
-00:000105EC 6100FB12        	   551: 	bsr	terminal_flip_cursor	; we're at top left corner
-00:000105F0 4E75            	   552: 	rts
-00:000105F2 3200            	   553: .cl0	move.w	D0,D1
-00:000105F4 0241007F        	   554: 	andi.w	#$7f,D1
-00:000105F8 4A41            	   555: 	tst.w	D1
-00:000105FA 6600000A        	   556: 	bne	.cl1
-00:000105FE 0640004F        	   557: 	addi.w	#(TERMINAL_WIDTH-1),D0
-00:00010602 6000FFD8        	   558: 	bra	.cu
-00:00010606 5340            	   559: .cl1	subq.w	#1,D0
-00:00010608 60BC            	   560: 	bra.s	.3
-                            	   561: 
-00:0001060A 3200            	   562: .bs	move.w	D0,D1
-00:0001060C 6700FFB8        	   563: 	beq	.3		; do nothing if we're at position 0 (left top)
-00:00010610 0201007F        	   564: 	andi.b	#$7f,D1		; the byte in D1 now contains the current column
-00:00010614 66000018        	   565: 	bne	.bs0		; it's column 0
-00:00010618 04400031        	   566: 	subi.w	#(TERMINAL_HPITCH-(TERMINAL_WIDTH-1)),D0
-00:0001061C 11BC00200000    	   567: 	move.b	#' ',(A0,D0)
-00:00010622 13B9000060040000	   568: 	move.b	cursor_color,(A1,D0)
-00:0001062A 6000FF9A        	   569: 	bra	.3
-                            	   570: 
-00:0001062E 2F02            	   571: .bs0	move.l	D2,-(SP)
-                            	   572: 
-00:00010630 3400            	   573: 	move.w	D0,D2
-00:00010632 11B0200020FF    	   574: .bs1	move.b	(A0,D2),-1(A0,D2)
-00:00010638 13B1200020FF    	   575: 	move.b	(A1,D2),-1(A1,D2)
-00:0001063E 5242            	   576: 	addq.w	#1,D2
-00:00010640 5201            	   577: 	addq.b	#1,D1
-00:00010642 B23C0050        	   578: 	cmp.b	#TERMINAL_WIDTH,D1
-00:00010646 6600FFEA        	   579: 	bne	.bs1
-                            	   580: 
-00:0001064A 5342            	   581: 	subq.w	#1,D2
-00:0001064C 11BC00202000    	   582: 	move.b	#' ',(A0,D2)
-00:00010652 13B9000060042000	   583: 	move.b	cursor_color,(A1,D2)
-                            	   584: 
-00:0001065A 241F            	   585: 	move.l	(SP)+,D2
-                            	   586: 
-00:0001065C 5340            	   587: 	subq.w	#1,D0
-                            	   588: 
-00:0001065E 6000FF66        	   589: 	bra	.3
-                            	   590: 
-                            	   591: terminal_putstring
-00:00010662 206F0004        	   592: 	movea.l	(4,SP),A0
-00:00010666 1018            	   593: .1	move.b	(A0)+,D0
-00:00010668 67000012        	   594: 	beq	.2
-00:0001066C 2F08            	   595: 	move.l	A0,-(SP)
-00:0001066E 1F00            	   596: 	move.b	D0,-(SP)
-00:00010670 6100FEB4        	   597: 	bsr	terminal_putchar
-00:00010674 548F            	   598: 	addq.l	#2,SP
-00:00010676 205F            	   599: 	movea.l	(SP)+,A0
-00:00010678 6000FFEC        	   600: 	bra	.1
-00:0001067C 4E75            	   601: .2	rts
-                            	   602: 
-                            	   603: 
-                            	   604: terminal_put_hex_number
-00:0001067E 102F0004        	   605: 	move.b	4(SP),D0	; D0 contains no of digits to print
-00:00010682 67000036        	   606: 	beq	.2		; if this is 0, end this function
+00:00010604 04400080        	   549: .cu	subi.w	#TERMINAL_HPITCH,D0	; move cursor one line up
+00:00010608 6AE4            	   550: 	bpl.s	.3
+00:0001060A 06400080        	   551: 	addi.w	#TERMINAL_HPITCH,D0	; move cursor one line down
+00:0001060E 60DE            	   552: 	bra.s	.3
+                            	   553: 
+00:00010610 4A40            	   554: .cl	tst.w	D0
+00:00010612 6606            	   555: 	bne.s	.cl0
+00:00010614 6100FB08        	   556: 	bsr	terminal_flip_cursor	; we're at top left corner
+00:00010618 4E75            	   557: 	rts
+00:0001061A 3200            	   558: .cl0	move.w	D0,D1
+00:0001061C 0241007F        	   559: 	andi.w	#$7f,D1
+00:00010620 4A41            	   560: 	tst.w	D1
+00:00010622 6600000A        	   561: 	bne	.cl1
+00:00010626 0640004F        	   562: 	addi.w	#(TERMINAL_WIDTH-1),D0
+00:0001062A 6000FFD8        	   563: 	bra	.cu
+00:0001062E 5340            	   564: .cl1	subq.w	#1,D0
+00:00010630 60BC            	   565: 	bra.s	.3
+                            	   566: 
+00:00010632 3200            	   567: .bs	move.w	D0,D1
+00:00010634 6700FFB8        	   568: 	beq	.3		; do nothing if we're at position 0 (left top)
+00:00010638 0201007F        	   569: 	andi.b	#$7f,D1		; the byte in D1 now contains the current column
+00:0001063C 66000018        	   570: 	bne	.bs0		; it's column 0
+00:00010640 04400031        	   571: 	subi.w	#(TERMINAL_HPITCH-(TERMINAL_WIDTH-1)),D0
+00:00010644 11BC00200000    	   572: 	move.b	#' ',(A0,D0)
+00:0001064A 13B9000060080000	   573: 	move.b	cursor_color,(A1,D0)
+00:00010652 6000FF9A        	   574: 	bra	.3
+                            	   575: 
+00:00010656 2F02            	   576: .bs0	move.l	D2,-(SP)
+                            	   577: 
+00:00010658 3400            	   578: 	move.w	D0,D2
+00:0001065A 11B0200020FF    	   579: .bs1	move.b	(A0,D2),-1(A0,D2)
+00:00010660 13B1200020FF    	   580: 	move.b	(A1,D2),-1(A1,D2)
+00:00010666 5242            	   581: 	addq.w	#1,D2
+00:00010668 5201            	   582: 	addq.b	#1,D1
+00:0001066A B23C0050        	   583: 	cmp.b	#TERMINAL_WIDTH,D1
+00:0001066E 6600FFEA        	   584: 	bne	.bs1
+                            	   585: 
+00:00010672 5342            	   586: 	subq.w	#1,D2
+00:00010674 11BC00202000    	   587: 	move.b	#' ',(A0,D2)
+00:0001067A 13B9000060082000	   588: 	move.b	cursor_color,(A1,D2)
+                            	   589: 
+00:00010682 241F            	   590: 	move.l	(SP)+,D2
+                            	   591: 
+00:00010684 5340            	   592: 	subq.w	#1,D0
+                            	   593: 
+00:00010686 6000FF66        	   594: 	bra	.3
+                            	   595: 
+                            	   596: terminal_putstring
+00:0001068A 206F0004        	   597: 	movea.l	(4,SP),A0
+00:0001068E 1018            	   598: .1	move.b	(A0)+,D0
+00:00010690 67000012        	   599: 	beq	.2
+00:00010694 2F08            	   600: 	move.l	A0,-(SP)
+00:00010696 1F00            	   601: 	move.b	D0,-(SP)
+00:00010698 6100FEB4        	   602: 	bsr	terminal_putchar
+00:0001069C 548F            	   603: 	addq.l	#2,SP
+00:0001069E 205F            	   604: 	movea.l	(SP)+,A0
+00:000106A0 6000FFEC        	   605: 	bra	.1
+00:000106A4 4E75            	   606: .2	rts
                             	   607: 
-00:00010686 5300            	   608: 	subq.b	#1,D0		; reduce number of digits to print by 1
-00:00010688 67000014        	   609: 	beq	.1		; if this is 0 (now), only one digit to print
-                            	   610: 
-00:0001068C 222F0006        	   611: 	move.l	6(SP),D1	; D1 contains the number to be printed
+                            	   608: 
+                            	   609: terminal_put_hex_number
+00:000106A6 102F0004        	   610: 	move.b	4(SP),D0	; D0 contains no of digits to print
+00:000106AA 67000036        	   611: 	beq	.2		; if this is 0, end this function
                             	   612: 
-00:00010690 E889            	   613: 	lsr.l	#4,D1
-00:00010692 2F01            	   614: 	move.l	D1,-(SP)
-00:00010694 1F00            	   615: 	move.b	D0,-(SP)
-00:00010696 4EB90001067E    	   616: 	jsr	terminal_put_hex_number
-00:0001069C 5C8F            	   617: 	addq.l	#6,SP
-                            	   618: 
-00:0001069E 202F0006        	   619: .1	move.l	6(SP),D0
-00:000106A2 02800000000F    	   620: 	andi.l	#$f,D0
-00:000106A8 41F900010840    	   621: 	lea	hex_values,A0
-00:000106AE 1F300000        	   622: 	move.b	(A0,D0),-(SP)
-00:000106B2 4EB900010526    	   623: 	jsr	terminal_putchar
-00:000106B8 548F            	   624: 	addq.l	#2,SP
-                            	   625: 
-00:000106BA 4E75            	   626: .2	rts
-                            	   627: 
-                            	   628: terminal_add_bottom_row
-00:000106BC 48E70030        	   629: 	movem.l	A2-A3,-(SP)
+00:000106AE 5300            	   613: 	subq.b	#1,D0		; reduce number of digits to print by 1
+00:000106B0 67000014        	   614: 	beq	.1		; if this is 0 (now), only one digit to print
+                            	   615: 
+00:000106B4 222F0006        	   616: 	move.l	6(SP),D1	; D1 contains the number to be printed
+                            	   617: 
+00:000106B8 E889            	   618: 	lsr.l	#4,D1
+00:000106BA 2F01            	   619: 	move.l	D1,-(SP)
+00:000106BC 1F00            	   620: 	move.b	D0,-(SP)
+00:000106BE 4EB9000106A6    	   621: 	jsr	terminal_put_hex_number
+00:000106C4 5C8F            	   622: 	addq.l	#6,SP
+                            	   623: 
+00:000106C6 202F0006        	   624: .1	move.l	6(SP),D0
+00:000106CA 02800000000F    	   625: 	andi.l	#$f,D0
+00:000106D0 41F900010868    	   626: 	lea	hex_values,A0
+00:000106D6 1F300000        	   627: 	move.b	(A0,D0),-(SP)
+00:000106DA 4EB90001054E    	   628: 	jsr	terminal_putchar
+00:000106E0 548F            	   629: 	addq.l	#2,SP
                             	   630: 
-00:000106C0 207900006006    	   631: 	movea.l	terminal_chars,A0
-00:000106C6 43E80080        	   632: 	lea	TERMINAL_HPITCH(A0),A1
-00:000106CA 24790000600A    	   633: 	movea.l	terminal_colors,A2
-00:000106D0 47EA0080        	   634: 	lea	TERMINAL_HPITCH(A2),A3
+00:000106E2 4E75            	   631: .2	rts
+                            	   632: 
+                            	   633: terminal_add_bottom_row
+00:000106E4 48E70030        	   634: 	movem.l	A2-A3,-(SP)
                             	   635: 
-00:000106D4 303C0980        	   636: 	move.w	#(TERMINAL_HPITCH*(TERMINAL_HEIGHT-1)),D0	; use terminal size minus lowest row
-00:000106D8 E448            	   637: 	lsr.w	#2,D0			; divide by 4
-00:000106DA 20D9            	   638: .1	move.l	(A1)+,(A0)+		; do 4 bytes at once
-00:000106DC 24DB            	   639: 	move.l	(A3)+,(A2)+		; do 4 bytes at once
-00:000106DE 5340            	   640: 	subq.w	#1,D0
-00:000106E0 6600FFF8        	   641: 	bne	.1
-                            	   642: 
-00:000106E4 103C0080        	   643: 	move.b	#TERMINAL_HPITCH,D0	; do last row
-00:000106E8 123C0020        	   644: 	move.b	#' ',D1
-00:000106EC 143900006004    	   645: 	move.b	cursor_color,D2
-00:000106F2 10C1            	   646: .2	move.b	D1,(A0)+
-00:000106F4 14C2            	   647: 	move.b	D2,(A2)+
-00:000106F6 5300            	   648: 	subq.b	#1,D0
-00:000106F8 66F8            	   649: 	bne.s	.2
-                            	   650: 
-00:000106FA 4CDF0C00        	   651: 	movem.l	(SP)+,A2-A3
-00:000106FE 4E75            	   652: 	rts
-                            	   653: 
-                            	   654: terminal_welcome
-00:00010700 48790001075A    	   655: 	pea	welcome
-00:00010706 4EB900010662    	   656: 	jsr	terminal_putstring
-00:0001070C 588F            	   657: 	addq.l	#4,SP
-00:0001070E 487900010008    	   658: 	pea	version
-00:00010714 4EB900010662    	   659: 	jsr	terminal_putstring
-00:0001071A 588F            	   660: 	addq.l	#4,SP
-00:0001071C 1F3C000A        	   661: 	move.b	#$0a,-(SP)
-00:00010720 4EB900010526    	   662: 	jsr	terminal_putchar
-00:00010726 548F            	   663: 	addq.l	#2,SP
-00:00010728 4E75            	   664: 	rts
-                            	   665: 
-                            	   666: ; see: https://www.stix.id.au/wiki/Fast_8-bit_pseudorandom_number_generator
-                            	   667: rnd_impl
-00:0001072A 52386019        	   668: 	addq.b	#1,rndx.w
-00:0001072E 10386016        	   669: 	move.b	rnda.w,D0	; D0 = a
-00:00010732 12386018        	   670: 	move.b	rndc.w,D1	; D1 = c
-00:00010736 B300            	   671: 	eor.b	D1,D0		; (a ^ c), in D0
-00:00010738 12386019        	   672: 	move.b	rndx.w,D1	; D1 = x
-00:0001073C B300            	   673: 	eor.b	D1,D0		; (a ^ c) ^ x, in D0
-00:0001073E 11C06016        	   674: 	move.b	D0,rnda.w	; store result in a
-                            	   675: 
-00:00010742 12386017        	   676: 	move.b	rndb.w,D1	; D1 = b
-00:00010746 D200            	   677: 	add.b	D0,D1		; b = b + a
-00:00010748 11C16017        	   678: 	move.b	D1,rndb.w
-00:0001074C E219            	   679: 	ror.b	#1,D1
-00:0001074E D2386018        	   680: 	add.b	rndc.w,D1
-00:00010752 B300            	   681: 	eor.b	D1,D0
-00:00010754 11C06018        	   682: 	move.b	D0,rndc.w
-00:00010758 4E75            	   683: 	rts
-                            	   684: 
-                            	   685: 
-00:0001075A 6C696D6520766972	   686: welcome		dc.b	"lime virtual computer system",$0a,0
-00:00010762 7475616C20636F6D
-00:0001076A 7075746572207379
-00:00010772 7374656D
-00:00010776 0A
-00:00010777 00
-00:00010778 0A              	   687: file_error	dc.b	$0a,"error: not a valid binary",0
-00:00010779 6572726F723A206E
-00:00010781 6F7420612076616C
-00:00010789 69642062696E6172
-00:00010791 79
-00:00010792 00
-00:00010793 0A              	   688: file_loading1	dc.b	$0a,"  size    from    to",0
-00:00010794 202073697A652020
-00:0001079C 202066726F6D2020
-00:000107A4 2020746F
-00:000107A8 00
-00:000107A9 0A              	   689: file_loading2	dc.b	$0a,"$",0
-00:000107AA 24
-00:000107AB 00
-00:000107AC 2024            	   690: file_loading3	dc.b	" $",0
-00:000107AE 00
-00:000107AF 0A              	   691: file_loading4	dc.b	$0a,$0a," jumping to $",0
-00:000107B0 0A
-00:000107B1 206A756D70696E67
-00:000107B9 20746F2024
-00:000107BE 00
-                            	   692: 
-                            	   693: 	align	2
-                            	   694: logo_data
-00:000107C0 00              	   695: 	dc.b	0,152,0,76,%111,0,0,$1c	; icon top left
-00:000107C1 98
-00:000107C2 00
-00:000107C3 4C
-00:000107C4 07
-00:000107C5 00
-00:000107C6 00
-00:000107C7 1C
-00:000107C8 00              	   696: 	dc.b	0,160,0,76,%111,0,0,$1d	; icon top right
-00:000107C9 A0
-00:000107CA 00
-00:000107CB 4C
-00:000107CC 07
-00:000107CD 00
-00:000107CE 00
-00:000107CF 1D
-00:000107D0 00              	   697: 	dc.b	0,152,0,84,%111,0,0,$1e	; icon bottom left
-00:000107D1 98
-00:000107D2 00
-00:000107D3 54
-00:000107D4 07
-00:000107D5 00
+00:000106E8 20790000600A    	   636: 	movea.l	terminal_chars,A0
+00:000106EE 43E80080        	   637: 	lea	TERMINAL_HPITCH(A0),A1
+00:000106F2 24790000600E    	   638: 	movea.l	terminal_colors,A2
+00:000106F8 47EA0080        	   639: 	lea	TERMINAL_HPITCH(A2),A3
+                            	   640: 
+00:000106FC 303C0980        	   641: 	move.w	#(TERMINAL_HPITCH*(TERMINAL_HEIGHT-1)),D0	; use terminal size minus lowest row
+00:00010700 E448            	   642: 	lsr.w	#2,D0			; divide by 4
+00:00010702 20D9            	   643: .1	move.l	(A1)+,(A0)+		; do 4 bytes at once
+00:00010704 24DB            	   644: 	move.l	(A3)+,(A2)+		; do 4 bytes at once
+00:00010706 5340            	   645: 	subq.w	#1,D0
+00:00010708 6600FFF8        	   646: 	bne	.1
+                            	   647: 
+00:0001070C 103C0080        	   648: 	move.b	#TERMINAL_HPITCH,D0	; do last row
+00:00010710 123C0020        	   649: 	move.b	#' ',D1
+00:00010714 143900006008    	   650: 	move.b	cursor_color,D2
+00:0001071A 10C1            	   651: .2	move.b	D1,(A0)+
+00:0001071C 14C2            	   652: 	move.b	D2,(A2)+
+00:0001071E 5300            	   653: 	subq.b	#1,D0
+00:00010720 66F8            	   654: 	bne.s	.2
+                            	   655: 
+00:00010722 4CDF0C00        	   656: 	movem.l	(SP)+,A2-A3
+00:00010726 4E75            	   657: 	rts
+                            	   658: 
+                            	   659: terminal_welcome
+00:00010728 487900010782    	   660: 	pea	welcome
+00:0001072E 4EB90001068A    	   661: 	jsr	terminal_putstring
+00:00010734 588F            	   662: 	addq.l	#4,SP
+00:00010736 487900010008    	   663: 	pea	version
+00:0001073C 4EB90001068A    	   664: 	jsr	terminal_putstring
+00:00010742 588F            	   665: 	addq.l	#4,SP
+00:00010744 1F3C000A        	   666: 	move.b	#$0a,-(SP)
+00:00010748 4EB90001054E    	   667: 	jsr	terminal_putchar
+00:0001074E 548F            	   668: 	addq.l	#2,SP
+00:00010750 4E75            	   669: 	rts
+                            	   670: 
+                            	   671: ; see: https://www.stix.id.au/wiki/Fast_8-bit_pseudorandom_number_generator
+                            	   672: rnd_impl
+00:00010752 5238601D        	   673: 	addq.b	#1,rndx.w
+00:00010756 1038601A        	   674: 	move.b	rnda.w,D0	; D0 = a
+00:0001075A 1238601C        	   675: 	move.b	rndc.w,D1	; D1 = c
+00:0001075E B300            	   676: 	eor.b	D1,D0		; (a ^ c), in D0
+00:00010760 1238601D        	   677: 	move.b	rndx.w,D1	; D1 = x
+00:00010764 B300            	   678: 	eor.b	D1,D0		; (a ^ c) ^ x, in D0
+00:00010766 11C0601A        	   679: 	move.b	D0,rnda.w	; store result in a
+                            	   680: 
+00:0001076A 1238601B        	   681: 	move.b	rndb.w,D1	; D1 = b
+00:0001076E D200            	   682: 	add.b	D0,D1		; b = b + a
+00:00010770 11C1601B        	   683: 	move.b	D1,rndb.w
+00:00010774 E219            	   684: 	ror.b	#1,D1
+00:00010776 D238601C        	   685: 	add.b	rndc.w,D1
+00:0001077A B300            	   686: 	eor.b	D1,D0
+00:0001077C 11C0601C        	   687: 	move.b	D0,rndc.w
+00:00010780 4E75            	   688: 	rts
+                            	   689: 
+                            	   690: 
+00:00010782 6C696D6520766972	   691: welcome		dc.b	"lime virtual computer system",$0a,0
+00:0001078A 7475616C20636F6D
+00:00010792 7075746572207379
+00:0001079A 7374656D
+00:0001079E 0A
+00:0001079F 00
+00:000107A0 0A              	   692: file_error	dc.b	$0a,"error: not a valid binary",0
+00:000107A1 6572726F723A206E
+00:000107A9 6F7420612076616C
+00:000107B1 69642062696E6172
+00:000107B9 79
+00:000107BA 00
+00:000107BB 0A              	   693: file_loading1	dc.b	$0a,"  size    from    to",0
+00:000107BC 202073697A652020
+00:000107C4 202066726F6D2020
+00:000107CC 2020746F
+00:000107D0 00
+00:000107D1 0A              	   694: file_loading2	dc.b	$0a,"$",0
+00:000107D2 24
+00:000107D3 00
+00:000107D4 2024            	   695: file_loading3	dc.b	" $",0
 00:000107D6 00
-00:000107D7 1E
-00:000107D8 00              	   698: 	dc.b	0,160,0,84,%111,0,0,$1f	; icon bottom right
-00:000107D9 A0
-00:000107DA 00
-00:000107DB 54
-00:000107DC 07
-00:000107DD 00
-00:000107DE 00
-00:000107DF 1F
-00:000107E0 00              	   699: 	dc.b	0,147,0,92,%111,0,0,$6c	; l
-00:000107E1 93
-00:000107E2 00
-00:000107E3 5C
-00:000107E4 07
-00:000107E5 00
+00:000107D7 0A              	   696: file_loading4	dc.b	$0a,$0a," jumping to $",0
+00:000107D8 0A
+00:000107D9 206A756D70696E67
+00:000107E1 20746F2024
 00:000107E6 00
-00:000107E7 6C
-00:000107E8 00              	   700: 	dc.b	0,152,0,92,%111,0,0,$69	; i
+                            	   697: 
+                            	   698: 	align	2
+                            	   699: logo_data
+00:000107E8 00              	   700: 	dc.b	0,152,0,76,%111,0,0,$1c	; icon top left
 00:000107E9 98
 00:000107EA 00
-00:000107EB 5C
+00:000107EB 4C
 00:000107EC 07
 00:000107ED 00
 00:000107EE 00
-00:000107EF 69
-00:000107F0 00              	   701: 	dc.b	0,158,0,92,%111,0,0,$6d	; m
-00:000107F1 9E
+00:000107EF 1C
+00:000107F0 00              	   701: 	dc.b	0,160,0,76,%111,0,0,$1d	; icon top right
+00:000107F1 A0
 00:000107F2 00
-00:000107F3 5C
+00:000107F3 4C
 00:000107F4 07
 00:000107F5 00
 00:000107F6 00
-00:000107F7 6D
-00:000107F8 00              	   702: 	dc.b	0,166,0,92,%111,0,0,$65	; e
-00:000107F9 A6
+00:000107F7 1D
+00:000107F8 00              	   702: 	dc.b	0,152,0,84,%111,0,0,$1e	; icon bottom left
+00:000107F9 98
 00:000107FA 00
-00:000107FB 5C
+00:000107FB 54
 00:000107FC 07
 00:000107FD 00
 00:000107FE 00
-00:000107FF 65
-                            	   703: 
-                            	   704: 
-                            	   705: logo_tiles
-00:00010800 00              	   706: 	dc.b	%00000000,%00000000	; tile 1 (icon upper left)
-00:00010801 00
-00:00010802 01              	   707: 	dc.b	%00000001,%00000000
-00:00010803 00
-00:00010804 07              	   708: 	dc.b	%00000111,%10000000
-00:00010805 80
-00:00010806 07              	   709: 	dc.b	%00000111,%10100000
-00:00010807 A0
-00:00010808 1E              	   710: 	dc.b	%00011110,%11111000
-00:00010809 F8
-00:0001080A 1E              	   711: 	dc.b	%00011110,%10101111
-00:0001080B AF
-00:0001080C 1E              	   712: 	dc.b	%00011110,%10101010
-00:0001080D AA
-00:0001080E 1E              	   713: 	dc.b	%00011110,%10101111
-00:0001080F AF
-                            	   714: 
-00:00010810 00              	   715: 	dc.b	%00000000,%00000000	; tile 2 (icon upper right)
-00:00010811 00
-00:00010812 00              	   716: 	dc.b	%00000000,%00000000
-00:00010813 00
-00:00010814 00              	   717: 	dc.b	%00000000,%00000000
+00:000107FF 1E
+00:00010800 00              	   703: 	dc.b	0,160,0,84,%111,0,0,$1f	; icon bottom right
+00:00010801 A0
+00:00010802 00
+00:00010803 54
+00:00010804 07
+00:00010805 00
+00:00010806 00
+00:00010807 1F
+00:00010808 00              	   704: 	dc.b	0,147,0,92,%111,0,0,$6c	; l
+00:00010809 93
+00:0001080A 00
+00:0001080B 5C
+00:0001080C 07
+00:0001080D 00
+00:0001080E 00
+00:0001080F 6C
+00:00010810 00              	   705: 	dc.b	0,152,0,92,%111,0,0,$69	; i
+00:00010811 98
+00:00010812 00
+00:00010813 5C
+00:00010814 07
 00:00010815 00
-00:00010816 00              	   718: 	dc.b	%00000000,%00000000
-00:00010817 00
-00:00010818 00              	   719: 	dc.b	%00000000,%00000000
-00:00010819 00
-00:0001081A 00              	   720: 	dc.b	%00000000,%00000000
-00:0001081B 00
-00:0001081C C0              	   721: 	dc.b	%11000000,%00000000
+00:00010816 00
+00:00010817 69
+00:00010818 00              	   706: 	dc.b	0,158,0,92,%111,0,0,$6d	; m
+00:00010819 9E
+00:0001081A 00
+00:0001081B 5C
+00:0001081C 07
 00:0001081D 00
-00:0001081E B0              	   722: 	dc.b	%10110000,%00000000
-00:0001081F 00
-                            	   723: 
-00:00010820 1E              	   724: 	dc.b	%00011110,%11111010	; tile 3 (icon bottom left)
-00:00010821 FA
-00:00010822 07              	   725: 	dc.b	%00000111,%10101010
-00:00010823 AA
-00:00010824 07              	   726: 	dc.b	%00000111,%10101011
-00:00010825 AB
-00:00010826 01              	   727: 	dc.b	%00000001,%11101011
-00:00010827 EB
-00:00010828 00              	   728: 	dc.b	%00000000,%01111110
-00:00010829 7E
-00:0001082A 00              	   729: 	dc.b	%00000000,%00010111
-00:0001082B 17
-00:0001082C 00              	   730: 	dc.b	%00000000,%00000001
-00:0001082D 01
-00:0001082E 00              	   731: 	dc.b	%00000000,%00000000
-00:0001082F 00
-                            	   732: 
-00:00010830 EC              	   733: 	dc.b	%11101100,%00000000	; tile 4 (icon bottom right)
-00:00010831 00
-00:00010832 EE              	   734: 	dc.b	%11101110,%00000000
-00:00010833 00
-00:00010834 AB              	   735: 	dc.b	%10101011,%10000000
-00:00010835 80
-00:00010836 AB              	   736: 	dc.b	%10101011,%10100000
-00:00010837 A0
-00:00010838 AA              	   737: 	dc.b	%10101010,%11110100
-00:00010839 F4
-00:0001083A FF              	   738: 	dc.b	%11111111,%01010000
-00:0001083B 50
-00:0001083C 55              	   739: 	dc.b	%01010101,%00000000
+00:0001081E 00
+00:0001081F 6D
+00:00010820 00              	   707: 	dc.b	0,166,0,92,%111,0,0,$65	; e
+00:00010821 A6
+00:00010822 00
+00:00010823 5C
+00:00010824 07
+00:00010825 00
+00:00010826 00
+00:00010827 65
+                            	   708: 
+                            	   709: 
+                            	   710: logo_tiles
+00:00010828 00              	   711: 	dc.b	%00000000,%00000000	; tile 1 (icon upper left)
+00:00010829 00
+00:0001082A 01              	   712: 	dc.b	%00000001,%00000000
+00:0001082B 00
+00:0001082C 07              	   713: 	dc.b	%00000111,%10000000
+00:0001082D 80
+00:0001082E 07              	   714: 	dc.b	%00000111,%10100000
+00:0001082F A0
+00:00010830 1E              	   715: 	dc.b	%00011110,%11111000
+00:00010831 F8
+00:00010832 1E              	   716: 	dc.b	%00011110,%10101111
+00:00010833 AF
+00:00010834 1E              	   717: 	dc.b	%00011110,%10101010
+00:00010835 AA
+00:00010836 1E              	   718: 	dc.b	%00011110,%10101111
+00:00010837 AF
+                            	   719: 
+00:00010838 00              	   720: 	dc.b	%00000000,%00000000	; tile 2 (icon upper right)
+00:00010839 00
+00:0001083A 00              	   721: 	dc.b	%00000000,%00000000
+00:0001083B 00
+00:0001083C 00              	   722: 	dc.b	%00000000,%00000000
 00:0001083D 00
-00:0001083E 00              	   740: 	dc.b	%00000000,%00000000
+00:0001083E 00              	   723: 	dc.b	%00000000,%00000000
 00:0001083F 00
-                            	   741: 
-                            	   742: hex_values
-00:00010840 3031323334353637	   743: 	dc.b	"0123456789abcdef"
-00:00010848 3839616263646566
-                            	   744: 
-                            	   745: end_of_rom
+00:00010840 00              	   724: 	dc.b	%00000000,%00000000
+00:00010841 00
+00:00010842 00              	   725: 	dc.b	%00000000,%00000000
+00:00010843 00
+00:00010844 C0              	   726: 	dc.b	%11000000,%00000000
+00:00010845 00
+00:00010846 B0              	   727: 	dc.b	%10110000,%00000000
+00:00010847 00
+                            	   728: 
+00:00010848 1E              	   729: 	dc.b	%00011110,%11111010	; tile 3 (icon bottom left)
+00:00010849 FA
+00:0001084A 07              	   730: 	dc.b	%00000111,%10101010
+00:0001084B AA
+00:0001084C 07              	   731: 	dc.b	%00000111,%10101011
+00:0001084D AB
+00:0001084E 01              	   732: 	dc.b	%00000001,%11101011
+00:0001084F EB
+00:00010850 00              	   733: 	dc.b	%00000000,%01111110
+00:00010851 7E
+00:00010852 00              	   734: 	dc.b	%00000000,%00010111
+00:00010853 17
+00:00010854 00              	   735: 	dc.b	%00000000,%00000001
+00:00010855 01
+00:00010856 00              	   736: 	dc.b	%00000000,%00000000
+00:00010857 00
+                            	   737: 
+00:00010858 EC              	   738: 	dc.b	%11101100,%00000000	; tile 4 (icon bottom right)
+00:00010859 00
+00:0001085A EE              	   739: 	dc.b	%11101110,%00000000
+00:0001085B 00
+00:0001085C AB              	   740: 	dc.b	%10101011,%10000000
+00:0001085D 80
+00:0001085E AB              	   741: 	dc.b	%10101011,%10100000
+00:0001085F A0
+00:00010860 AA              	   742: 	dc.b	%10101010,%11110100
+00:00010861 F4
+00:00010862 FF              	   743: 	dc.b	%11111111,%01010000
+00:00010863 50
+00:00010864 55              	   744: 	dc.b	%01010101,%00000000
+00:00010865 00
+00:00010866 00              	   745: 	dc.b	%00000000,%00000000
+00:00010867 00
                             	   746: 
+                            	   747: hex_values
+00:00010868 3031323334353637	   748: 	dc.b	"0123456789abcdef"
+00:00010870 3839616263646566
+                            	   749: 
+                            	   750: end_of_rom
+                            	   751: 
 
 
 Symbols by name:
@@ -1058,67 +1064,68 @@ VEC_TIMER6                       E:00000118
 VEC_TIMER7                       E:0000011C
 VEC_TRAP14                       E:000000B8
 VEC_TRAP15                       E:000000BC
-binary_ready                     E:00006001
-chunk_length                     E:0000600E
-cursor_color                     E:00006004
-cursor_pos                       E:00006002
-end_of_rom                       A:00010850
-exc_addr_error                   A:00010114
-exc_illegal_instr                A:0001011E
-exc_lvl1_irq_auto                A:00010130
-exc_lvl2_irq_auto                A:00010132
-exc_lvl4_irq_auto                A:00010266
-exc_lvl6_irq_auto                A:00010296
-exc_privilege_violation          A:00010126
-exc_spurious_interrupt           A:0001012E
-exc_trap14_handler               A:00010310
-exc_trap15_handler               A:0001031E
-exec_address                     E:00006012
-file_error                       A:00010778
-file_loading1                    A:00010793
-file_loading2                    A:000107A9
-file_loading3                    A:000107AC
-file_loading4                    A:000107AF
-hex_values                       A:00010840
-init_vector_table                A:0001038C
-logo_animation                   E:00006000
-logo_data                        A:000107C0
-logo_tiles                       A:00010800
-loop_logo_screen                 A:0001008C
-rnd_impl                         A:0001072A
-rnda                             E:00006016
-rndb                             E:00006017
-rndc                             E:00006018
-rndx                             E:00006019
-screen_editor                    A:000100F2
-sound_reset                      A:0001034A
+binary_ready                     E:00006005
+boot_binary                      A:000100D0
+chunk_length                     E:00006012
+cursor_color                     E:00006008
+cursor_pos                       E:00006006
+end_of_rom                       A:00010878
+exc_addr_error                   A:00010132
+exc_illegal_instr                A:0001013C
+exc_lvl1_irq_auto                A:0001014E
+exc_lvl2_irq_auto                A:00010150
+exc_lvl4_irq_auto                A:00010290
+exc_lvl6_irq_auto                A:000102C0
+exc_privilege_violation          A:00010144
+exc_spurious_interrupt           A:0001014C
+exc_trap14_handler               A:0001033A
+exc_trap15_handler               A:00010348
+exec_address                     E:00006016
+file_error                       A:000107A0
+file_loading1                    A:000107BB
+file_loading2                    A:000107D1
+file_loading3                    A:000107D4
+file_loading4                    A:000107D7
+hex_values                       A:00010868
+init_terminal_settings           A:00010448
+init_vector_table                A:000103B6
+logo_animation                   E:00006004
+logo_data                        A:000107E8
+logo_scr_cnt                     E:00006000
+logo_screen                      A:00010090
+logo_screen_message              A:000100D0
+logo_tiles                       A:00010828
+rnd_impl                         A:00010752
+rnda                             E:0000601A
+rndb                             E:0000601B
+rndc                             E:0000601C
+rndx                             E:0000601D
+screen_editor                    A:00010110
+sound_reset                      A:00010374
 start                            A:00010024
-start_binary                     A:000100B2
-terminal_add_bottom_row          A:000106BC
-terminal_chars                   E:00006006
-terminal_clear                   A:000104F8
-terminal_colors                  E:0000600A
-terminal_flip_cursor             A:00010100
-terminal_init                    A:000104DA
-terminal_put_hex_number          A:0001067E
-terminal_putchar                 A:00010526
-terminal_putstring               A:00010662
-terminal_welcome                 A:00010700
-timer_default_handler            A:00010342
-vdc_copy_logo_tiles              A:00010492
-vdc_copy_rom_font                A:0001046E
-vdc_disable_logo                 A:000104D8
-vdc_init_logo                    A:000104AA
-vdc_init_terminal                A:0001041E
+terminal_add_bottom_row          A:000106E4
+terminal_chars                   E:0000600A
+terminal_clear                   A:00010520
+terminal_colors                  E:0000600E
+terminal_flip_cursor             A:0001011E
+terminal_init                    A:00010502
+terminal_put_hex_number          A:000106A6
+terminal_putchar                 A:0001054E
+terminal_putstring               A:0001068A
+terminal_welcome                 A:00010728
+timer_default_handler            A:0001036C
+vdc_copy_logo_tiles              A:000104BC
+vdc_copy_rom_font                A:00010498
+vdc_init_logo                    A:000104D4
 version                          A:00010008
-welcome                          A:0001075A
+welcome                          A:00010782
 
 Symbols by value:
 0000000C VEC_ADDR_ERROR
 00000010 VEC_ILLEGAL_INSTR
 00000014 TERMINAL_HEIGHT
-00000020 TERMINAL_VPITCH
 00000020 VEC_PRIVILEGE_VIOLATION
+00000020 TERMINAL_VPITCH
 00000050 TERMINAL_WIDTH
 00000060 VEC_SPURIOUS_INTERRUPT
 00000064 VEC_LVL1_IRQ_AUTO
@@ -1164,57 +1171,58 @@ Symbols by value:
 00000680 KEYBOARD_STATE
 00002000 VDC_LAYER0_TILES
 00003000 VDC_LAYER0_COLORS
-00006000 logo_animation
-00006001 binary_ready
-00006002 cursor_pos
-00006004 cursor_color
-00006006 terminal_chars
-0000600A terminal_colors
-0000600E chunk_length
-00006012 exec_address
-00006016 rnda
-00006017 rndb
-00006018 rndc
-00006019 rndx
+00006000 logo_scr_cnt
+00006004 logo_animation
+00006005 binary_ready
+00006006 cursor_pos
+00006008 cursor_color
+0000600A terminal_chars
+0000600E terminal_colors
+00006012 chunk_length
+00006016 exec_address
+0000601A rnda
+0000601B rndb
+0000601C rndc
+0000601D rndx
 00010008 version
 00010024 start
-0001008C loop_logo_screen
-000100B2 start_binary
-000100F2 screen_editor
-00010100 terminal_flip_cursor
-00010114 exc_addr_error
-0001011E exc_illegal_instr
-00010126 exc_privilege_violation
-0001012E exc_spurious_interrupt
-00010130 exc_lvl1_irq_auto
-00010132 exc_lvl2_irq_auto
-00010266 exc_lvl4_irq_auto
-00010296 exc_lvl6_irq_auto
-00010310 exc_trap14_handler
-0001031E exc_trap15_handler
-00010342 timer_default_handler
-0001034A sound_reset
-0001038C init_vector_table
-0001041E vdc_init_terminal
-0001046E vdc_copy_rom_font
-00010492 vdc_copy_logo_tiles
-000104AA vdc_init_logo
-000104D8 vdc_disable_logo
-000104DA terminal_init
-000104F8 terminal_clear
-00010526 terminal_putchar
-00010662 terminal_putstring
-0001067E terminal_put_hex_number
-000106BC terminal_add_bottom_row
-00010700 terminal_welcome
-0001072A rnd_impl
-0001075A welcome
-00010778 file_error
-00010793 file_loading1
-000107A9 file_loading2
-000107AC file_loading3
-000107AF file_loading4
-000107C0 logo_data
-00010800 logo_tiles
-00010840 hex_values
-00010850 end_of_rom
+00010090 logo_screen
+000100D0 logo_screen_message
+000100D0 boot_binary
+00010110 screen_editor
+0001011E terminal_flip_cursor
+00010132 exc_addr_error
+0001013C exc_illegal_instr
+00010144 exc_privilege_violation
+0001014C exc_spurious_interrupt
+0001014E exc_lvl1_irq_auto
+00010150 exc_lvl2_irq_auto
+00010290 exc_lvl4_irq_auto
+000102C0 exc_lvl6_irq_auto
+0001033A exc_trap14_handler
+00010348 exc_trap15_handler
+0001036C timer_default_handler
+00010374 sound_reset
+000103B6 init_vector_table
+00010448 init_terminal_settings
+00010498 vdc_copy_rom_font
+000104BC vdc_copy_logo_tiles
+000104D4 vdc_init_logo
+00010502 terminal_init
+00010520 terminal_clear
+0001054E terminal_putchar
+0001068A terminal_putstring
+000106A6 terminal_put_hex_number
+000106E4 terminal_add_bottom_row
+00010728 terminal_welcome
+00010752 rnd_impl
+00010782 welcome
+000107A0 file_error
+000107BB file_loading1
+000107D1 file_loading2
+000107D4 file_loading3
+000107D7 file_loading4
+000107E8 logo_data
+00010828 logo_tiles
+00010868 hex_values
+00010878 end_of_rom

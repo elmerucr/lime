@@ -1,5 +1,6 @@
-# Version ...
+## Version ...
 
+* 20260613 Compiles with SDL 3.4.10 on macOS Tahoe 26.5.1
 * 20260518 Adding 4x8 font rom
 * 20260513 Horizontal border
 * 20260513 Support different tile sizes in layer (4, 8, 16, 32 pixels h and w)
@@ -8,7 +9,7 @@
 * 20260226 Debugger: Better stack views for m68k
 * 20260220 Host: Save screenshot in user homedir with <Alt+P>
 
-# Version 0.12.20260131-alpha
+## Version 0.12.20260131-alpha
 
 * vdc: proper scaling for layers and sprites (1x, 2x, 4x, 8x) in both directions
 * vdc: transparency added for sprites in flags0, bits 6 and 7
@@ -26,7 +27,7 @@
 * Host: Contrast adjustable with <Alt+A>
 * Examples (decb format): Added
 
-# Version 0.11.20251125-alpha
+## Version 0.11.20251125-alpha
 
 * Move from SDL2 to SDL3
 * Using SDL_SCALEMODE_PIXELART for texture rendering, new in SDL 3.4, for better retro pixel look when textures are not magnified with an integer scale
