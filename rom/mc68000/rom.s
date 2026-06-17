@@ -66,13 +66,13 @@ start
 	bne	.1
 
 	jsr	init_vector_table
-	jsr	vdc_copy_rom_font
-	jsr	vdc_copy_logo_tiles
-	jsr	vdc_init_logo
+	jsr	copy_fonts_from_rom
+	jsr	copy_logo_tiles
+	jsr	init_logo
 	jsr	sound_reset
 
-	move.l	#VDC_LAYER0_TILES,terminal_chars
-	move.l	#VDC_LAYER0_COLORS,terminal_colors
+	move.l	#VDC_LAYER_TILES,terminal_chars
+	move.l	#VDC_LAYER_COLORS,terminal_colors
 	move.b	#$01,cursor_color
 	jsr	terminal_clear
 	pea	logo_boot_message
@@ -143,7 +143,7 @@ screen_editor
 
 terminal_flip_cursor
 	move.w	cursor_pos,D0
-	movea.l	#VDC_LAYER0_TILES,A0
+	movea.l	#VDC_LAYER_TILES,A0
 	eori.b	#$80,(A0,D0)
 	rts
 
@@ -436,7 +436,7 @@ init_terminal_settings
 	rts
 
 
-vdc_copy_rom_font
+copy_fonts_from_rom
 	move.b	CORE_ROMS.w,-(SP)
 
 	or.b	#%00000110,CORE_ROMS.w			; make rom font visible to cpu
@@ -451,7 +451,7 @@ vdc_copy_rom_font
 	rts
 
 
-vdc_copy_logo_tiles
+copy_logo_tiles
 	movea.l	#logo_tiles,A0
 	movea.w	#$11c0,A1		; start at tile $1c
 
@@ -463,7 +463,7 @@ vdc_copy_logo_tiles
 
 
 ; setup sprites 0 - 7 (position, flags, index)
-vdc_init_logo
+init_logo
 	movea.l	#logo_data,A0
 	clr.b	D0
 
