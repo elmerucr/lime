@@ -588,9 +588,9 @@ void debugger_t::process_command(char *c)
 				}
 			}
 		}
-	} else if (strcmp(token0, "dgc") == 0) {
+	} else if (strcmp(token0, "dc") == 0) {
 		have_prompt = false;
-		enter_dgc_line(c);
+		enter_dc_line(c);
 	} else if (strcmp(token0, "n") == 0) {
 		system->core->run(true);
 	} else if (strcmp(token0, "pal") == 0) {
@@ -610,14 +610,14 @@ void debugger_t::process_command(char *c)
 
 		for (int i=temp_no; i<(temp_no + 0x100); i++) {
 			if ((i & 0b1111) == 0) {
-				terminal->printf("\n %02x ", i & 0xff);
+				terminal->printf("\n%02x ", i & 0xff);
 			}
 			terminal->bg_color = system->core->vdc->crt_palette[i & 0xff];
 			terminal->printf("  ");
 			terminal->bg_color = (PUNCH_BLUE & 0x00ffffff) | 0xe0000000;
 		}
 		terminal->printf(
-			"\ndgc  %02x  %02x  %02x  %02x ",
+			"\ndc  %02x  %02x  %02x  %02x ",
 			terminal_graphics_colors[0],
 			terminal_graphics_colors[1],
 			terminal_graphics_colors[2],
@@ -924,32 +924,32 @@ uint32_t debugger_t::disassemble_instruction_terminal(uint32_t address)
 	return cycles;
 }
 
-void debugger_t::enter_dgc_line(char *buffer)
+void debugger_t::enter_dc_line(char *buffer)
 {
 	have_prompt = true;
 
 	uint32_t arg0, arg1, arg2, arg3;
 
-	buffer[7] 	= '\0';
-	buffer[11]	= '\0';
-	buffer[15]	= '\0';
-	buffer[19]	= '\0';
+	buffer[6] 	= '\0';
+	buffer[10]	= '\0';
+	buffer[14]	= '\0';
+	buffer[18]	= '\0';
 
-	if (!hex_string_to_int(&buffer[5], &arg0)) {
+	if (!hex_string_to_int(&buffer[4], &arg0)) {
 		terminal->putchar('\r');
-		for (int i=0; i<5; i++) terminal->cursor_right();
+		for (int i=0; i<4; i++) terminal->cursor_right();
 		terminal->puts("??");
-	} else if (!hex_string_to_int(&buffer[9], &arg1)) {
+	} else if (!hex_string_to_int(&buffer[8], &arg1)) {
 		terminal->putchar('\r');
-		for (int i=0; i<9; i++) terminal->cursor_right();
+		for (int i=0; i<8; i++) terminal->cursor_right();
 		terminal->puts("??");
-	} else if (!hex_string_to_int(&buffer[13], &arg2)) {
+	} else if (!hex_string_to_int(&buffer[12], &arg2)) {
 		terminal->putchar('\r');
-		for (int i=0; i<13; i++) terminal->cursor_right();
+		for (int i=0; i<12; i++) terminal->cursor_right();
 		terminal->puts("??");
-	} else if (!hex_string_to_int(&buffer[17], &arg3)) {
+	} else if (!hex_string_to_int(&buffer[16], &arg3)) {
 		terminal->putchar('\r');
-		for (int i=0; i<17; i++) terminal->cursor_right();
+		for (int i=0; i<16; i++) terminal->cursor_right();
 		terminal->puts("??");
 	} else {
 		arg0 &= 0xff;
@@ -963,7 +963,7 @@ void debugger_t::enter_dgc_line(char *buffer)
 		terminal_graphics_colors[3] = arg3;
 
 		terminal->putchar(0x0d);
-		for (int i=0; i<20; i++) {
+		for (int i=0; i<19; i++) {
 			terminal->cursor_right();
 		}
 		for (int i=0; i<4; i++) {
