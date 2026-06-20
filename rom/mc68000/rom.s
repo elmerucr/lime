@@ -40,7 +40,7 @@ logo_animation	rs.b	1
 logo_status	rs.b	1
 cursor_pos	rs.w	1
 cursor_color	rs.b	1
-cursor_visible	rs.b	1
+_cursor_visible	rs.b	1
 terminal_chars	rs.l	1
 terminal_colors	rs.l	1
 chunk_length	rs.l	1
@@ -103,6 +103,7 @@ start
 	clr.b	logo_status.w
 	clr.l	rnda				; init random generator, clears all: rnda, rndb, rndc, rndx
 
+
 logo_screen
 	subq.l	#1,logo_scr_cnt
 	bne.s	.ls1				; didn't reach 0
@@ -139,6 +140,7 @@ logo_screen
 	btst	#0,logo_status
 	bne.s	boot_binary
 
+
 screen_editor
 	move.b	$606.w,D1
 	beq.s	screen_editor
@@ -146,77 +148,24 @@ screen_editor
 	trap	#15
 	bra.s	screen_editor
 
+
 boot_binary
-	pea	file_loading4
-	bsr	terminal_putstring
-	addq.l	#4,SP
-
-	move.l	exec_address,-(SP)
-	move.b	#8,-(SP)
-	bsr	terminal_put_hex_number
-	addq.l	#6,SP
-
-	move.l	#$000c0000,D0			; wait loop
-.2	subq.l	#1,D0
-	bne	.2
-
-	bsr	terminal_clear
-
-	movea.l	exec_address,A0
-	jmp	(A0)
-
-
-terminal_flip_cursor
-	move.w	cursor_pos,D0
-	movea.l	#VDC_LAYER_TILES,A0
-	eori.b	#$80,(A0,D0)
-	rts
-
-
-exc_addr_error
-	move.b	#$10,VDC_BG_COLOR.w	; black
-.1	bra	.1
-
-
-exc_illegal_instr
-	move.b	#$12,VDC_BG_COLOR.w	; red
-.1	bra.s	.1
-
-
-exc_privilege_violation
-	move.b	#$15,VDC_BG_COLOR.w
-.1	bra.s	.1
-
-
-exc_spurious_interrupt
-	rte
-
-
-exc_lvl1_irq_auto
-	rte
-
-
-exc_lvl2_irq_auto
 	movem.l	D0-D1,-(SP)
-	move.b	CORE_SR.w,D0			; did core cause an irq?
-	beq	.3				; no
-	move.b	D0,CORE_SR.w			; yes, acknowledge
-
 	move.b	CORE_FILE_DATA.w,D0		; get first byte
 	cmp.b	#1,D0
-	bne	.2				; it's not a valid file
+	bne	.bb3				; it's not a valid file
 
 	pea	file_loading1
 	bsr	terminal_putstring
 	addq.l	#4,SP
 
-.start	pea	file_loading2
+.bb1	pea	file_loading2
 	bsr	terminal_putstring
 	addq.l	#4,SP
 
 	clr.l	D0
 	move.b	CORE_FILE_DATA.w,D0
-	bne	.2					; should be zero this first byte
+	bne	.bb3					; should be zero this first byte
 	move.b	CORE_FILE_DATA.w,D0
 	lsl.l	#8,D0
 	move.b	CORE_FILE_DATA.w,D0
@@ -236,7 +185,7 @@ exc_lvl2_irq_auto
 
 	clr.l	D1
 	move.b	CORE_FILE_DATA.w,D1
-	bne	.2
+	bne	.bb3
 	move.b	CORE_FILE_DATA.w,D1
 	lsl.l	#8,D1
 	move.b	CORE_FILE_DATA.w,D1
@@ -251,9 +200,9 @@ exc_lvl2_irq_auto
 
 	move.l	chunk_length,D0
 
-.1	move.b	CORE_FILE_DATA.w,(A0)+	; get data and store in memory
+.bb2	move.b	CORE_FILE_DATA.w,(A0)+	; get data and store in memory
 	subq	#1,D0
-	bne	.1
+	bne	.bb2
 
 	move.l	A0,-(SP)
 	pea	file_loading3
@@ -269,22 +218,22 @@ exc_lvl2_irq_auto
 
 	move.b	CORE_FILE_DATA.w,D0	; look for next chunk
 	cmp.b	#1,D0
-	beq	.start			; yes, another data chunk
+	beq	.bb1			; yes, another data chunk
 	cmp.b	#$fe,D0			; no, is this a postamble?
-	bne	.2			; no = error
+	bne	.bb3			; no = error
 
 	move.b	CORE_FILE_DATA.w,D0	; yes it's the postamble
-	bne	.2			; should be zero
+	bne	.bb3			; should be zero
 	move.b	CORE_FILE_DATA.w,D0
-	bne	.2			; should be zero
+	bne	.bb3			; should be zero
 	move.b	CORE_FILE_DATA.w,D0
-	bne	.2			; should be zero
+	bne	.bb3			; should be zero
 	move.b	CORE_FILE_DATA.w,D0
-	bne	.2			; should be zero
+	bne	.bb3			; should be zero
 
 	clr.l	D0
 	move.b	CORE_FILE_DATA.w,D0
-	bne	.2			; should be zero
+	bne	.bb3			; should be zero
 	move.b	CORE_FILE_DATA.w,D0
 	lsl.l	#8,D0
 	move.b	CORE_FILE_DATA.w,D0
@@ -293,12 +242,69 @@ exc_lvl2_irq_auto
 	move.l	D0,exec_address
 
 	or.b	#%00000001,logo_status
-	bra	.3
+	bra	.bb4
 
-.2	pea	file_error
+.bb3	pea	file_error
 	bsr	terminal_putstring
 	addq.l	#4,SP
-.3	movem.l	(SP)+,D0-D1
+.bb4	movem.l	(SP)+,D0-D1
+
+	pea	file_loading4
+	bsr	terminal_putstring
+	addq.l	#4,SP
+
+	move.l	exec_address,-(SP)
+	move.b	#8,-(SP)
+	bsr	terminal_put_hex_number
+	addq.l	#6,SP
+
+	move.l	#$000c0000,D0			; wait loop
+.bb5	subq.l	#1,D0
+	bne	.bb5
+
+	bsr	terminal_clear
+
+	movea.l	exec_address,A0
+	jmp	(A0)
+
+
+terminal_flip_cursor
+	move.w	cursor_pos,D0
+	movea.l	#VDC_LAYER_TILES,A0
+	eori.b	#$80,(A0,D0)
+	rts
+
+
+exc_addr_error
+	move.b	#$01,VDC_BG_COLOR.w	; black
+.1	bra	.1
+
+
+exc_illegal_instr
+	move.b	#$41,VDC_BG_COLOR.w	; red
+.1	bra.s	.1
+
+
+exc_privilege_violation
+	move.b	#$b4,VDC_BG_COLOR.w	; green
+.1	bra.s	.1
+
+
+exc_spurious_interrupt
+	rte
+
+
+exc_lvl1_irq_auto
+	rte
+
+
+exc_lvl2_irq_auto
+	movem.l	D0-D1,-(SP)
+	move.b	CORE_SR.w,D0			; did core cause an irq?
+	beq	.el1				; no
+	move.b	D0,CORE_SR.w			; yes, acknowledge
+	or.b	#%1,logo_status
+.el1	movem.l	(SP)+,D0-D1
 	rte
 
 
