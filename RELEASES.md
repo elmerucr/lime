@@ -1,5 +1,6 @@
 ## Version ...
 
+* 20260620 Palette change to Atari GTIA
 * 20260613 Compiles with SDL 3.4.10 on macOS Tahoe 26.5.1
 * 20260518 Adding 4x8 font rom
 * 20260513 Horizontal border

@@ -503,10 +503,10 @@ void host_t::video_init()
     SDL_SetTextureScaleMode(viewer_texture, SDL_SCALEMODE_PIXELART);
 	SDL_SetTextureBlendMode(viewer_texture, SDL_BLENDMODE_BLEND);
 	viewer_texture_placement = {
-		.x = (float)DEBUGGER_XRES - (((15 * 8 * VDC_XRES) / VDC_YRES) + 8),
-		.y = (float)DEBUGGER_YRES - ((15 * 8) + 16),
-		.w = (float)(15 * 8 * VDC_XRES) / VDC_YRES,
-		.h = (float)15 * 8
+		.x = (float)DEBUGGER_XRES - (((18 * 8 * VDC_XRES) / VDC_YRES) + 8),
+		.y = (float)DEBUGGER_YRES - ((18 * 8) + 16),
+		.w = (float)(18 * 8 * VDC_XRES) / VDC_YRES,
+		.h = (float)18 * 8
 	};
 
     SDL_SetRenderDrawColor(video_renderer, 0, 0, 0, 255);	// set clear color black

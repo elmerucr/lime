@@ -61,10 +61,10 @@ void vdc_t::reset()
 		sprite[i].flags1_bit45_hstretch  = 0;
 		sprite[i].flags1_bit67_vstretch = 0;
 		sprite[i].index = 0;
-		sprite[i].colors[0] = 0b00;
-		sprite[i].colors[1] = 0b01;
-		sprite[i].colors[2] = 0b10;
-		sprite[i].colors[3] = 0b11;
+		sprite[i].colors[0] = 0x01;
+		sprite[i].colors[1] = 0xb2;
+		sprite[i].colors[2] = 0xb7;
+		sprite[i].colors[3] = 0xbe;
 		sprite[i].tileset_address = 0x1000;
 	}
 
@@ -79,10 +79,10 @@ void vdc_t::reset()
 		layer[i].flags1_bit67_vstretch = 0;
 		layer[i].flags2_bit01_hsize = 0b00;
 		layer[i].flags2_bit45_vsize = 0b01;
-		layer[i].colors[0] = 0b00;
-		layer[i].colors[1] = 0b01;
-		layer[i].colors[2] = 0b10;
-		layer[i].colors[3] = 0b11;
+		layer[i].colors[0] = 0x01;
+		layer[i].colors[1] = 0xb2;
+		layer[i].colors[2] = 0xb7;
+		layer[i].colors[3] = 0xbe;
 		layer[i].tileset_address = 0x800;
 	}
 
@@ -398,22 +398,16 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			// don't change, is always 0xff
 			break;
 		case 0x09:
-			if (current_palette_index & 0x80) {
-				palette[current_palette_index] = (palette[current_palette_index] & 0xff00ffff) | (value << 16);
-				calculate_crt_palette_entry(current_palette_index);
-			}
+			palette[current_palette_index] = (palette[current_palette_index] & 0xff00ffff) | (value << 16);
+			calculate_crt_palette_entry(current_palette_index);
 			break;
 		case 0x0a:
-			if (current_palette_index & 0x80) {
-				palette[current_palette_index] = (palette[current_palette_index] & 0xffff00ff) | (value << 8);
-				calculate_crt_palette_entry(current_palette_index);
-			}
+			palette[current_palette_index] = (palette[current_palette_index] & 0xffff00ff) | (value << 8);
+			calculate_crt_palette_entry(current_palette_index);
 			break;
 		case 0x0b:
-			if (current_palette_index & 0x80) {
-				palette[current_palette_index] = (palette[current_palette_index] & 0xffffff00) | value;
-				calculate_crt_palette_entry(current_palette_index);
-			}
+			palette[current_palette_index] = (palette[current_palette_index] & 0xffffff00) | value;
+			calculate_crt_palette_entry(current_palette_index);
 			break;
 		case 0x0e:
 			irq_scanline = (irq_scanline & 0x00ff) | (value << 8);

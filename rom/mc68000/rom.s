@@ -5,8 +5,13 @@
 ; Copyright © 2025-2026 elmerucr. All rights reserved.
 ;
 ;-----------------------------------------------------------------------
-; - Calling convention: D0-D1/A0-A1 are scratch registers, and need to
-;   be caller saved when to be kept
+; - Calling convention:
+;   - D0-D1/A0-A1 are scratch registers, and need to be caller saved
+;     when to be kept
+;   - Calling a trap is an exception, but otherwise works the same as
+;     a conventional function / routine
+;   - Other exceptions will save and restore all registers
+;
 ; - tab size: 8
 ;
 ;-----------------------------------------------------------------------
@@ -53,7 +58,7 @@ rndx		rs.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	start		; reset vector
-version	dc.b	"rom mc68000 0.10.20260616",0
+version	dc.b	"rom mc68000 0.10.20260619",0
 
 	align	2
 
@@ -73,7 +78,8 @@ start
 
 	move.l	#VDC_LAYER_TILES,terminal_chars
 	move.l	#VDC_LAYER_COLORS,terminal_colors
-	move.b	#$01,cursor_color
+	move.b	#$b7,cursor_color
+	move.b	#$01,VDC_BG_COLOR
 	jsr	terminal_clear
 	pea	logo_boot_message
 	bsr	terminal_putstring
@@ -90,22 +96,20 @@ start
 	clr.l	rnda				; init random generator, clears all: rnda, rndb, rndc, rndx
 
 logo_screen
-	move.b	CORE_INPUT0.w,VDC_BG_COLOR.w	; use controller inputs for bg color
-
 	subq.l	#1,logo_scr_cnt
 	bne.s	.1				; didn't reach 0
-	move.b	#%1101,$414.w
-
+	move.b	#%1101,$414.w			; display layer 0
 .1	tst.b	binary_ready.w
 	bne.s	boot_binary
 	move.b	(KEYBOARD_STATE+1).w,D0		; check status of esc key
 	beq.s	logo_screen			; not pressed
 	btst	#0,D0				; check bit0
 	bne.s	logo_screen			; not pressed & released
-	move.b	#$41,cursor_color
+
+	move.b	#$0b,cursor_color		; pressed & released
 	jsr	terminal_clear
 	jsr	terminal_welcome
-	jsr	init_terminal_settings		; pressed & released
+	jsr	init_terminal_settings
 	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
 	bra.s	screen_editor
 
@@ -177,9 +181,9 @@ exc_lvl2_irq_auto
 	beq	.3				; no
 	move.b	D0,CORE_SR.w			; yes, acknowledge
 
-	move.b	#$41,cursor_color
-	jsr	terminal_clear
-	jsr	terminal_welcome
+	move.b	#$0b,cursor_color		; TODO - remove here
+	jsr	terminal_clear			; TODO - remove here
+	jsr	terminal_welcome		; TODO - remove here
 
 	move.b	CORE_FILE_DATA.w,D0		; get first byte
 	cmp.b	#1,D0
@@ -391,6 +395,9 @@ sound_reset
 	rts
 
 
+;-----------------------------------------------------------------------
+; Doesn't affect any registers
+;-----------------------------------------------------------------------
 init_vector_table
 	move.l	#exc_addr_error,VEC_ADDR_ERROR.w
 	move.l	#exc_illegal_instr,VEC_ILLEGAL_INSTR.w
@@ -413,9 +420,12 @@ init_vector_table
 	rts
 
 
+;-----------------------------------------------------------------------
+; Destroys D0
+;-----------------------------------------------------------------------
 init_terminal_settings
 	clr.b	CORE_CR				; stop irq's when new bin inserted or basic mode starts
-	clr.b	VDC_CR				; stop VDC interrupts (at rasterline 179)
+	clr.b	VDC_CR				; stop VDC interrupts
 	clr.b	D0
 .1	move.b	D0,VDC_CURRENT_SPRITE		; make sprite 0-7 inactive
 	clr.b	VDC_SPRITE_FLAGS0
@@ -425,9 +435,9 @@ init_terminal_settings
 
 	move.b	VDC_CURRENT_LAYER.w,-(SP)
 
-	move.b	#$0c,VDC_BORDER_COLOR.w		; dark grey / black
+	move.b	#$01,VDC_BORDER_COLOR.w		; dark grey / black
 	move.b	#$0a,VDC_BORDER_SIZE.w
-	move.b	#$40,VDC_BG_COLOR.w		; Atari Basic BG
+	move.b	#$94,VDC_BG_COLOR.w		; Atari Basic BG
 	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current
 	move.b	#%1101,VDC_LAYER_FLAGS0.w	;
 	move.w	#$fff6,VDC_LAYER_Y_MSB.w

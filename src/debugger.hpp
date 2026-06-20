@@ -28,7 +28,7 @@ private:
 	char text_buffer[1024];
 
 	uint8_t terminal_graphics_colors[4] {
-		0b00, 0b01, 0b10, 0b11
+		0x01, 0xb2, 0xb7, 0xbe
 	};
 
 	bool timers_4_7 = false;
