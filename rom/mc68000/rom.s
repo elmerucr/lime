@@ -31,6 +31,8 @@ TERMINAL_HPITCH	equ	$80	; 128 tiles
 TERMINAL_VPITCH	equ	$20	; 32 tiles
 TERMINAL_WIDTH	equ	$50	; 80 columns visible
 TERMINAL_HEIGHT	equ	$14	; 20 rows
+TERMINAL_BG_COL	equ	$84
+TERMINAL_FG_COL	equ	$8c
 
 ;-----------------------------------------------------------------------
 		rsset	$6000
@@ -133,8 +135,8 @@ logo_screen
 	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current and visible
 	or.b	#%00000001,VDC_LAYER_FLAGS0.w
 
-	move.b	#$0b,cursor_color
-	move.b	#$94,VDC_BG_COLOR.w		; Atari Basic BG
+	move.b	#TERMINAL_FG_COL,cursor_color
+	move.b	#TERMINAL_BG_COL,VDC_BG_COLOR.w		; Atari Basic BG
 	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
 	bsr	terminal_clear
 	bsr	terminal_welcome
