@@ -70,12 +70,12 @@ debugger_t::debugger_t(system_t *s)
 
 	buffer = new uint32_t[DEBUGGER_XRES * DEBUGGER_YRES];
 
-	terminal = new terminal_t(system, DEBUGGER_XRES / 8, 20, PUNCH_LIGHTBLUE, (PUNCH_BLUE & 0x00ffffff) | 0xe0000000);
+	terminal = new terminal_t(system, DEBUGGER_XRES / 8, 19, PUNCH_LIGHTBLUE, (PUNCH_BLUE & 0x00ffffff) | 0xe0000000);
 	terminal->clear();
 	print_version();
 	terminal->activate_cursor();
 
-	status1 = new terminal_t(system, 80, 24, PICOTRON_V5_1A, (LIME_COLOR_00 & 0x00ffffff) | 0xe0000000);
+	status1 = new terminal_t(system, 80, 25, PICOTRON_V5_1A, (LIME_COLOR_00 & 0x00ffffff) | 0xe0000000);
 	mc6809_status = new terminal_t(system, 60, 2, PICOTRON_V5_1A, 0xff000000);
 	stack_status = new terminal_t(system, 34, 15, PICOTRON_V5_1A, 0xff000000);
 	exception_status = new terminal_t(system, 22, 5, PICOTRON_V5_1A, 0xff000000);
@@ -108,7 +108,7 @@ void debugger_t::redraw()
 		for (int x = 0; x < (terminal->width << 3); x++) {
 			uint8_t symbol = terminal->tiles[((y>>3) * terminal->width) + (x >> 3)];
 	 		uint8_t x_in_char = x % 8;
-			buffer[((y + 192) * DEBUGGER_XRES) + x + 0] =
+			buffer[((y + 200) * DEBUGGER_XRES) + x + 0] =
 				(debugger_cbm_font.original_data[(symbol << 3) + y_in_char] & (0b1 << (7 - x_in_char))) ?
 				terminal->fg_colors[((y>>3) * terminal->width) + (x >> 3)] :
 				terminal->bg_colors[((y>>3) * terminal->width) + (x >> 3)] ;
@@ -123,7 +123,7 @@ void debugger_t::redraw()
 		uint32_t isp = system->core->mc68000->getISP();
 		uint32_t usp = system->core->mc68000->getUSP();
 		status1->printf(
-			"---------------------------------Motorola 68000---------------------------------"
+			"---------------------------------Motorola 68000---------------------------------\n"
 			"   D0:%08x  D4:%08x  A0:%08x  A4:%08x    +e:%02x%02x     +e:%02x%02x\n"
 			"   D1:%08x  D5:%08x  A1:%08x  A5:%08x    +c:%02x%02x     +c:%02x%02x\n"
 			"   D2:%08x  D6:%08x  A2:%08x  A6:%08x    +a:%02x%02x     +a:%02x%02x\n"
@@ -181,11 +181,11 @@ void debugger_t::redraw()
 		);
 
 		status1->printf(
-			"\n----------------------------------disassembler----------------------------------"
+			"\n----------------------------------disassembler----------------------------------\n"
 		);
 		uint32_t pc = system->core->mc68000->getPC();
 		uint32_t new_pc;
-		for (int i=0; i<5; i++) {
+		for (int i=0; i<4; i++) {
 			new_pc = pc + system->core->mc68000->disassemble(text_buffer, pc);
 			if (system->core->mc68000->debugger.breakpoints.isSetAt(pc)) {
 				status1->fg_color = 0xffe04040;	// orange
@@ -219,7 +219,7 @@ void debugger_t::redraw()
 
 		status1->printf("\n\n ---------------disassembler---------------\n\n");
 		uint16_t pc = system->core->mc6809->get_pc();
-		for (int i=0; i<9; i++) {
+		for (int i=0; i<10; i++) {
 			pc += disassemble_instruction_status1(pc);
 			status1->putchar('\n');
 		}
@@ -227,7 +227,7 @@ void debugger_t::redraw()
 		stack_status->clear();
 		stack_status->printf("--------------stacks--------------\n");
 		stack_status->printf("          sp         us\n\n");
-		for (uint8_t i=6; i>0; i--) {
+		for (uint8_t i=7; i>0; i--) {
 			stack_status->printf("        %04x:%02x    %04x:%02x\n", (ssp+i) & 0xffff, system->core->read8(ssp+i), (usp+i) & 0xffff, system->core->read8(usp+i));
 		}
 		stack_status->printf("        %04x:%02x    %04x:%02x\n", ssp, system->core->read8(ssp), usp, system->core->read8(usp));
@@ -263,7 +263,7 @@ void debugger_t::redraw()
 	// copy exception_status into status1
 	for (int y = 0; y < exception_status->height; y++) {
 		for (int x = 0; x < exception_status->width; x++) {
-			status1->tiles[((17 + y) * status1->width) + 31 + x] =
+			status1->tiles[((18 + y) * status1->width) + 31 + x] =
 				exception_status->tiles[(y * exception_status->width) + x];
 		}
 	}
@@ -284,7 +284,7 @@ void debugger_t::redraw()
 	// copy vdc_status into status1
 	for (int y = 0; y < vdc_status->height; y++) {
 		for (int x = 0; x < vdc_status->width; x++) {
-			status1->tiles[((17 + y) * status1->width) + 56 + x] =
+			status1->tiles[((18 + y) * status1->width) + 56 + x] =
 				vdc_status->tiles[(y * vdc_status->width) + x];
 		}
 	}
@@ -617,7 +617,7 @@ void debugger_t::process_command(char *c)
 			terminal->bg_color = (PUNCH_BLUE & 0x00ffffff) | 0xe0000000;
 		}
 		terminal->printf(
-			"\n\ndgc  %02x  %02x  %02x  %02x\n    ",
+			"\ndgc  %02x  %02x  %02x  %02x ",
 			terminal_graphics_colors[0],
 			terminal_graphics_colors[1],
 			terminal_graphics_colors[2],
@@ -962,8 +962,10 @@ void debugger_t::enter_dgc_line(char *buffer)
 		terminal_graphics_colors[2] = arg2;
 		terminal_graphics_colors[3] = arg3;
 
-		terminal->printf("\n    ");
-		//for (int i=0; i<16; i++) terminal->cursor_right();
+		terminal->putchar(0x0d);
+		for (int i=0; i<20; i++) {
+			terminal->cursor_right();
+		}
 		for (int i=0; i<4; i++) {
 			terminal->bg_color = system->core->vdc->crt_palette[terminal_graphics_colors[i]];
 			terminal->printf("    ");

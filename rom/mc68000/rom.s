@@ -86,7 +86,7 @@ start
 	addq.l	#4,SP
 
 	move.b	#$68,logo_animation.w		; init variable for letter wobble
-	move.l	#$82000,logo_scr_cnt		; counter init value before displaying message
+	move.l	#$177000,logo_scr_cnt		; counter init value before displaying message
 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
 	move.b	#%00000001,VDC_CR		; enable irq's for vdc
 
