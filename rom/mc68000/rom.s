@@ -37,7 +37,7 @@ TERMINAL_HEIGHT	equ	$14	; 20 rows
 
 logo_scr_cnt	rs.l	1
 logo_animation	rs.b	1
-binary_ready	rs.b	1
+logo_status	rs.b	1
 cursor_pos	rs.w	1
 cursor_color	rs.b	1
 cursor_visible	rs.b	1
@@ -58,7 +58,7 @@ rndx		rs.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	start		; reset vector
-version	dc.b	"rom mc68000 0.10.20260619",0
+version	dc.b	"rom mc68000 0.10.20260620",0
 
 	align	2
 
@@ -66,7 +66,7 @@ start
 	move.l	#$00010000,A0			; set usp
 	move.l	A0,USP
 
-	move.l	#$8000,D0			; small delay at reset
+	move.l	#$f000,D0			; small delay at reset
 .1	subq.l	#1,D0
 	bne	.1
 
@@ -76,12 +76,20 @@ start
 	jsr	init_logo
 	jsr	sound_reset
 
-	move.l	#VDC_LAYER_TILES,terminal_chars
-	move.l	#VDC_LAYER_COLORS,terminal_colors
-	move.b	#$b7,cursor_color
-	move.b	#$01,VDC_BG_COLOR
+	move.l	#VDC_LAYER_TILES,terminal_chars		; default location
+	move.l	#VDC_LAYER_COLORS,terminal_colors	; default location
+
+	move.b	#$01,VDC_BORDER_COLOR.w		; dark grey / black
+	move.b	#$0a,VDC_BORDER_SIZE.w
+	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current
+	move.b	#%1100,VDC_LAYER_FLAGS0.w	;
+	move.w	#$fff6,VDC_LAYER_Y_MSB.w	; y location
+
+	move.b	#$b7,cursor_color			; greenish
+	move.b	#$01,VDC_BG_COLOR			; black / dark grey
+
 	jsr	terminal_clear
-	pea	logo_boot_message
+	pea	logo_boot_message		; print boot message
 	bsr	terminal_putstring
 	addq.l	#4,SP
 
@@ -92,32 +100,53 @@ start
 
 	andi.w	#$00ff,SR			; jump to user mode, IPL reg = 0b000
 
-	clr.b	binary_ready.w
+	clr.b	logo_status.w
 	clr.l	rnda				; init random generator, clears all: rnda, rndb, rndc, rndx
 
 logo_screen
 	subq.l	#1,logo_scr_cnt
-	bne.s	.1				; didn't reach 0
+	bne.s	.ls1				; didn't reach 0
 	move.b	#%1101,$414.w			; display layer 0
-.1	tst.b	binary_ready.w
-	bne.s	boot_binary
-	move.b	(KEYBOARD_STATE+1).w,D0		; check status of esc key
-	beq.s	logo_screen			; not pressed
-	btst	#0,D0				; check bit0
-	bne.s	logo_screen			; not pressed & released
 
-	move.b	#$0b,cursor_color		; pressed & released
+.ls1	move.b	(KEYBOARD_STATE+1).w,D0		; check status of esc key
+	beq.s	.ls2				; not pressed
+	btst	#0,D0				; check bit0
+	bne.s	.ls2
+	or.b	#%00000010,logo_status
+.ls2	tst.b	logo_status
+	beq.s	logo_screen			; nothing happened, go back
+
+; either [esc] or boot happened
+	clr.b	CORE_CR				; stop irq's when new bin inserted or basic mode starts
+	clr.b	VDC_CR				; stop VDC interrupts
+
+	clr.b	D0
+.ls3	move.b	D0,VDC_CURRENT_SPRITE		; make sprite 0-7 inactive
+	clr.b	VDC_SPRITE_FLAGS0
+	addq.b	#1,D0
+	cmp.b	#8,D0
+	bne	.ls3
+
+	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current and visible
+	or.b	#%00000001,VDC_LAYER_FLAGS0.w
+
+	move.b	#$0b,cursor_color
+	move.b	#$94,VDC_BG_COLOR.w		; Atari Basic BG
+	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
 	jsr	terminal_clear
 	jsr	terminal_welcome
-	jsr	init_terminal_settings
-	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
+
+	btst	#0,logo_status
+	bne.s	boot_binary
+
+screen_editor
+	move.b	$606.w,D1
+	beq.s	screen_editor
+	move.b	#1,D0
+	trap	#15
 	bra.s	screen_editor
 
-
 boot_binary
-	jsr	init_terminal_settings
-	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
-
 	pea	file_loading4
 	bsr	terminal_putstring
 	addq.l	#4,SP
@@ -135,14 +164,6 @@ boot_binary
 
 	movea.l	exec_address,A0
 	jmp	(A0)
-
-
-screen_editor
-.1	move.b	$606.w,D1
-	beq.s	.1
-	move.b	#1,D0
-	trap	#15
-	bra.s	.1
 
 
 terminal_flip_cursor
@@ -180,10 +201,6 @@ exc_lvl2_irq_auto
 	move.b	CORE_SR.w,D0			; did core cause an irq?
 	beq	.3				; no
 	move.b	D0,CORE_SR.w			; yes, acknowledge
-
-	move.b	#$0b,cursor_color		; TODO - remove here
-	jsr	terminal_clear			; TODO - remove here
-	jsr	terminal_welcome		; TODO - remove here
 
 	move.b	CORE_FILE_DATA.w,D0		; get first byte
 	cmp.b	#1,D0
@@ -275,7 +292,7 @@ exc_lvl2_irq_auto
 	move.b	CORE_FILE_DATA.w,D0	; D0 contains starting address
 	move.l	D0,exec_address
 
-	move.b	#1,binary_ready
+	or.b	#%00000001,logo_status
 	bra	.3
 
 .2	pea	file_error
@@ -417,32 +434,6 @@ init_vector_table
 	move.l	#timer_default_handler,VEC_TIMER5.w
 	move.l	#timer_default_handler,VEC_TIMER6.w
 	move.l	#timer_default_handler,VEC_TIMER7.w
-	rts
-
-
-;-----------------------------------------------------------------------
-; Destroys D0
-;-----------------------------------------------------------------------
-init_terminal_settings
-	clr.b	CORE_CR				; stop irq's when new bin inserted or basic mode starts
-	clr.b	VDC_CR				; stop VDC interrupts
-	clr.b	D0
-.1	move.b	D0,VDC_CURRENT_SPRITE		; make sprite 0-7 inactive
-	clr.b	VDC_SPRITE_FLAGS0
-	addq.b	#1,D0
-	cmp.b	#8,D0
-	bne	.1
-
-	move.b	VDC_CURRENT_LAYER.w,-(SP)
-
-	move.b	#$01,VDC_BORDER_COLOR.w		; dark grey / black
-	move.b	#$0a,VDC_BORDER_SIZE.w
-	move.b	#$94,VDC_BG_COLOR.w		; Atari Basic BG
-	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current
-	move.b	#%1101,VDC_LAYER_FLAGS0.w	;
-	move.w	#$fff6,VDC_LAYER_Y_MSB.w
-
-	move.b	(SP)+,VDC_CURRENT_LAYER.w
 	rts
 
 
