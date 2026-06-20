@@ -40,7 +40,8 @@ logo_animation	rs.b	1
 logo_status	rs.b	1
 cursor_pos	rs.w	1
 cursor_color	rs.b	1
-_cursor_visible	rs.b	1
+cursor_active	rs.b	1
+;cursor_visible	rs.b	1
 terminal_chars	rs.l	1
 terminal_colors	rs.l	1
 chunk_length	rs.l	1
@@ -60,7 +61,6 @@ rndx		rs.b	1
 	dc.l	start		; reset vector
 version	dc.b	"rom mc68000 0.10.20260620",0
 
-	align	2
 
 start
 	move.l	#$00010000,A0			; set usp
@@ -85,16 +85,18 @@ start
 	move.b	#%1100,VDC_LAYER_FLAGS0.w	;
 	move.w	#$fff6,VDC_LAYER_Y_MSB.w	; y location
 
+	clr.b	cursor_active
+	;clr.b	cursor_visible
 	move.b	#$b7,cursor_color			; greenish
 	move.b	#$01,VDC_BG_COLOR			; black / dark grey
 
-	jsr	terminal_clear
+	bsr	terminal_clear
 	pea	logo_boot_message		; print boot message
 	bsr	terminal_putstring
 	addq.l	#4,SP
 
 	move.b	#$68,logo_animation.w		; init variable for letter wobble
-	move.l	#$177000,logo_scr_cnt		; counter init value before displaying message
+	move.l	#$77777,logo_scr_cnt		; counter init value before displaying message
 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
 	move.b	#%00000001,VDC_CR		; enable irq's for vdc
 
@@ -134,19 +136,21 @@ logo_screen
 	move.b	#$0b,cursor_color
 	move.b	#$94,VDC_BG_COLOR.w		; Atari Basic BG
 	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
-	jsr	terminal_clear
-	jsr	terminal_welcome
+	bsr	terminal_clear
+	bsr	terminal_welcome
 
 	btst	#0,logo_status
 	bne.s	boot_binary
 
 
 screen_editor
-	move.b	$606.w,D1
-	beq.s	screen_editor
+	move.b	#%1,cursor_active
+	bsr	terminal_flip_cursor
+.1	move.b	$606.w,D1
+	beq.s	.1
 	move.b	#1,D0
 	trap	#15
-	bra.s	screen_editor
+	bra.s	.1
 
 
 boot_binary
@@ -269,10 +273,12 @@ boot_binary
 
 
 terminal_flip_cursor
+	tst.b	cursor_active
+	beq.s	.1
 	move.w	cursor_pos,D0
 	movea.l	#VDC_LAYER_TILES,A0
 	eori.b	#$80,(A0,D0)
-	rts
+.1	rts
 
 
 exc_addr_error
@@ -499,11 +505,11 @@ terminal_clear
 	bne	.1
 
 	clr.w	cursor_pos
-	jsr	terminal_flip_cursor
+	bsr	terminal_flip_cursor
 	rts
 
 terminal_putchar
-	jsr	terminal_flip_cursor	; deactivate the cursor
+	bsr	terminal_flip_cursor	; deactivate the cursor
 	movea.l	terminal_chars,A0
 	movea.l	terminal_colors,A1
 	move.w	cursor_pos,D0
@@ -702,7 +708,7 @@ file_loading2	dc.b	$0a,"$",0
 file_loading3	dc.b	" $",0
 file_loading4	dc.b	$0a,$0a," jumping to $",0
 
-	align	2
+
 logo_data
 	dc.b	0,152,0,76,%111,0,0,$1c	; icon top left
 	dc.b	0,160,0,76,%111,0,0,$1d	; icon top right

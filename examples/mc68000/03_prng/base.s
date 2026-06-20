@@ -3,7 +3,7 @@
 ;
 ;-----------------------------------------------------------------------
 
-		include	"../../../rom/mc68000/definitions.i"
+		include	"../../../rom/mc68000/definitions.inc"
 
 		org	RAM_START-9			; allocate 9 bytes for preamble
 
