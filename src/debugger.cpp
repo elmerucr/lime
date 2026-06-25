@@ -123,7 +123,7 @@ void debugger_t::redraw()
 		uint32_t isp = system->core->mc68000->getISP();
 		uint32_t usp = system->core->mc68000->getUSP();
 		status1->printf(
-			"---------------------------------Motorola 68000---------------------------------\n"
+			"------------------------------------MC68000-------------------------------------\n"
 			"   D0:%08x  D4:%08x  A0:%08x  A4:%08x    +e:%02x%02x     +e:%02x%02x\n"
 			"   D1:%08x  D5:%08x  A1:%08x  A5:%08x    +c:%02x%02x     +c:%02x%02x\n"
 			"   D2:%08x  D6:%08x  A2:%08x  A6:%08x    +a:%02x%02x     +a:%02x%02x\n"
@@ -207,7 +207,7 @@ void debugger_t::redraw()
 		uint16_t usp = system->core->mc6809->get_us() & 0xffff;
 
 
-		status1->printf("---------------------------------Motorola 6809----------------------------------\n\n");
+		status1->printf("-------------------------------------MC6809-------------------------------------\n\n");
 		system->core->mc6809->status(text_buffer, 1024);
 		mc6809_status->printf("%s", text_buffer);
 		for (int y = 0; y < mc6809_status->height; y++) {

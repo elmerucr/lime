@@ -2,16 +2,16 @@
 
 ![icon](./docs/icon_80x80.png)
 
-Lime is a virtual computer system that draws inspiration from computing platforms such as the Commodore 64 (look and feel, SID and VIC-II), the Atari ST (Motorola 68000), the TRS-80 Color Computer (Motorola 6809 and binary format) and the Nintendo Gameboy (tiles / graphics system). Notable features include:
+Lime is a virtual computer system that draws inspiration from computing platforms such as the Commodore 64 (look and feel, SID and VIC-II), the Amiga 500 and Atari ST (Motorola 68000), the TRS-80 Color Computer (Motorola 6809 and binary format), the Nintendo Gameboy (tiles / graphics system) and the Atari 800xl (GTIA palette). Notable features include:
 
-* Motorola 68000 cpu using the [Moira](https://github.com/dirkwhoffmann/Moira) library
-* Motorola 6809 cpu using the [mc6809](https://github.com/elmerucr/mc6809) library
-* 16mb ram (mc6809 can address the lowest 64k)
+* Motorola MC68000 cpu using the [Moira](https://github.com/dirkwhoffmann/Moira) library
+* Motorola MC6809 cpu using the [mc6809](https://github.com/elmerucr/mc6809) library
+* 16mb ram (MC6809 can address the lowest 64k only)
 * Screen resolution of 320x180 pixels, refresh rate of 60Hz
 * Video Display Controller (VDC) for graphics processing, memory access to lowest 64k
-* Programmable using mc68000 and mc6809 assembly (see ```examples```)
+* Programmable using MC68000 and MC6809 assembly (see ```examples```)
 
-By default, lime starts in mc68000 mode.
+By default, lime starts in MC68000 mode.
 
 ## Screenshots
 
@@ -25,7 +25,7 @@ By default, lime starts in mc68000 mode.
 
 Binaries (in ```decb``` format and borrowed from the TRS-80 Color Computer / Disk Extended Color Basic specification) can be dragged and dropped onto the application.
 
-### In mc6809 mode
+### In MC6809 mode
 
 This follows the original specification. Information can be found on the webpage for [LWTOOLS](https://www.lwtools.ca/manual/x27.html).
 
@@ -33,9 +33,9 @@ Binaries include the load address of the binary as well as encoding an execution
 
 Each binary starts with a preamble. Each preamble is five bytes long. The first byte is ```$00```. The next two bytes specify the number of bytes to load and the last two bytes specify the address to load at. Then, a string of bytes follows. After this string of bytes, there may be another preamble or postamble. A postamble is also five bytes in length. The first byte of the postamble is ```$ff```, the next two are zero, and the last two are the execution address for the binary.
 
-### In mc68000 mode
+### In MC68000 mode
 
-Largely comparable to mc6809 mode.
+Largely comparable to MC6809 mode.
 
 Each preamble is nine bytes long and starts with the magic byte ```$01```, the next four bytes (big endian) specify the number of bytes to load (first byte must be ```$00```), the next four bytes (big endian, first byte ```$00```) the address to load at. There may be multiple preambles / chunks to load.
 
@@ -43,7 +43,7 @@ The postamble (nine bytes) starts with magic byte ```$fe```, the next four are z
 
 ## Memory Map
 
-### Motorola 68000 mode
+### MC68000 mode
 
 ```
 0x000000 - 0x000007 initial ssp / reset vector (8b)
@@ -73,7 +73,7 @@ The postamble (nine bytes) starts with magic byte ```$fe```, the next four are z
 0x020000 - 0xffffff available ram (16256kb)
 ```
 
-### Motorola 6809 mode
+### MC6809 mode
 
 to be done
 

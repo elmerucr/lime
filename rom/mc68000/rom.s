@@ -12,7 +12,7 @@
 ;     a conventional function / routine
 ;   - Other exceptions will save and restore all registers
 ;
-; - tab size: 8
+; - Tab size: 8
 ;
 ;-----------------------------------------------------------------------
 ; rom v0.10
@@ -31,13 +31,13 @@ TERMINAL_HPITCH	equ	$80	; 128 tiles
 TERMINAL_VPITCH	equ	$20	; 32 tiles
 TERMINAL_WIDTH	equ	$50	; 80 columns visible
 TERMINAL_HEIGHT	equ	$14	; 20 rows
-TERMINAL_BG_COL	equ	$84
-TERMINAL_FG_COL	equ	$8c
+TERMINAL_BG_COL	equ	$93
+TERMINAL_FG_COL	equ	$98
 
 ;-----------------------------------------------------------------------
 		rsset	$6000
 
-logo_scr_cnt	rs.l	1
+logo_cntdwn	rs.l	1
 logo_animation	rs.b	1
 logo_status	rs.b	1
 cursor_pos	rs.w	1
@@ -46,8 +46,10 @@ cursor_active	rs.b	1
 ;cursor_visible	rs.b	1
 terminal_chars	rs.l	1
 terminal_colors	rs.l	1
+
 chunk_length	rs.l	1
 exec_address	rs.l	1
+
 rnda		rs.b	1
 rndb		rs.b	1
 rndc		rs.b	1
@@ -98,7 +100,7 @@ start
 	addq.l	#4,SP
 
 	move.b	#$68,logo_animation.w		; init variable for letter wobble
-	move.l	#$77777,logo_scr_cnt		; counter init value before displaying message
+	move.l	#$77777,logo_cntdwn		; counter init value before displaying message
 	move.b	#$b3,VDC_IRQ_SCANLINE_LSB	; set rasterline 179
 	move.b	#%00000001,VDC_CR		; enable irq's for vdc
 
@@ -109,7 +111,7 @@ start
 
 
 logo_screen
-	subq.l	#1,logo_scr_cnt
+	subq.l	#1,logo_cntdwn
 	bne.s	.ls1				; didn't reach 0
 	move.b	#%1101,$414.w			; display layer 0
 
@@ -761,5 +763,7 @@ logo_tiles
 
 hex_values
 	dc.b	"0123456789abcdef"
+
+	include	"bas.s"
 
 end_of_rom
