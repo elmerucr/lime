@@ -62,9 +62,9 @@ void vdc_t::reset()
 		sprite[i].flags1_bit67_vstretch = 0;
 		sprite[i].index = 0;
 		sprite[i].colors[0] = 0x01;
-		sprite[i].colors[1] = 0xb2;
-		sprite[i].colors[2] = 0xb7;
-		sprite[i].colors[3] = 0xbe;
+		sprite[i].colors[1] = 0xc2;
+		sprite[i].colors[2] = 0xc7;
+		sprite[i].colors[3] = 0xce;
 		sprite[i].tileset_address = 0x1000;
 	}
 
@@ -80,9 +80,9 @@ void vdc_t::reset()
 		layer[i].flags2_bit01_hsize = 0b00;
 		layer[i].flags2_bit45_vsize = 0b01;
 		layer[i].colors[0] = 0x01;
-		layer[i].colors[1] = 0xb2;
-		layer[i].colors[2] = 0xb7;
-		layer[i].colors[3] = 0xbe;
+		layer[i].colors[1] = 0xc2;
+		layer[i].colors[2] = 0xc7;
+		layer[i].colors[3] = 0xce;
 		layer[i].tileset_address = 0x800;
 	}
 

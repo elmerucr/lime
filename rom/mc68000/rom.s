@@ -32,7 +32,7 @@ TERMINAL_VPITCH	equ	$20	; 32 tiles
 TERMINAL_WIDTH	equ	$50	; 80 columns visible
 TERMINAL_HEIGHT	equ	$14	; 20 rows
 TERMINAL_BG_COL	equ	$93
-TERMINAL_FG_COL	equ	$98
+TERMINAL_FG_COL	equ	$99
 
 ;-----------------------------------------------------------------------
 		rsset	$6000
@@ -63,7 +63,7 @@ rndx		rs.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	start		; reset vector
-version	dc.b	"rom mc68000 0.10.20260620",0
+version	dc.b	"rom mc68000 0.10.20260628",0
 
 
 start
@@ -90,7 +90,6 @@ start
 	move.w	#$fff6,VDC_LAYER_Y_MSB.w	; y location
 
 	clr.b	cursor_active
-	;clr.b	cursor_visible
 	move.b	#$b7,cursor_color			; greenish
 	move.b	#$01,VDC_BG_COLOR			; black / dark grey
 
@@ -138,7 +137,7 @@ logo_screen
 	or.b	#%00000001,VDC_LAYER_FLAGS0.w
 
 	move.b	#TERMINAL_FG_COL,cursor_color
-	move.b	#TERMINAL_BG_COL,VDC_BG_COLOR.w		; Atari Basic BG
+	move.b	#TERMINAL_BG_COL,VDC_BG_COLOR.w	; Atari Basic BG
 	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
 	bsr	terminal_clear
 	bsr	terminal_welcome
@@ -149,12 +148,33 @@ logo_screen
 
 screen_editor
 	move.b	#%1,cursor_active
-	bsr	terminal_flip_cursor
-.1	move.b	$606.w,D1
-	beq.s	.1
-	move.b	#1,D0
-	trap	#15
-	bra.s	.1
+.se1	bsr	terminal_flip_cursor		; make visible
+.se2	move.b	KEYBOARD_EVENTS.w,D1		; load key event into D1
+	beq.s	.se2				; no key event (D1 == 0)
+	bsr	terminal_flip_cursor		; hide
+	cmp.b	#$0a,D1				; newline?
+	bne.s	.se3
+	bsr.s	screen_copy_line_buffer
+.se3	move.b	#1,D0
+	trap	#15				; char out
+	bra.s	.se1
+
+
+;--------------------------------
+; Destroys D0, A0, A1
+;
+;--------------------------------
+screen_copy_line_buffer
+	move.w	cursor_pos,D0
+	andi.w	#$ff80,D0
+	movea.l	terminal_chars,A0
+	lea	(A0,D0),A0
+	lea	basic_buf_1,A1
+	move.l	#(80-1),D0
+.1	move.b	(A0)+,(A1)+
+	dbra	D0,.1
+	move.b	#$00,(A1)		; end of line marker
+	rts
 
 
 boot_binary
@@ -275,7 +295,9 @@ boot_binary
 	movea.l	exec_address,A0
 	jmp	(A0)
 
-
+;----------------------------------
+; destroys D0, A0
+;----------------------------------
 terminal_flip_cursor
 	tst.b	cursor_active
 	beq.s	.1
@@ -509,11 +531,9 @@ terminal_clear
 	bne	.1
 
 	clr.w	cursor_pos
-	bsr	terminal_flip_cursor
 	rts
 
 terminal_putchar
-	bsr	terminal_flip_cursor	; deactivate the cursor
 	movea.l	terminal_chars,A0
 	movea.l	terminal_colors,A1
 	move.w	cursor_pos,D0
@@ -551,11 +571,9 @@ terminal_putchar
 	subi.w	#TERMINAL_HPITCH,D0	; move cursor one line up
 	move.w	D0,cursor_pos
 	bsr	terminal_add_bottom_row
-	bsr	terminal_flip_cursor	; activate the cursor
 	rts
 
 .3	move.w	D0,cursor_pos
-	bsr	terminal_flip_cursor	; activate the cursor
 	rts
 
 .cd	addi.w	#TERMINAL_HPITCH,D0	; yes, move cursor one line down
@@ -569,7 +587,6 @@ terminal_putchar
 
 .cl	tst.w	D0
 	bne.s	.cl0
-	bsr	terminal_flip_cursor	; we're at top left corner
 	rts
 .cl0	move.w	D0,D1
 	andi.w	#$7f,D1
