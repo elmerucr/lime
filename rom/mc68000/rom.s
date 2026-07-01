@@ -5,12 +5,12 @@
 ; Copyright © 2025-2026 elmerucr. All rights reserved.
 ;
 ;-----------------------------------------------------------------------
-; - Calling convention:
-;   - D0-D1/A0-A1 are scratch registers, and need to be caller saved
-;     when to be kept
-;   - Calling a trap is an exception, but otherwise works the same as
-;     a conventional function / routine
-;   - Other exceptions will save and restore all registers
+; Calling convention:
+; - D0-D1/A0-A1 are scratch registers, and need to be caller saved
+;   when to be kept
+; - Calling a trap is an exception, but otherwise works the same as
+;   a conventional function / routine (scratch registers)
+; - Other (real) exceptions will save and restore all registers
 ;
 ; - Tab size: 8
 ;
@@ -43,7 +43,6 @@ logo_status	rs.b	1
 cursor_pos	rs.w	1
 cursor_color	rs.b	1
 cursor_active	rs.b	1
-;cursor_visible	rs.b	1
 terminal_chars	rs.l	1
 terminal_colors	rs.l	1
 
@@ -149,22 +148,27 @@ logo_screen
 screen_editor
 	move.b	#%1,cursor_active
 .se1	bsr	terminal_flip_cursor		; make visible
-.se2	move.b	KEYBOARD_EVENTS.w,D1		; load key event into D1
+
+.se2	move.b	KEYBOARD_EVENTS.w,D1		; load potential key event into D1
 	beq.s	.se2				; no key event (D1 == 0)
 	bsr	terminal_flip_cursor		; hide
-	cmp.b	#$0a,D1				; newline?
-	bne.s	.se3
-	bsr.s	screen_copy_line_buffer
-.se3	move.b	#1,D0
-	trap	#15				; char out
+	cmp.b	#$0a,D1				; is it a newline (return)?
+	bne.s	.se3				; no
+
+	bsr.s	screen_copy_to_line_buffer	; yes, copy to line buffer
+	move.l	D1,-(SP)
+	bsr	basic_process_buffer
+	move.l	(SP)+,D1
+
+.se3	move.b	#1,D0				; char out
+	trap	#15				;
 	bra.s	.se1
 
 
 ;--------------------------------
 ; Destroys D0, A0, A1
-;
 ;--------------------------------
-screen_copy_line_buffer
+screen_copy_to_line_buffer
 	move.w	cursor_pos,D0
 	andi.w	#$ff80,D0
 	movea.l	terminal_chars,A0

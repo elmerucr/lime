@@ -2,7 +2,7 @@
 ; definitions.i
 ; lime
 ;
-; Copyright © 2025 elmerucr. All rights reserved.
+; Copyright © 2025-2026 elmerucr. All rights reserved.
 ; ----------------------------------------------------------------------
 
 ; vectors
@@ -87,8 +87,6 @@ KEYBOARD_SR			equ	$0600
 KEYBOARD_CR			equ	$0601
 KEYBOARD_EVENTS			equ	$0606
 KEYBOARD_STATE			equ	$0680
-
-VDC_TILESET_ADDRESS		equ	$1000
 
 VDC_LAYER_TILES			equ	$2000
 VDC_LAYER_COLORS		equ	$3000

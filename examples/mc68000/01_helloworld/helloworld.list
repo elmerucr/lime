@@ -8,9 +8,9 @@ Source: "base.s"
                             	     3: ;
                             	     4: ;-----------------------------------------------------------------------
                             	     5: 
-                            	     6: 		include	"../../../rom/mc68000/definitions.i"
+                            	     6: 		include	"../../../rom/mc68000/definitions.inc"
 
-Source: "../../../rom/mc68000/definitions.i"
+Source: "../../../rom/mc68000/definitions.inc"
                             	     1: ; ----------------------------------------------------------------------
                             	     2: ; definitions.i
                             	     3: ; lime
@@ -57,54 +57,54 @@ Source: "../../../rom/mc68000/definitions.i"
                             	    44: ; vdc (video display controller)
                             	    45: VDC_SR				equ	$0400
                             	    46: VDC_CR				equ	$0401
-                            	    47: VDC_BG_COLOR			equ	$0404
-                            	    48: VDC_CURRENT_LAYER		equ	$0406
-                            	    49: VDC_CURRENT_SPRITE		equ	$0407
-                            	    50: VDC_CURRENT_SCANLINE_MSB	equ	$040c
-                            	    51: VDC_CURRENT_SCANLINE_LSB	equ	$040d
-                            	    52: VDC_IRQ_SCANLINE_MSB		equ	$040e
-                            	    53: VDC_IRQ_SCANLINE_LSB		equ	$040f
-                            	    54: 
-                            	    55: VDC_LAYER_X_MSB			equ	$0410
-                            	    56: VDC_LAYER_X_LSB			equ	$0411
-                            	    57: VDC_LAYER_Y_MSB			equ	$0412
-                            	    58: VDC_LAYER_Y_LSB			equ	$0413
-                            	    59: VDC_LAYER_FLAGS0		equ	$0414
-                            	    60: VDC_LAYER_FLAGS1		equ	$0415
-                            	    61: VDC_LAYER_FLAGS2		equ	$0416
-                            	    62: VDC_LAYER_COLOR0		equ	$0418
-                            	    63: VDC_LAYER_COLOR1		equ	$0419
-                            	    64: VDC_LAYER_COLOR2		equ	$041a
-                            	    65: VDC_LAYER_COLOR3		equ	$041b
-                            	    66: VDC_LAYER_TILES_PAGE		equ	$041c
-                            	    67: VDC_LAYER_COLORS_PAGE		equ	$041d
-                            	    68: VDC_LAYER_TILESET_PAGE		equ	$041e
-                            	    69: 
-                            	    70: VDC_SPRITE_X_MSB		equ	$0420
-                            	    71: VDC_SPRITE_X_LSB		equ	$0421
-                            	    72: VDC_SPRITE_Y_MSB		equ	$0422
-                            	    73: VDC_SPRITE_Y_LSB		equ	$0423
-                            	    74: VDC_SPRITE_FLAGS0		equ	$0424
-                            	    75: VDC_SPRITE_FLAGS1		equ	$0425
-                            	    76: VDC_SPRITE_FLAGS2		equ	$0426
-                            	    77: VDC_SPRITE_INDEX		equ	$0427
-                            	    78: VDC_SPRITE_COLOR0		equ	$0428
-                            	    79: VDC_SPRITE_COLOR1		equ	$0429
-                            	    80: VDC_SPRITE_COLOR2		equ	$042a
-                            	    81: VDC_SPRITE_COLOR3		equ	$042b
-                            	    82: VDC_SPRITE_TILESET_PAGE		equ	$042e
-                            	    83: 
-                            	    84: VDC_TILESET_ADDRESS		equ	$1000
+                            	    47: VDC_BORDER_COLOR		equ	$0402
+                            	    48: VDC_BORDER_SIZE			equ	$0403
+                            	    49: VDC_BG_COLOR			equ	$0404
+                            	    50: VDC_CURRENT_LAYER		equ	$0406
+                            	    51: VDC_CURRENT_SPRITE		equ	$0407
+                            	    52: VDC_CURRENT_SCANLINE_MSB	equ	$040c
+                            	    53: VDC_CURRENT_SCANLINE_LSB	equ	$040d
+                            	    54: VDC_IRQ_SCANLINE_MSB		equ	$040e
+                            	    55: VDC_IRQ_SCANLINE_LSB		equ	$040f
+                            	    56: 
+                            	    57: VDC_LAYER_X_MSB			equ	$0410
+                            	    58: VDC_LAYER_X_LSB			equ	$0411
+                            	    59: VDC_LAYER_Y_MSB			equ	$0412
+                            	    60: VDC_LAYER_Y_LSB			equ	$0413
+                            	    61: VDC_LAYER_FLAGS0		equ	$0414
+                            	    62: VDC_LAYER_FLAGS1		equ	$0415
+                            	    63: VDC_LAYER_FLAGS2		equ	$0416
+                            	    64: VDC_LAYER_COLOR0		equ	$0418
+                            	    65: VDC_LAYER_COLOR1		equ	$0419
+                            	    66: VDC_LAYER_COLOR2		equ	$041a
+                            	    67: VDC_LAYER_COLOR3		equ	$041b
+                            	    68: VDC_LAYER_TILES_PAGE		equ	$041c
+                            	    69: VDC_LAYER_COLORS_PAGE		equ	$041d
+                            	    70: VDC_LAYER_TILESET_PAGE		equ	$041e
+                            	    71: 
+                            	    72: VDC_SPRITE_X_MSB		equ	$0420
+                            	    73: VDC_SPRITE_X_LSB		equ	$0421
+                            	    74: VDC_SPRITE_Y_MSB		equ	$0422
+                            	    75: VDC_SPRITE_Y_LSB		equ	$0423
+                            	    76: VDC_SPRITE_FLAGS0		equ	$0424
+                            	    77: VDC_SPRITE_FLAGS1		equ	$0425
+                            	    78: VDC_SPRITE_FLAGS2		equ	$0426
+                            	    79: VDC_SPRITE_INDEX		equ	$0427
+                            	    80: VDC_SPRITE_COLOR0		equ	$0428
+                            	    81: VDC_SPRITE_COLOR1		equ	$0429
+                            	    82: VDC_SPRITE_COLOR2		equ	$042a
+                            	    83: VDC_SPRITE_COLOR3		equ	$042b
+                            	    84: VDC_SPRITE_TILESET_PAGE		equ	$042e
                             	    85: 
-                            	    86: VDC_LAYER0_COLORS		equ	$2000
-                            	    87: VDC_LAYER1_COLORS		equ	$2000
-                            	    88: VDC_LAYER2_COLORS		equ	$2000
-                            	    89: VDC_LAYER3_COLORS		equ	$2000
+                            	    86: KEYBOARD_SR			equ	$0600
+                            	    87: KEYBOARD_CR			equ	$0601
+                            	    88: KEYBOARD_EVENTS			equ	$0606
+                            	    89: KEYBOARD_STATE			equ	$0680
                             	    90: 
-                            	    91: VDC_LAYER0_TILES		equ	$3000
-                            	    92: VDC_LAYER1_TILES		equ	$3000
-                            	    93: VDC_LAYER2_TILES		equ	$3000
-                            	    94: VDC_LAYER3_TILES		equ	$3000
+                            	    91: ;VDC_TILESET_ADDRESS		equ	$1000
+                            	    92: 
+                            	    93: VDC_LAYER_TILES			equ	$2000
+                            	    94: VDC_LAYER_COLORS		equ	$3000
                             	    95: 
                             	    96: ; sound devices
                             	    97: SID0_F				equ	$0500
