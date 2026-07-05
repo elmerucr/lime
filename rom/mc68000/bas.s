@@ -13,7 +13,9 @@ dummy	move.b	#1,D0
 
 basic_process_buffer
 	lea	basic_buf_1,A0
-	move.b	(A0)+,D0
+.bpb1	move.b	(A0)+,D0
+	cmp.b	#' ',D0
+	beq.s	.bpb1		; remove leading spaces
 	subi.b	#'0',D0
 	cmp.b	#9,D0
 	bhi.s	.end		; not a decimal number

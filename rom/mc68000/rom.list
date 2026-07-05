@@ -1,5 +1,5 @@
 Sections:
-00: "code" (0-956)
+00: "code" (0-95C)
 
 
 Source: "rom.s"
@@ -1084,19 +1084,21 @@ Source: "bas.s"
                             	    13: 
                             	    14: basic_process_buffer
 00:0001092C 41F90000601E    	    15: 	lea	basic_buf_1,A0
-00:00010932 1018            	    16: 	move.b	(A0)+,D0
-00:00010934 04000030        	    17: 	subi.b	#'0',D0
-00:00010938 B03C0009        	    18: 	cmp.b	#9,D0
-00:0001093C 620E            	    19: 	bhi.s	.end		; not a decimal number
-00:0001093E 48790001094E    	    20: 	pea	conf
-00:00010944 4EB9000106D6    	    21: 	jsr	terminal_putstring
-00:0001094A 588F            	    22: 	addq.l	#4,SP
-00:0001094C 4E75            	    23: .end	rts
-                            	    24: 
-00:0001094E 0A              	    25: conf	dc.b	$a,"number",0
-00:0001094F 6E756D626572
-00:00010955 00
+00:00010932 1018            	    16: .bpb1	move.b	(A0)+,D0
+00:00010934 B03C0020        	    17: 	cmp.b	#' ',D0
+00:00010938 67F8            	    18: 	beq.s	.bpb1		; remove leading spaces
+00:0001093A 04000030        	    19: 	subi.b	#'0',D0
+00:0001093E B03C0009        	    20: 	cmp.b	#9,D0
+00:00010942 620E            	    21: 	bhi.s	.end		; not a decimal number
+00:00010944 487900010954    	    22: 	pea	conf
+00:0001094A 4EB9000106D6    	    23: 	jsr	terminal_putstring
+00:00010950 588F            	    24: 	addq.l	#4,SP
+00:00010952 4E75            	    25: .end	rts
                             	    26: 
+00:00010954 0A              	    27: conf	dc.b	$a,"number",0
+00:00010955 6E756D626572
+00:0001095B 00
+                            	    28: 
 
 Source: "rom.s"
                             	   789: 
@@ -1162,14 +1164,14 @@ basic_process_buffer             A:0001092C
 basic_start                      E:0000601E
 boot_binary                      A:000101B0
 chunk_length                     E:00006012
-conf                             A:0001094E
+conf                             A:00010954
 copy_fonts_from_rom              A:0001051A
 copy_logo_tiles                  A:0001053E
 cursor_active                    E:00006009
 cursor_color                     E:00006008
 cursor_pos                       E:00006006
 dummy                            A:0001091A
-end_of_rom                       A:00010956
+end_of_rom                       A:0001095C
 exc_addr_error                   A:00010326
 exc_illegal_instr                A:00010330
 exc_lvl1_irq_auto                A:00010342
@@ -1329,5 +1331,5 @@ Symbols by value:
 0001090A hex_values
 0001091A dummy
 0001092C basic_process_buffer
-0001094E conf
-00010956 end_of_rom
+00010954 conf
+0001095C end_of_rom
