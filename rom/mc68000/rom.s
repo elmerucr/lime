@@ -45,6 +45,8 @@ cursor_color	rs.b	1
 cursor_active	rs.b	1
 terminal_chars	rs.l	1
 terminal_colors	rs.l	1
+terminal_buf_1	rs.b	128
+terminal_buf_2	rs.b	128
 
 chunk_length	rs.l	1
 exec_address	rs.l	1
@@ -62,7 +64,7 @@ rndx		rs.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	start		; reset vector
-version	dc.b	"rom mc68000 0.10.20260628",0
+version	dc.b	"rom mc68000 0.10.20260709",0
 
 
 start
@@ -146,6 +148,8 @@ logo_screen
 
 
 screen_editor
+	bsr	START
+	jmp	WSTART
 	move.b	#%1,cursor_active
 .se1	bsr	terminal_flip_cursor		; make visible
 
@@ -156,9 +160,9 @@ screen_editor
 	bne.s	.se3				; no
 
 	bsr.s	screen_copy_to_line_buffer	; yes, copy to line buffer
-	move.l	D1,-(SP)
-	bsr	basic_process_buffer
-	move.l	(SP)+,D1
+	;move.l	D1,-(SP)
+	;bsr	basic_process_buffer
+	;move.l	(SP)+,D1
 
 .se3	move.b	#1,D0				; char out
 	trap	#15				;
@@ -173,7 +177,7 @@ screen_copy_to_line_buffer
 	andi.w	#$ff80,D0
 	movea.l	terminal_chars,A0
 	lea	(A0,D0),A0
-	lea	basic_buf_1,A1
+	lea	terminal_buf_1,A1
 	move.l	#(80-1),D0
 .1	move.b	(A0)+,(A1)+
 	dbra	D0,.1
@@ -696,10 +700,9 @@ terminal_add_bottom_row
 terminal_welcome
 	pea	welcome
 	jsr	terminal_putstring
-	addq.l	#4,SP
 	pea	version
 	jsr	terminal_putstring
-	addq.l	#4,SP
+	addq.l	#8,SP
 	move.b	#$0a,-(SP)
 	jsr	terminal_putchar
 	addq.l	#2,SP
@@ -785,6 +788,6 @@ logo_tiles
 hex_values
 	dc.b	"0123456789abcdef"
 
-	include	"bas.s"
+	include	"TBI68K.ASM"
 
 end_of_rom
