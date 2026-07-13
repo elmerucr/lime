@@ -77,12 +77,12 @@ inline char event_to_ascii(uint8_t scancode, uint8_t modifiers)
 		case SCANCODE_COMMA:        result = (modifiers & SHIFT_PRESSED) ? ASCII_LESS : ASCII_COMMA;       break;
 		case SCANCODE_PERIOD:       result = (modifiers & SHIFT_PRESSED) ? ASCII_GREATER : ASCII_PERIOD;   break;
 		case SCANCODE_SLASH:        result = (modifiers & SHIFT_PRESSED) ? ASCII_QUESTION_M : ASCII_SLASH; break;
-		case SCANCODE_SPACE:        result = ASCII_SPACE;              break;
-		case SCANCODE_LEFT:         result = ASCII_CURSOR_LEFT;              break;
-		case SCANCODE_UP:           result = ASCII_CURSOR_UP;              break;
-		case SCANCODE_DOWN:         result = ASCII_CURSOR_DOWN;              break;
-		case SCANCODE_RIGHT:        result = ASCII_CURSOR_RIGHT;              break;
-		default:                    result = ASCII_NULL;              break;
+		case SCANCODE_SPACE:        result = ASCII_SPACE;                                                  break;
+		case SCANCODE_LEFT:         result = ASCII_CURSOR_LEFT;                                            break;
+		case SCANCODE_UP:           result = ASCII_CURSOR_UP;                                              break;
+		case SCANCODE_DOWN:         result = ASCII_CURSOR_DOWN;                                            break;
+		case SCANCODE_RIGHT:        result = ASCII_CURSOR_RIGHT;                                           break;
+		default:                    result = ASCII_NULL;                                                   break;
 	}
 
 	if (modifiers & CTRL_PRESSED) result &= 0x1f;	// the old way of making a control character

@@ -91,13 +91,12 @@ start
 	move.w	#$fff6,VDC_LAYER_Y_MSB.w	; y location
 
 	clr.b	cursor_active
-	move.b	#$b7,cursor_color			; greenish
-	move.b	#$01,VDC_BG_COLOR			; black / dark grey
+	move.b	#$b7,cursor_color		; greenish
+	move.b	#$01,VDC_BG_COLOR		; black / dark grey
 
 	bsr	terminal_clear
-	pea	logo_boot_message		; print boot message
+	lea	logo_boot_msg,A0		; print boot message
 	bsr	terminal_putstring
-	addq.l	#4,SP
 
 	move.b	#$68,logo_animation.w		; init variable for letter wobble
 	move.l	#$77777,logo_cntdwn		; counter init value before displaying message
@@ -148,8 +147,10 @@ logo_screen
 
 
 screen_editor
-	bsr	START
-	jmp	WSTART
+	;bsr	START
+	;jmp	WSTART
+	bsr	basic_cold_start
+	bsr	basic_warm_start
 	move.b	#%1,cursor_active
 .se1	bsr	terminal_flip_cursor		; make visible
 
@@ -160,25 +161,28 @@ screen_editor
 	bne.s	.se3				; no
 
 	bsr.s	screen_copy_to_line_buffer	; yes, copy to line buffer
-	;move.l	D1,-(SP)
-	;bsr	basic_process_buffer
-	;move.l	(SP)+,D1
+	move.l	D1,-(SP)
+	bsr	basic_process_buffer
+	move.l	(SP)+,D1
 
-.se3	move.b	#1,D0				; char out
+.se3	move.b	#1,D0				; char out routine
 	trap	#15				;
 	bra.s	.se1
 
 
-;--------------------------------
-; Destroys D0, A0, A1
-;--------------------------------
+;-----------------------------------------------------------------------
+; Subroutine: screen_copy_to_line_buffer
+; Inputs:     -
+; Outputs:    -
+; Destroyed:  D0, A0, A1
+;-----------------------------------------------------------------------
 screen_copy_to_line_buffer
-	move.w	cursor_pos,D0
-	andi.w	#$ff80,D0
-	movea.l	terminal_chars,A0
-	lea	(A0,D0),A0
-	lea	terminal_buf_1,A1
-	move.l	#(80-1),D0
+	move.w	cursor_pos,D0		; get current cursor position
+	andi.w	#$ff80,D0		; cursor to start of line
+	movea.l	terminal_chars,A0	; point to beginning of chars
+	lea	(A0,D0),A0		; point to start of current line
+	lea	terminal_buf_1,A1	; point to buffer
+	move.l	#(80-1),D0		; counter = 80 chars
 .1	move.b	(A0)+,(A1)+
 	dbra	D0,.1
 	move.b	#$00,(A1)		; end of line marker
@@ -191,13 +195,11 @@ boot_binary
 	cmp.b	#1,D0
 	bne	.bb3				; it's not a valid file
 
-	pea	file_loading1
+	lea	file_loading1,A0
 	bsr	terminal_putstring
-	addq.l	#4,SP
 
-.bb1	pea	file_loading2
+.bb1	lea	file_loading2,A0
 	bsr	terminal_putstring
-	addq.l	#4,SP
 
 	clr.l	D0
 	move.b	CORE_FILE_DATA.w,D0
@@ -215,9 +217,8 @@ boot_binary
 	bsr	terminal_put_hex_number
 	addq.l	#6,SP
 
-	pea	file_loading3
+	lea	file_loading3,A0
 	bsr	terminal_putstring
-	addq.l	#4,SP
 
 	clr.l	D1
 	move.b	CORE_FILE_DATA.w,D1
@@ -241,9 +242,8 @@ boot_binary
 	bne	.bb2
 
 	move.l	A0,-(SP)
-	pea	file_loading3
+	lea	file_loading3,A0
 	bsr	terminal_putstring
-	addq.l	#4,SP
 	movea.l	(SP)+,A0
 
 	subq.w	#1,A0			; now A0 contains the last address in which a byte was loaded
@@ -280,14 +280,12 @@ boot_binary
 	or.b	#%00000001,logo_status
 	bra	.bb4
 
-.bb3	pea	file_error
+.bb3	lea	file_error,A0
 	bsr	terminal_putstring
-	addq.l	#4,SP
 .bb4	movem.l	(SP)+,D0-D1
 
-	pea	file_loading4
+	lea	file_loading4,A0
 	bsr	terminal_putstring
-	addq.l	#4,SP
 
 	move.l	exec_address,-(SP)
 	move.b	#8,-(SP)
@@ -416,7 +414,7 @@ exc_trap14_handler
 .1	rte
 
 exc_trap15_handler
-	cmp.b	#1,D0
+	cmp.b	#1,D0			; simple, no jump table needed yet
 	bne	.1
 	move.b	D1,-(SP)
 	bsr	terminal_putchar
@@ -425,9 +423,7 @@ exc_trap15_handler
 
 .1	cmp.b	#2,D0
 	bne	.2
-	move.l	A0,-(SP)
 	bsr	terminal_putstring
-	addq.l	#4,SP
 
 .2	rte
 
@@ -541,6 +537,12 @@ terminal_clear
 	clr.w	cursor_pos
 	rts
 
+; ----------------------------------------------------------------------
+; Subroutine:       terminal_putchar
+; Inputs:
+; Outputs:
+; Destroyed:
+; ----------------------------------------------------------------------
 terminal_putchar
 	movea.l	terminal_chars,A0
 	movea.l	terminal_colors,A1
@@ -634,17 +636,23 @@ terminal_putchar
 
 	bra	.3
 
+
+; ----------------------------------------------------------------------
+;
+;
+;
+;
+; ----------------------------------------------------------------------
 terminal_putstring
-	movea.l	(4,SP),A0
-.1	move.b	(A0)+,D0
-	beq	.2
+	move.b	(A0)+,D0
+	beq	.1
 	move.l	A0,-(SP)
 	move.b	D0,-(SP)
 	bsr	terminal_putchar
 	addq.l	#2,SP
 	movea.l	(SP)+,A0
-	bra	.1
-.2	rts
+	bra	terminal_putstring
+.1	rts
 
 
 terminal_put_hex_number
@@ -698,14 +706,10 @@ terminal_add_bottom_row
 	rts
 
 terminal_welcome
-	pea	welcome
+	lea	welcome,A0
 	jsr	terminal_putstring
-	pea	version
+	lea	version,A0
 	jsr	terminal_putstring
-	addq.l	#8,SP
-	move.b	#$0a,-(SP)
-	jsr	terminal_putchar
-	addq.l	#2,SP
 	rts
 
 ; see: https://www.stix.id.au/wiki/Fast_8-bit_pseudorandom_number_generator
@@ -727,11 +731,12 @@ rnd_impl
 	move.b	D0,rndc.w
 	rts
 
-logo_boot_message	dc.b	$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a
-			dc.b	"             drop a binary file to boot or hit [esc] to start basic",0
+logo_boot_msg
+		dc.b	$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a
+		dc.b	"             drop a binary file to boot or hit [esc] to start basic",0
 welcome		dc.b	"lime virtual computer system",$0a,0
-file_error	dc.b	$0a,"error: not a valid binary",0
-file_loading1	dc.b	$0a,"  size    from    to",0
+file_error	dc.b	$0a,$0a,"error: not a valid binary",0
+file_loading1	dc.b	$0a,$0a,"  size    from    to",0
 file_loading2	dc.b	$0a,"$",0
 file_loading3	dc.b	" $",0
 file_loading4	dc.b	$0a,$0a," jumping to $",0
@@ -787,6 +792,8 @@ logo_tiles
 
 hex_values
 	dc.b	"0123456789abcdef"
+
+	include "basic.s"
 
 	include	"TBI68K.ASM"
 

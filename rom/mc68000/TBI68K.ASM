@@ -1199,7 +1199,7 @@ FNDRET	RTS			return the cond. codes
 
 FNDNXT	ADDQ.L	#2,A1		find the next line
 
-FNDSKP	CMP.B	#CR,(A1)+	try to find an LF
+FNDSKP	CMP.B	#LF,(A1)+	try to find an LF
 	BNE	FNDSKP		keep looking
 	BRA	FNDLNP		check if end of text
 
@@ -1282,7 +1282,7 @@ PS1	MOVE.B	(A1)+,D0	get a text character
 	CMP.B	D0,D1		same as stop character?
 	BEQ	PRTRET		if so, return
 	BSR	GOOUT		display the char.
-	CMP.B	#CR,D0		is it a C.R.?
+	CMP.B	#LF,D0		is it a C.R.?
 	BNE	PS1		no, go back for more
 	MOVE.B	#LF,D0		yes, add a L.F.
 	BSR	GOOUT
