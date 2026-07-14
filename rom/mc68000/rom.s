@@ -3,7 +3,6 @@
 ; lime
 ;
 ; Copyright © 2025-2026 elmerucr. All rights reserved.
-;
 ;-----------------------------------------------------------------------
 ; Calling convention:
 ; - D0-D1/A0-A1 are scratch registers, and need to be caller saved
@@ -11,16 +10,13 @@
 ; - Calling a trap is an exception, but otherwise works the same as
 ;   a conventional function / routine (scratch registers)
 ; - Other (real) exceptions will save and restore all registers
-;
 ; - Tab size: 8
-;
 ;-----------------------------------------------------------------------
 ; rom v0.10
 ; adjusted (again) for 320x180 resolution
 ;
 ; rom v0.9
 ; adjusted for 320x176 screen resolution
-;
 ;-----------------------------------------------------------------------
 
 	include	"definitions.inc"
@@ -64,7 +60,7 @@ rndx		rs.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	start		; reset vector
-version	dc.b	"rom mc68000 0.10.20260709",0
+version	dc.b	"rom mc68000 0.10.20260714",0
 
 
 start
@@ -416,9 +412,8 @@ exc_trap14_handler
 exc_trap15_handler
 	cmp.b	#1,D0			; simple, no jump table needed yet
 	bne	.1
-	move.b	D1,-(SP)
+	move.b	D1,D0
 	bsr	terminal_putchar
-	addq.l	#2,SP
 	rte
 
 .1	cmp.b	#2,D0
@@ -538,92 +533,92 @@ terminal_clear
 	rts
 
 ; ----------------------------------------------------------------------
-; Subroutine:       terminal_putchar
-; Inputs:
-; Outputs:
-; Destroyed:
+; Subroutine: terminal_putchar
+; Inputs:     D0 contains char to be printed
+; Outputs:    -
+; Destroyed:  D0,D1,A0,A1
 ; ----------------------------------------------------------------------
 terminal_putchar
 	movea.l	terminal_chars,A0
 	movea.l	terminal_colors,A1
-	move.w	cursor_pos,D0
+	move.w	cursor_pos,D1
 
-	cmp.b	#$0a,4(SP)		; check for newline
-	beq	.nwln
-	cmp.b	#$0d,4(SP)		; check for carriage return
-	beq	.crt
-	cmp.b	#$1d,4(SP)		; cursor right
+	cmp.b	#$0a,D0			; check for linefeed
+	beq	.lf
+	cmp.b	#$0d,D0			; check for carriage return
 	beq	.cr
-	cmp.b	#$11,4(SP)		; cursor down
-	beq	.cd
-	cmp.b	#$91,4(SP)		; cursor up
-	beq	.cu
-	cmp.b	#$9d,4(SP)		; cursor left
-	beq	.cl
-	cmp.b	#$08,4(SP)		; backspace
+	cmp.b	#$1d,D0			; cursor right
+	beq	.right
+	cmp.b	#$11,D0			; cursor down
+	beq	.down
+	cmp.b	#$91,D0			; cursor up
+	beq	.up
+	cmp.b	#$9d,D0			; cursor left
+	beq	.left
+	cmp.b	#$08,D0			; backspace
 	beq	.bs
 
-	move.b	(4,SP),(A0,D0.w)	; print char
-	move.b	cursor_color,(A1,D0.w)	; set color
+	move.b	D0,(A0,D1.w)		; print char
+	move.b	cursor_color,(A1,D1.w)	; set color
 
-.cr	addq.w	#1,D0			; move cursor one step to the right
-	move.w	D0,D1
-	andi.w	#%1111111,D1
-	cmp.w	#TERMINAL_WIDTH,D1	; are we at pos 80 or higher?
-	blo	.3			; no
+.right	addq.w	#1,D1			; move cursor one step to the right
+	move.w	D1,D0
+	andi.w	#%1111111,D0
+	cmp.w	#TERMINAL_WIDTH,D0	; are we at pos 80 or higher?
+	blo	.2			; no
 
-.nwln	addi.w	#TERMINAL_HPITCH,D0	; yes, move cursor one line down
-.crt	andi.w	#%1111111110000000,D0	; cursor to beginning of line (carriage return)
+.lf	addi.w	#TERMINAL_HPITCH,D1	; yes, move cursor one line down, followed by carriage return
+.cr	andi.w	#%1111111110000000,D1	; cursor to beginning of line (carriage return)
 
-.2	cmp.w	#(TERMINAL_HPITCH*TERMINAL_HEIGHT),D0	; check for cursor out of screen
-	blo	.3			; no
+.1	cmp.w	#(TERMINAL_HPITCH*TERMINAL_HEIGHT),D1	; check for cursor out of screen
+	blo	.2			; no
 
-	subi.w	#TERMINAL_HPITCH,D0	; move cursor one line up
-	move.w	D0,cursor_pos
+	subi.w	#TERMINAL_HPITCH,D1	; move cursor one line up
+	move.w	D1,cursor_pos
 	bsr	terminal_add_bottom_row
 	rts
 
-.3	move.w	D0,cursor_pos
+.2	move.w	D1,cursor_pos
 	rts
 
-.cd	addi.w	#TERMINAL_HPITCH,D0	; yes, move cursor one line down
-	bra	.2
+.down	addi.w	#TERMINAL_HPITCH,D1	; yes, move cursor one line down
+	bra	.1
 	rts
 
-.cu	subi.w	#TERMINAL_HPITCH,D0	; move cursor one line up
-	bpl.s	.3
-	addi.w	#TERMINAL_HPITCH,D0	; move cursor one line down
-	bra.s	.3
+.up	subi.w	#TERMINAL_HPITCH,D1	; move cursor one line up
+	bpl.s	.2
+	addi.w	#TERMINAL_HPITCH,D1	; move cursor one line down
+	bra.s	.2
 
-.cl	tst.w	D0
-	bne.s	.cl0
+.left	tst.w	D1
+	bne.s	.l0
 	rts
-.cl0	move.w	D0,D1
-	andi.w	#$7f,D1
-	tst.w	D1
-	bne	.cl1
-	addi.w	#(TERMINAL_WIDTH-1),D0
-	bra	.cu
-.cl1	subq.w	#1,D0
-	bra.s	.3
+.l0	move.w	D1,D0
+	andi.w	#$7f,D0
+	tst.w	D0
+	bne	.l1
+	addi.w	#(TERMINAL_WIDTH-1),D1
+	bra	.up
+.l1	subq.w	#1,D1
+	bra.s	.2
 
-.bs	move.w	D0,D1
-	beq	.3		; do nothing if we're at position 0 (left top)
-	andi.b	#$7f,D1		; the byte in D1 now contains the current column
+.bs	move.w	D1,D0
+	beq	.2		; do nothing if we're at position 0 (left top)
+	andi.b	#$7f,D0		; the byte in D1 now contains the current column
 	bne	.bs0		; it's column 0
-	subi.w	#(TERMINAL_HPITCH-(TERMINAL_WIDTH-1)),D0
-	move.b	#' ',(A0,D0)
-	move.b	cursor_color,(A1,D0)
-	bra	.3
+	subi.w	#(TERMINAL_HPITCH-(TERMINAL_WIDTH-1)),D1
+	move.b	#' ',(A0,D1)
+	move.b	cursor_color,(A1,D1)
+	bra	.2
 
 .bs0	move.l	D2,-(SP)
 
-	move.w	D0,D2
+	move.w	D1,D2
 .bs1	move.b	(A0,D2),-1(A0,D2)
 	move.b	(A1,D2),-1(A1,D2)
 	addq.w	#1,D2
-	addq.b	#1,D1
-	cmp.b	#TERMINAL_WIDTH,D1
+	addq.b	#1,D0
+	cmp.b	#TERMINAL_WIDTH,D0
 	bne	.bs1
 
 	subq.w	#1,D2
@@ -632,9 +627,9 @@ terminal_putchar
 
 	move.l	(SP)+,D2
 
-	subq.w	#1,D0
+	subq.w	#1,D1
 
-	bra	.3
+	bra	.2
 
 
 ; ----------------------------------------------------------------------
@@ -647,40 +642,44 @@ terminal_putstring
 	move.b	(A0)+,D0
 	beq	.1
 	move.l	A0,-(SP)
-	move.b	D0,-(SP)
 	bsr	terminal_putchar
-	addq.l	#2,SP
 	movea.l	(SP)+,A0
 	bra	terminal_putstring
 .1	rts
 
 
 terminal_put_hex_number
-	move.b	4(SP),D0	; D0 contains no of digits to print
+	move.b	4(SP),D1	; D1 contains no of digits to print
 	beq	.2		; if this is 0, end this function
 
-	subq.b	#1,D0		; reduce number of digits to print by 1
+	subq.b	#1,D1		; reduce number of digits to print by 1
 	beq	.1		; if this is 0 (now), only one digit to print
 
-	move.l	6(SP),D1	; D1 contains the number to be printed
+	move.l	6(SP),D0	; D0 contains the number to be printed
 
-	lsr.l	#4,D1
-	move.l	D1,-(SP)
-	move.b	D0,-(SP)
+	lsr.l	#4,D0
+	move.l	D0,-(SP)
+	move.b	D1,-(SP)
 	jsr	terminal_put_hex_number
 	addq.l	#6,SP
 
-.1	move.l	6(SP),D0
-	andi.l	#$f,D0
+.1	move.l	6(SP),D1
+	andi.l	#$f,D1
 	lea	hex_values,A0
-	move.b	(A0,D0),-(SP)
+	move.b	(A0,D1),D0
 	jsr	terminal_putchar
-	addq.l	#2,SP
 
 .2	rts
 
+
+; ----------------------------------------------------------------------
+; Routine:   terminal_add_bottom_row
+; Inputs:    -
+; Outputs:   -
+; Destroyed: D0,D1,A0,A1
+; ----------------------------------------------------------------------
 terminal_add_bottom_row
-	movem.l	A2-A3,-(SP)
+	movem.l	D2/A2-A3,-(SP)
 
 	movea.l	terminal_chars,A0
 	lea	TERMINAL_HPITCH(A0),A1
@@ -702,7 +701,7 @@ terminal_add_bottom_row
 	subq.b	#1,D0
 	bne.s	.2
 
-	movem.l	(SP)+,A2-A3
+	movem.l	(SP)+,D2/A2-A3
 	rts
 
 terminal_welcome
