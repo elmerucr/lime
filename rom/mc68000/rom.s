@@ -45,6 +45,7 @@ terminal_buf_1	rs.b	128
 terminal_buf_2	rs.b	128
 
 chunk_length	rs.l	1
+chunk_address	rs.l	1
 exec_address	rs.l	1
 
 rnda		rs.b	1
@@ -197,7 +198,7 @@ boot_binary
 .bb1	lea	file_loading2,A0
 	bsr	terminal_putstring
 
-	clr.l	D0
+	clr.l	D0					; getting chunk length
 	move.b	CORE_FILE_DATA.w,D0
 	bne	.bb3					; should be zero this first byte
 	move.b	CORE_FILE_DATA.w,D0
@@ -205,7 +206,6 @@ boot_binary
 	move.b	CORE_FILE_DATA.w,D0
 	lsl.l	#8,D0
 	move.b	CORE_FILE_DATA.w,D0
-
 	move.l	D0,chunk_length
 
 	move.l	D0,-(SP)
@@ -216,22 +216,23 @@ boot_binary
 	lea	file_loading3,A0
 	bsr	terminal_putstring
 
-	clr.l	D1
-	move.b	CORE_FILE_DATA.w,D1
+	clr.l	D0			; getting the start address of
+	move.b	CORE_FILE_DATA.w,D0	; chunk into D0
 	bne	.bb3
-	move.b	CORE_FILE_DATA.w,D1
-	lsl.l	#8,D1
-	move.b	CORE_FILE_DATA.w,D1
-	lsl.l	#8,D1
-	move.b	CORE_FILE_DATA.w,D1
+	move.b	CORE_FILE_DATA.w,D0
+	lsl.l	#8,D0
+	move.b	CORE_FILE_DATA.w,D0
+	lsl.l	#8,D0
+	move.b	CORE_FILE_DATA.w,D0
+	move.l	D0,chunk_address
 
-	move.l	D1,-(SP)
+	move.l	D0,-(SP)
 	move.b	#6,-(SP)
 	bsr	terminal_put_hex_number
-	addq.l	#2,SP
-	movea.l	(SP)+,A0
+	addq.l	#6,SP
 
 	move.l	chunk_length,D0
+	movea.l	chunk_address,A0
 
 .bb2	move.b	CORE_FILE_DATA.w,(A0)+	; get data and store in memory
 	subq	#1,D0
@@ -242,7 +243,7 @@ boot_binary
 	bsr	terminal_putstring
 	movea.l	(SP)+,A0
 
-	subq.w	#1,A0			; now A0 contains the last address in which a byte was loaded
+	subq.l	#1,A0			; now A0 contains the last address in which a byte was loaded
 	move.l	A0,-(SP)
 	move.b	#6,-(SP)
 	bsr	terminal_put_hex_number
