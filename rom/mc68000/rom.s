@@ -61,7 +61,7 @@ rndx		rs.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	start		; reset vector
-version	dc.b	"rom mc68000 0.10.20260714",0
+version	dc.b	"rom mc68000 0.10.20260715",0
 
 
 start
@@ -208,10 +208,8 @@ boot_binary
 	move.b	CORE_FILE_DATA.w,D0
 	move.l	D0,chunk_length
 
-	move.l	D0,-(SP)
-	move.b	#6,-(SP)
+	move.b	#6,D1
 	bsr	terminal_put_hex_number
-	addq.l	#6,SP
 
 	lea	file_loading3,A0
 	bsr	terminal_putstring
@@ -226,10 +224,8 @@ boot_binary
 	move.b	CORE_FILE_DATA.w,D0
 	move.l	D0,chunk_address
 
-	move.l	D0,-(SP)
-	move.b	#6,-(SP)
+	move.b	#6,D1
 	bsr	terminal_put_hex_number
-	addq.l	#6,SP
 
 	move.l	chunk_length,D0
 	movea.l	chunk_address,A0
@@ -244,10 +240,9 @@ boot_binary
 	movea.l	(SP)+,A0
 
 	subq.l	#1,A0			; now A0 contains the last address in which a byte was loaded
-	move.l	A0,-(SP)
-	move.b	#6,-(SP)
+	move.l	A0,D0
+	move.b	#6,D1
 	bsr	terminal_put_hex_number
-	addq.l	#6,SP
 
 	move.b	CORE_FILE_DATA.w,D0	; look for next chunk
 	cmp.b	#1,D0
@@ -284,10 +279,9 @@ boot_binary
 	lea	file_loading4,A0
 	bsr	terminal_putstring
 
-	move.l	exec_address,-(SP)
-	move.b	#8,-(SP)
+	move.l	exec_address,D0
+	move.b	#8,D1
 	bsr	terminal_put_hex_number
-	addq.l	#6,SP
 
 	move.l	#$000c0000,D0			; wait loop
 .bb5	subq.l	#1,D0
@@ -649,27 +643,28 @@ terminal_putstring
 .1	rts
 
 
+; ----------------------------------------------------------------------
+;
+; Inputs:    D0 contains de number to print, D1 no of digits to print
+; Outputs:   -
+; Destroyed: D0,D1,A0,A1
+; ----------------------------------------------------------------------
 terminal_put_hex_number
-	move.b	4(SP),D1	; D1 contains no of digits to print
+	tst.b	D1		; D1 contains no of digits to print
 	beq	.2		; if this is 0, end this function
-
 	subq.b	#1,D1		; reduce number of digits to print by 1
 	beq	.1		; if this is 0 (now), only one digit to print
-
-	move.l	6(SP),D0	; D0 contains the number to be printed
-
-	lsr.l	#4,D0
 	move.l	D0,-(SP)
+	lsr.l	#4,D0
 	move.b	D1,-(SP)
 	jsr	terminal_put_hex_number
-	addq.l	#6,SP
-
-.1	move.l	6(SP),D1
+	move.b	(SP)+,D1
+	move.l	(SP)+,D0
+.1	move.l	D0,D1
 	andi.l	#$f,D1
 	lea	hex_values,A0
 	move.b	(A0,D1),D0
 	jsr	terminal_putchar
-
 .2	rts
 
 
