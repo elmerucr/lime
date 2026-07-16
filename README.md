@@ -15,11 +15,11 @@ By default, lime starts in MC68000 mode.
 
 ## Screenshots
 
-![icon](./docs/20260531_screenshot_startup.png)
+![icon](./docs/20260716_screenshot_startup.png)
 
-![icon](./docs/20260531_screenshot_basic.png)
+![icon](./docs/20260716_screenshot_basic.png)
 
-![icon](./docs/20260531_screenshot_debug_mc68000.png)
+![icon](./docs/20260716_screenshot_debug_mc68000.png)
 
 ## Binaries (apps / games)
 
@@ -58,17 +58,11 @@ The postamble (nine bytes) starts with magic byte ```$fe```, the next four are z
 0x000560 - 0x00057f io sound / analog1 (32b)
 0x000580 - 0x0005ff io sound / mixer (128b)
 0x000600 - 0x0007ff unused / reserved (512b)
-0x000800 - 0x000fff available ram (2kb)
-0x001000 - 0x001fff default location tileset & tileset in rom (4kb)
-0x002000 - 0x0027ff layer 0 colors (2kb)
-0x002800 - 0x002fff layer 1 colors (2kb)
-0x003000 - 0x0037ff layer 2 colors (2kb)
-0x003800 - 0x003fff layer 3 colors (2kb)
-0x004000 - 0x0047ff layer 0 tiles (2kb)
-0x004800 - 0x004fff layer 1 tiles (2kb)
-0x005000 - 0x0057ff layer 2 tiles (2kb)
-0x005800 - 0x005fff layer 3 tiles (2kb)
-0x006000 - 0x00ffff available ram (40kb)
+0x000800 - 0x000fff default location tileset & 4x8 tileset in rom (2kb)
+0x001000 - 0x001fff default location tileset & 8x8 tileset in rom (4kb)
+0x002000 - 0x002fff default layer tiles (4kb)
+0x003000 - 0x003fff default layer colors (4kb)
+0x004000 - 0x00ffff available ram (48kb)
 0x010000 - 0x01ffff system rom (64kb)
 0x020000 - 0xffffff available ram (16256kb)
 ```
