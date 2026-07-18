@@ -48,10 +48,10 @@ chunk_length	rs.l	1
 chunk_address	rs.l	1
 exec_address	rs.l	1
 
-rnda		rs.b	1
-rndb		rs.b	1
-rndc		rs.b	1
-rndx		rs.b	1
+prnga		rs.b	1
+prngb		rs.b	1
+prngc		rs.b	1
+prngx		rs.b	1
 
 ;-----------------------------------------------------------------------
 
@@ -61,7 +61,7 @@ rndx		rs.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	start		; reset vector
-version	dc.b	"rom mc68000 0.10.20260715",0
+version	dc.b	"rom mc68000 0.10.20260718",0
 
 
 start
@@ -103,7 +103,7 @@ start
 	andi.w	#$00ff,SR			; jump to user mode, IPL reg = 0b000
 
 	clr.b	logo_status.w
-	clr.l	rnda				; init random generator, clears all: rnda, rndb, rndc, rndx
+	clr.l	prnga				; init random generator, clears all: rnda, rndb, rndc, rndx
 
 
 logo_screen
@@ -144,25 +144,25 @@ logo_screen
 
 
 screen_editor
-	;bsr	START
-	;jmp	WSTART
-	bsr	basic_cold_start
-	bsr	basic_warm_start
+	bsr	b_cold_start
+	bsr	b_warm_start
 	move.b	#%1,cursor_active
-.se1	bsr	terminal_flip_cursor		; make visible
+.se1	bsr	terminal_flip_cursor		; make cursor visible
 
-.se2	move.b	KEYBOARD_EVENTS.w,D1		; load potential key event into D1
-	beq.s	.se2				; no key event (D1 == 0)
+.se2	move.b	KEYBOARD_EVENTS.w,D0		; load potential key event into D0
+	beq.s	.se2				; no key event (D0 == 0)
+	move.l	D0,-(SP)
 	bsr	terminal_flip_cursor		; hide
-	cmp.b	#$0a,D1				; is it a newline (return)?
+	move.l	(SP)+,D0
+	cmp.b	#$0a,D0				; is it a newline (return)?
 	bne.s	.se3				; no
 
+	move.l	D0,-(SP)
 	bsr.s	screen_copy_to_line_buffer	; yes, copy to line buffer
-	move.l	D1,-(SP)
-	bsr	basic_process_buffer
-	move.l	(SP)+,D1
+	bsr	b_process_buffer
+	move.l	(SP)+,D0
 
-.se3	move.b	#1,D0				; char out routine
+.se3	move.b	#1,D1				; char out routine
 	trap	#15				;
 	bra.s	.se1
 
@@ -399,19 +399,25 @@ exc_lvl6_irq_auto				; coupled to vdc
 	rte
 
 exc_trap14_handler
-	cmp.b	#0,D0
+	cmp.b	#0,D1
 	bne	.1
-	bsr	rnd_impl
+	bsr	prng
 .1	rte
 
+; ----------------------------------------------------------------------
+;
+;
+;
+;
+; ----------------------------------------------------------------------
 exc_trap15_handler
-	cmp.b	#1,D0			; simple, no jump table needed yet
+	cmp.b	#1,D1			; simple, no jump table needed yet
 	bne	.1
-	move.b	D1,D0
+	;move.b	D1,D0
 	bsr	terminal_putchar
 	rte
 
-.1	cmp.b	#2,D0
+.1	cmp.b	#2,D1
 	bne	.2
 	bsr	terminal_putstring
 
@@ -707,23 +713,30 @@ terminal_welcome
 	jsr	terminal_putstring
 	rts
 
-; see: https://www.stix.id.au/wiki/Fast_8-bit_pseudorandom_number_generator
-rnd_impl
-	addq.b	#1,rndx.w
-	move.b	rnda.w,D0	; D0 = a
-	move.b	rndc.w,D1	; D1 = c
-	eor.b	D1,D0		; (a ^ c), in D0
-	move.b	rndx.w,D1	; D1 = x
-	eor.b	D1,D0		; (a ^ c) ^ x, in D0
-	move.b	D0,rnda.w	; store result in a
 
-	move.b	rndb.w,D1	; D1 = b
+; ----------------------------------------------------------------------
+; Subroutine: prng
+; see:        https://www.stix.id.au/wiki/Fast_8-bit_pseudorandom_number_generator
+; Inputs:     -
+; Outputs:    D0 contains random number between 0 and 255
+; Destroyed:  D1
+; ----------------------------------------------------------------------
+prng
+	addq.b	#1,prngx.w
+	move.b	prnga.w,D0	; D0 = a
+	move.b	prngc.w,D1	; D1 = c
+	eor.b	D1,D0		; (a ^ c), in D0
+	move.b	prngx.w,D1	; D1 = x
+	eor.b	D1,D0		; (a ^ c) ^ x, in D0
+	move.b	D0,prnga.w	; store result in a
+
+	move.b	prngb.w,D1	; D1 = b
 	add.b	D0,D1		; b = b + a
-	move.b	D1,rndb.w
+	move.b	D1,prngb.w
 	ror.b	#1,D1
-	add.b	rndc.w,D1
+	add.b	prngc.w,D1
 	eor.b	D1,D0
-	move.b	D0,rndc.w
+	move.b	D0,prngc.w
 	rts
 
 logo_boot_msg

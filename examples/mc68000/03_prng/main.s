@@ -1,13 +1,5 @@
-main	;move.b	#$16,VDC_BG_COLOR	; c64 blue background color
-	;move.b	#$1e,$6004.w		; c64 lightblue fg color
-	clr.b	VDC_CURRENT_LAYER
-	;andi.b	#%11110111,VDC_LAYER_FLAGS0	; turn off color per tile
-
-.1	clr.b	D0	; prng is function 0
-	trap	#14	; from trap 14
-
-	move.b	D0,D1	; move result from D0 to D1
-	move.b	#1,D0	; putchar is function 1
-	trap	#15	; from trap 15
-
-	bra	.1
+main	clr.b	D1	; prng is function 0
+	trap	#14	; from trap 14, leaves random number in D0
+	move.b	#1,D1	; putchar is function 1
+	trap	#15	; from trap 15, takes what is in D0
+	bra	main

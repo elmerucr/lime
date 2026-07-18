@@ -1,5 +1,5 @@
 Sections:
-00: "org0001:1fff7" (1FFF7-20038)
+00: "org0001:1fff7" (1FFF7-20030)
 
 
 Source: "base.s"
@@ -15,7 +15,7 @@ Source: "../../../rom/mc68000/definitions.inc"
                             	     2: ; definitions.i
                             	     3: ; lime
                             	     4: ;
-                            	     5: ; Copyright © 2025 elmerucr. All rights reserved.
+                            	     5: ; Copyright © 2025-2026 elmerucr. All rights reserved.
                             	     6: ; ----------------------------------------------------------------------
                             	     7: 
                             	     8: ; vectors
@@ -101,115 +101,103 @@ Source: "../../../rom/mc68000/definitions.inc"
                             	    88: KEYBOARD_EVENTS			equ	$0606
                             	    89: KEYBOARD_STATE			equ	$0680
                             	    90: 
-                            	    91: ;VDC_TILESET_ADDRESS		equ	$1000
-                            	    92: 
-                            	    93: VDC_LAYER_TILES			equ	$2000
-                            	    94: VDC_LAYER_COLORS		equ	$3000
-                            	    95: 
-                            	    96: ; sound devices
-                            	    97: SID0_F				equ	$0500
-                            	    98: SID0_PW				equ	$0502
-                            	    99: SID0_V				equ	$051b
-                            	   100: SID1_V				equ	$053b
-                            	   101: MIX_SID0_LEFT			equ	$0580
-                            	   102: MIX_SID0_RIGHT			equ	$0581
-                            	   103: MIX_SID1_LEFT			equ	$0582
-                            	   104: MIX_SID1_RIGHT			equ	$0583
-                            	   105: MIX_ANA0_LEFT			equ	$0584
-                            	   106: MIX_ANA0_RIGHT			equ	$0585
-                            	   107: MIX_ANA1_LEFT			equ	$0586
-                            	   108: MIX_ANA1_RIGHT			equ	$0587
-                            	   109: 
-                            	   110: ; timer
-                            	   111: TIMER_SR			equ	$0440
-                            	   112: TIMER_CR			equ	$0441
-                            	   113: TIMER0_BPM			equ	$0450
-                            	   114: TIMER1_BPM			equ	$0452
-                            	   115: TIMER2_BPM			equ	$0454
-                            	   116: TIMER3_BPM			equ	$0456
-                            	   117: TIMER4_BPM			equ	$0458
-                            	   118: TIMER5_BPM			equ	$045a
-                            	   119: TIMER6_BPM			equ	$045c
-                            	   120: TIMER7_BPM			equ	$045e
-                            	   121: 
-                            	   122: ; core
-                            	   123: CORE_SR				equ	$0480
-                            	   124: CORE_CR				equ	$0481
-                            	   125: CORE_ROMS			equ	$0482
-                            	   126: CORE_FILE_DATA			equ	$0484
-                            	   127: CORE_INPUT0			equ	$0488
+                            	    91: VDC_LAYER_TILES			equ	$2000
+                            	    92: VDC_LAYER_COLORS		equ	$3000
+                            	    93: 
+                            	    94: ; sound devices
+                            	    95: SID0_F				equ	$0500
+                            	    96: SID0_PW				equ	$0502
+                            	    97: SID0_V				equ	$051b
+                            	    98: SID1_V				equ	$053b
+                            	    99: MIX_SID0_LEFT			equ	$0580
+                            	   100: MIX_SID0_RIGHT			equ	$0581
+                            	   101: MIX_SID1_LEFT			equ	$0582
+                            	   102: MIX_SID1_RIGHT			equ	$0583
+                            	   103: MIX_ANA0_LEFT			equ	$0584
+                            	   104: MIX_ANA0_RIGHT			equ	$0585
+                            	   105: MIX_ANA1_LEFT			equ	$0586
+                            	   106: MIX_ANA1_RIGHT			equ	$0587
+                            	   107: 
+                            	   108: ; timer
+                            	   109: TIMER_SR			equ	$0440
+                            	   110: TIMER_CR			equ	$0441
+                            	   111: TIMER0_BPM			equ	$0450
+                            	   112: TIMER1_BPM			equ	$0452
+                            	   113: TIMER2_BPM			equ	$0454
+                            	   114: TIMER3_BPM			equ	$0456
+                            	   115: TIMER4_BPM			equ	$0458
+                            	   116: TIMER5_BPM			equ	$045a
+                            	   117: TIMER6_BPM			equ	$045c
+                            	   118: TIMER7_BPM			equ	$045e
+                            	   119: 
+                            	   120: ; core
+                            	   121: CORE_SR				equ	$0480
+                            	   122: CORE_CR				equ	$0481
+                            	   123: CORE_ROMS			equ	$0482
+                            	   124: CORE_FILE_DATA			equ	$0484
+                            	   125: CORE_INPUT0			equ	$0488
+                            	   126: 
+                            	   127: RAM_START			equ	$20000
                             	   128: 
-                            	   129: RAM_START			equ	$20000
-                            	   130: 
 
 Source: "base.s"
                             	     7: 
                             	     8: 		org	RAM_START-9			; allocate 9 bytes for preamble
                             	     9: 
 00:0001FFF7 01              	    10: 		dc.b	$01				; first byte
-00:0001FFF8 00000016        	    11: 		dc.l	graph_preamble-RAM_START	; size (16 bit unsigned)
+00:0001FFF8 0000000E        	    11: 		dc.l	graph_preamble-RAM_START	; size (16 bit unsigned)
 00:0001FFFC 00020000        	    12: 		dc.l	RAM_START			; where (16 bit unsigned)
                             	    13: 
                             	    14: 		include	"main.s"
 
 Source: "main.s"
-                            	     1: main	;move.b	#$16,VDC_BG_COLOR	; c64 blue background color
-                            	     2: 	;move.b	#$1e,$6004.w		; c64 lightblue fg color
-00:00020000 423900000406    	     3: 	clr.b	VDC_CURRENT_LAYER
-                            	     4: 	;andi.b	#%11110111,VDC_LAYER_FLAGS0	; turn off color per tile
-                            	     5: 
-00:00020006 4200            	     6: .1	clr.b	D0	; prng is function 0
-00:00020008 4E4E            	     7: 	trap	#14	; from trap 14
-                            	     8: 
-00:0002000A 1200            	     9: 	move.b	D0,D1	; move result from D0 to D1
-00:0002000C 103C0001        	    10: 	move.b	#1,D0	; putchar is function 1
-00:00020010 4E4F            	    11: 	trap	#15	; from trap 15
-                            	    12: 
-00:00020012 6000FFF2        	    13: 	bra	.1
-                            	    14: 
+00:00020000 4201            	     1: main	clr.b	D1	; prng is function 0
+00:00020002 4E4E            	     2: 	trap	#14	; from trap 14
+00:00020004 123C0001        	     3: 	move.b	#1,D1	; putchar is function 1
+00:00020008 4E4F            	     4: 	trap	#15	; from trap 15
+00:0002000A 6000FFF4        	     5: 	bra	main
+                            	     6: 
 
 Source: "base.s"
                             	    15: 
-00:00020016 01              	    16: graph_preamble	dc.b	$01				; first byte
-00:00020017 00000010        	    17: 		dc.l	postamble-tiles			; size (16 bit unsigned)
-00:0002001B 00000800        	    18: 		dc.l	$0800				; where (16 bit unsigned)
+00:0002000E 01              	    16: graph_preamble	dc.b	$01				; first byte
+00:0002000F 00000010        	    17: 		dc.l	postamble-tiles			; size (16 bit unsigned)
+00:00020013 00000800        	    18: 		dc.l	$0800				; where (16 bit unsigned)
                             	    19: 
                             	    20: tiles		include	"tiles.s"
 
 Source: "tiles.s"
-00:0002001F 0150            	     1: 		dc.w	%0000000101010000
-00:00020021 06A4            	     2: 		dc.w	%0000011010100100
-00:00020023 1999            	     3: 		dc.w	%0001100110011001
-00:00020025 1AA9            	     4: 		dc.w	%0001101010101001
-00:00020027 1999            	     5: 		dc.w	%0001100110011001
-00:00020029 1959            	     6: 		dc.w	%0001100101011001
-00:0002002B 06A4            	     7: 		dc.w	%0000011010100100
-00:0002002D 0150            	     8: 		dc.w	%0000000101010000
+00:00020017 0150            	     1: 		dc.w	%0000000101010000
+00:00020019 06A4            	     2: 		dc.w	%0000011010100100
+00:0002001B 1999            	     3: 		dc.w	%0001100110011001
+00:0002001D 1AA9            	     4: 		dc.w	%0001101010101001
+00:0002001F 1999            	     5: 		dc.w	%0001100110011001
+00:00020021 1959            	     6: 		dc.w	%0001100101011001
+00:00020023 06A4            	     7: 		dc.w	%0000011010100100
+00:00020025 0150            	     8: 		dc.w	%0000000101010000
                             	     9: 
 
 Source: "base.s"
                             	    21: 
-00:0002002F FE              	    22: postamble	dc.b	$fe,$00,$00,$00,$00
-00:00020030 00
-00:00020031 00
-00:00020032 00
-00:00020033 00
-00:00020034 00020000        	    23: 		dc.l	main				; execution address
+00:00020027 FE              	    22: postamble	dc.b	$fe,$00,$00,$00,$00
+00:00020028 00
+00:00020029 00
+00:0002002A 00
+00:0002002B 00
+00:0002002C 00020000        	    23: 		dc.l	main				; execution address
                             	    24: 
 
 
 Symbols by name:
 RAM_START                        E:00020000
-VDC_CURRENT_LAYER                E:00000406
-graph_preamble                   A:00020016
+graph_preamble                   A:0002000E
 main                             A:00020000
-postamble                        A:0002002F
-tiles                            A:0002001F
+postamble                        A:00020027
+tiles                            A:00020017
 
 Symbols by value:
-00000406 VDC_CURRENT_LAYER
 00020000 RAM_START
 00020000 main
-00020016 graph_preamble
-0002001F tiles
-0002002F postamble
+0002000E graph_preamble
+00020017 tiles
+00020027 postamble

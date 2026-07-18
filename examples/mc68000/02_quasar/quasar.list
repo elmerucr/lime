@@ -15,7 +15,7 @@ Source: "../../../rom/mc68000/definitions.inc"
                             	     2: ; definitions.i
                             	     3: ; lime
                             	     4: ;
-                            	     5: ; Copyright © 2025 elmerucr. All rights reserved.
+                            	     5: ; Copyright © 2025-2026 elmerucr. All rights reserved.
                             	     6: ; ----------------------------------------------------------------------
                             	     7: 
                             	     8: ; vectors
@@ -101,46 +101,44 @@ Source: "../../../rom/mc68000/definitions.inc"
                             	    88: KEYBOARD_EVENTS			equ	$0606
                             	    89: KEYBOARD_STATE			equ	$0680
                             	    90: 
-                            	    91: ;VDC_TILESET_ADDRESS		equ	$1000
-                            	    92: 
-                            	    93: VDC_LAYER_TILES			equ	$2000
-                            	    94: VDC_LAYER_COLORS		equ	$3000
-                            	    95: 
-                            	    96: ; sound devices
-                            	    97: SID0_F				equ	$0500
-                            	    98: SID0_PW				equ	$0502
-                            	    99: SID0_V				equ	$051b
-                            	   100: SID1_V				equ	$053b
-                            	   101: MIX_SID0_LEFT			equ	$0580
-                            	   102: MIX_SID0_RIGHT			equ	$0581
-                            	   103: MIX_SID1_LEFT			equ	$0582
-                            	   104: MIX_SID1_RIGHT			equ	$0583
-                            	   105: MIX_ANA0_LEFT			equ	$0584
-                            	   106: MIX_ANA0_RIGHT			equ	$0585
-                            	   107: MIX_ANA1_LEFT			equ	$0586
-                            	   108: MIX_ANA1_RIGHT			equ	$0587
-                            	   109: 
-                            	   110: ; timer
-                            	   111: TIMER_SR			equ	$0440
-                            	   112: TIMER_CR			equ	$0441
-                            	   113: TIMER0_BPM			equ	$0450
-                            	   114: TIMER1_BPM			equ	$0452
-                            	   115: TIMER2_BPM			equ	$0454
-                            	   116: TIMER3_BPM			equ	$0456
-                            	   117: TIMER4_BPM			equ	$0458
-                            	   118: TIMER5_BPM			equ	$045a
-                            	   119: TIMER6_BPM			equ	$045c
-                            	   120: TIMER7_BPM			equ	$045e
-                            	   121: 
-                            	   122: ; core
-                            	   123: CORE_SR				equ	$0480
-                            	   124: CORE_CR				equ	$0481
-                            	   125: CORE_ROMS			equ	$0482
-                            	   126: CORE_FILE_DATA			equ	$0484
-                            	   127: CORE_INPUT0			equ	$0488
+                            	    91: VDC_LAYER_TILES			equ	$2000
+                            	    92: VDC_LAYER_COLORS		equ	$3000
+                            	    93: 
+                            	    94: ; sound devices
+                            	    95: SID0_F				equ	$0500
+                            	    96: SID0_PW				equ	$0502
+                            	    97: SID0_V				equ	$051b
+                            	    98: SID1_V				equ	$053b
+                            	    99: MIX_SID0_LEFT			equ	$0580
+                            	   100: MIX_SID0_RIGHT			equ	$0581
+                            	   101: MIX_SID1_LEFT			equ	$0582
+                            	   102: MIX_SID1_RIGHT			equ	$0583
+                            	   103: MIX_ANA0_LEFT			equ	$0584
+                            	   104: MIX_ANA0_RIGHT			equ	$0585
+                            	   105: MIX_ANA1_LEFT			equ	$0586
+                            	   106: MIX_ANA1_RIGHT			equ	$0587
+                            	   107: 
+                            	   108: ; timer
+                            	   109: TIMER_SR			equ	$0440
+                            	   110: TIMER_CR			equ	$0441
+                            	   111: TIMER0_BPM			equ	$0450
+                            	   112: TIMER1_BPM			equ	$0452
+                            	   113: TIMER2_BPM			equ	$0454
+                            	   114: TIMER3_BPM			equ	$0456
+                            	   115: TIMER4_BPM			equ	$0458
+                            	   116: TIMER5_BPM			equ	$045a
+                            	   117: TIMER6_BPM			equ	$045c
+                            	   118: TIMER7_BPM			equ	$045e
+                            	   119: 
+                            	   120: ; core
+                            	   121: CORE_SR				equ	$0480
+                            	   122: CORE_CR				equ	$0481
+                            	   123: CORE_ROMS			equ	$0482
+                            	   124: CORE_FILE_DATA			equ	$0484
+                            	   125: CORE_INPUT0			equ	$0488
+                            	   126: 
+                            	   127: RAM_START			equ	$20000
                             	   128: 
-                            	   129: RAM_START			equ	$20000
-                            	   130: 
 
 Source: "base.s"
                             	     7: 
