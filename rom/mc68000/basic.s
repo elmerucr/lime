@@ -19,12 +19,16 @@ b_warm_start
 b_process_buffer
 	lea	terminal_buf_1,A0
 	bsr.s	b_remove_spaces
-	move.b	(A0)+,D0
-	subi.b	#'0',D0
-	cmp.b	#9,D0
-	bhi.s	.end		; not a decimal number
-	lea	conf,A0
-	bsr	terminal_putstring
+	bsr.s	b_get_number
+	tst.b	D1
+	beq.s	.end
+	move.l	D0,-(SP)
+	move.b	#$a,D0
+	moveq	#1,D1
+	trap	#15
+	move.l	(SP)+,D0
+	moveq	#8,D1
+	bsr	terminal_put_hex_number
 .end	rts
 
 
@@ -44,6 +48,33 @@ b_remove_spaces
 	dbra	D1,.start	; TODO???? how to limit to a maximum if not found?
 
 
-conf	dc.b	$a,"this starts with a number",0
+; ----------------------------------------------------------------------
+; Subroutine: b_get_number (number in decimal)
+; Inputs:     A0 points to text
+; Outputs:    D0.l contains the number (32 bits), D1 contains the number
+;             of digits (so is 0 when NAN)
+;             A0 remains (1) the same if NAN or (2) points to next char
+; ----------------------------------------------------------------------
+b_get_number
+	move.l	D2,-(SP)
+	clr.l	D0		; will contain end result
+	clr.l	D1		; is zero if NAN
+.start	cmp.b	#'0',(A0)
+	blo	.end
+	cmp.b	#'9',(A0)
+	bhi	.end
+	move.l	D0,D2		; times ten: first save D0 into D2
+	asl.l	#2,D0		; double D0
+	add.l	D2,D0		; now D0 is times 5
+	asl.l	#1,D0		; double D0 (times 10)
+	move.b	(A0)+,D2
+	andi.l	#$f,D2
+	add.l	D2,D0
+	addq.l	#1,D1
+	bra	.start
+.end	move.l	(SP)+,D2
+	rts
+
+
 b_prompt
-	dc.b	$a,"Ready.",$a,0
+	dc.b	$a,"ready.",$a,0

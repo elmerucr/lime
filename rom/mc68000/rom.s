@@ -61,16 +61,12 @@ prngx		rs.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	start		; reset vector
-version	dc.b	"rom mc68000 0.10.20260718",0
+version	dc.b	"rom mc68000 0.10.20260719",0
 
 
 start
 	move.l	#$00010000,A0			; set usp
 	move.l	A0,USP
-
-	move.l	#$f000,D0			; small delay at reset
-.1	subq.l	#1,D0
-	bne	.1
 
 	jsr	init_vector_table
 	jsr	copy_fonts_from_rom
@@ -482,7 +478,7 @@ copy_fonts_from_rom
 	movea.l	#$800,A0
 	movea.l	#$2000,A1
 
-.1	move.l	(A0),(A0)+				; copy rom font to underlying ram
+.1	move.b	(A0),(A0)+				; copy rom font to underlying ram
 	cmpa	A1,A0
 	bne	.1
 
@@ -803,6 +799,6 @@ hex_values
 
 	include "basic.s"
 
-	include	"TBI68K.ASM"
+	;include	"TBI68K.ASM"
 
 end_of_rom
