@@ -16,12 +16,26 @@ b_warm_start
 	rts
 
 
+;-----------------------------------------------------------------------
+;
+;
+;
+;-----------------------------------------------------------------------
 b_process_buffer
+	movea.l	A2,-(SP)
 	lea	terminal_buf_1,A0
 	bsr.s	b_remove_spaces
 	bsr.s	b_get_number
 	tst.b	D1
-	beq.s	.end
+	beq.s	.dm				; NAN --> direct mode
+
+						; line mode
+	lea	terminal_buf_2,A1
+	movea.l	D0,(A1)+			; store line number in buffer
+	movea.l	A1,A2				; store current pos, will contain no of chars in line
+	adda.l	#1,A1
+
+
 	move.l	D0,-(SP)
 	move.b	#$a,D0
 	moveq	#1,D1
@@ -29,32 +43,36 @@ b_process_buffer
 	move.l	(SP)+,D0
 	moveq	#8,D1
 	bsr	terminal_put_hex_number
+	bsr.s	b_remove_spaces
+	movea.l	(SP)+,A2
+	rts
+.dm	;
+	;
+	;
+	movea.l	(SP)+,A2
+	rts
+
+
+;-----------------------------------------------------------------------
+; Subroutine: b_remove_spaces
+; Inputs:     A0 pointer to text in buffer
+; Outputs:    A0 point to first item not space ($20)
+;-----------------------------------------------------------------------
+b_remove_spaces
+	cmp.b	#' ',(A0)
+	bne.s	.end
+	addq.l	#1,A0
+	bra.s	b_remove_spaces
 .end	rts
 
 
-; ----------------------------------------------------------------------
-; Subroutine: b_remove_spaces
-; Inputs:     A0 pointer to text in buffer
-; Outputs:    A0 point to first item not #$20 (char OR 0 = EOL), D0.b contains content at A0
-; ----------------------------------------------------------------------
-b_remove_spaces
-	move.b	#TERMINAL_WIDTH,D1
-	subq.b	#1,D1
-.start	move.b	(A0),D0
-	cmp.b	#' ',D0
-	beq.s	.next		; it is a space
-	rts
-.next	addq.l	#1,A0
-	dbra	D1,.start	; TODO???? how to limit to a maximum if not found?
-
-
-; ----------------------------------------------------------------------
-; Subroutine: b_get_number (number in decimal)
+;-----------------------------------------------------------------------
+; Subroutine: b_get_number (a number in decimal)
 ; Inputs:     A0 points to text
 ; Outputs:    D0.l contains the number (32 bits), D1 contains the number
-;             of digits (so is 0 when NAN)
-;             A0 remains (1) the same if NAN or (2) points to next char
-; ----------------------------------------------------------------------
+;             of digits it consumed (so is 0 when NAN)
+;             A0 remains (1) the same if NAN or (2) points after number
+;-----------------------------------------------------------------------
 b_get_number
 	move.l	D2,-(SP)
 	clr.l	D0		; will contain end result
