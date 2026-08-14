@@ -60,6 +60,8 @@ void vdc_t::reset()
 		sprite[i].flags1_bit2_flip_xy  = false;
 		sprite[i].flags1_bit45_hstretch  = 0;
 		sprite[i].flags1_bit67_vstretch = 0;
+		sprite[i].flags2_bit01_hsize = 0b01;	// defaults to 8 pixels
+		sprite[i].flags2_bit45_vsize = 0b01;	// defaults to 8 pixels
 		sprite[i].index = 0;
 		sprite[i].colors[0] = 0x01;
 		sprite[i].colors[1] = 0xc2;
@@ -345,6 +347,10 @@ uint8_t vdc_t::io_read8(uint16_t address)
 				(sprite[current_sprite].flags1_bit2_flip_xy  ? 0b00000100 : 0) |
 				(sprite[current_sprite].flags1_bit45_hstretch << 4           ) |
 				(sprite[current_sprite].flags1_bit67_vstretch << 6           ) ;
+		case 0x26:
+			return
+				(sprite[current_sprite].flags2_bit01_hsize << 0) |
+				(sprite[current_sprite].flags2_bit45_vsize << 4) ;
 		case 0x27:
 			return sprite[current_sprite].index;
 		case 0x28:
@@ -497,6 +503,10 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			sprite[current_sprite].flags1_bit2_flip_xy  = value & 0b00000100 ? true : false;
 			sprite[current_sprite].flags1_bit45_hstretch  = (value & 0b00110000) >> 4;
 			sprite[current_sprite].flags1_bit67_vstretch = (value & 0b11000000) >> 6;
+			break;
+		case 0x26:
+			sprite[current_sprite].flags2_bit01_hsize = value & 0b11;
+			sprite[current_sprite].flags2_bit45_vsize = (value & 0b00110000) >> 4;
 			break;
 		case 0x27:
 			sprite[current_sprite].index = value;
