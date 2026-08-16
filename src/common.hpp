@@ -13,7 +13,7 @@
 // ---------------------------------------------------------------------
 #define LIME_MAJOR_VERSION			0
 #define LIME_MINOR_VERSION			12
-#define LIME_BUILD					20260814
+#define LIME_BUILD					20260816
 #define LIME_YEAR					2026
 
 // ---------------------------------------------------------------------
@@ -21,9 +21,9 @@
 // ---------------------------------------------------------------------
 #define	VDC_RAM						0x1000000	// 16mb
 #define	VDC_RAM_MASK				(VDC_RAM-1)
-#define VDC_XRES					320			// 40 tiles @ 8, 80 tiles @ 4
-#define VDC_YRES					180			// 22.5 tiles @ 8, 30 tiles @ 6
-#define VDC_SCANLINES				(180+28)	// 176 visible, 32 vblank
+#define VDC_XRES					320			// 40 tiles @ 8px, 80 tiles @ 4px
+#define VDC_YRES					180			// 22.5 tiles @ 8px
+#define VDC_SCANLINES				(180+28)
 
 #define VDC_TILESET_ADDRESS			0x1000
 

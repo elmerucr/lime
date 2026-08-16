@@ -1,5 +1,9 @@
 ## Version ...
 
+* 20260816 Adding h and v flip for layers
+* 20260815 Removed relative to layer options for sprite
+* 20260815 Removed xy flip support for sprites
+* 20260815 Support different sprite sizes (4, 8, 16 32  pixels h and w)
 * 20260620 Palette change to Atari GTIA
 * 20260613 Compiles with SDL 3.4.10 on macOS Tahoe 26.5.1
 * 20260518 Adding 4x8 font rom

@@ -52,12 +52,9 @@ void vdc_t::reset()
 		sprite[i].y = 0;
 		sprite[i].flags0_bit0_visible        = false;
 		sprite[i].flags0_bit2_transparent    = false;
-		sprite[i].flags0_bit4_xpos_rel_layer = false;
-		sprite[i].flags0_bit5_ypos_rel_layer = false;
 		sprite[i].flags0_bit67_transparency = 0;
 		sprite[i].flags1_bit0_flip_h   = false;
 		sprite[i].flags1_bit1_flip_v   = false;
-		sprite[i].flags1_bit2_flip_xy  = false;
 		sprite[i].flags1_bit45_hstretch  = 0;
 		sprite[i].flags1_bit67_vstretch = 0;
 		sprite[i].flags2_bit01_hsize = 0b01;	// defaults to 8 pixels
@@ -77,7 +74,9 @@ void vdc_t::reset()
 		layer[i].flags0_bit1_bitmapped    = false;
 		layer[i].flags0_bit2_transparent  = false;
 		layer[i].flags0_bit3_color_memory = false;
-        layer[i].flags1_bit45_hstretch  = 0;
+		layer[i].flags1_bit0_flip_h       = false;
+		layer[i].flags1_bit1_flip_v       = false;
+        layer[i].flags1_bit45_hstretch = 0;
 		layer[i].flags1_bit67_vstretch = 0;
 		layer[i].flags2_bit01_hsize = 0b00;
 		layer[i].flags2_bit45_vsize = 0b01;
@@ -138,7 +137,7 @@ void vdc_t::draw_scanline(uint16_t scanline)
                 for (uint8_t i=0; i<64; i++) {
                     uint8_t s = (64 * l) + (63 - i);
                     if (sprite[s].flags0_bit0_visible) {
-                        draw_scanline_sprite(&sprite[s], scanline, &layer[l]);
+                        draw_scanline_sprite(&sprite[s], scanline);
                     }
                 }
             }
@@ -148,23 +147,22 @@ void vdc_t::draw_scanline(uint16_t scanline)
 
 void vdc_t::draw_scanline_layer(layer_t *l, uint16_t sl)
 {
-	uint16_t y = (l->y + sl) % ((32 * (4 << l->flags2_bit45_vsize)) << l->flags1_bit67_vstretch);
+	uint16_t y_in_layer = ((uint16_t)(sl - l->y)) % ((32 * (4 << l->flags2_bit45_vsize)) << l->flags1_bit67_vstretch);
+	y_in_layer >>= l->flags1_bit67_vstretch;
+	if (l->flags1_bit1_flip_v) y_in_layer = 255 - y_in_layer;
 
-	y >>= l->flags1_bit67_vstretch;
-
-	uint8_t y_in_tile = y % (4 << l->flags2_bit45_vsize);
+	uint8_t y_in_tile = y_in_layer % (4 << l->flags2_bit45_vsize);
 
 	for (uint16_t scr_x = 0; scr_x < VDC_XRES; scr_x++)
 	{
-		uint16_t x = (l->x + scr_x) % (((128 * (4 << l->flags2_bit01_hsize)) << l->flags1_bit45_hstretch));
+		uint16_t x_in_layer = ((uint16_t)(scr_x - l->x)) % (((128 * (4 << l->flags2_bit01_hsize)) << l->flags1_bit45_hstretch));
+		x_in_layer >>= l->flags1_bit45_hstretch;
+		if (l->flags1_bit0_flip_h) x_in_layer = (128 * (4 << l->flags2_bit01_hsize)) - 1 - x_in_layer;
 
-		x >>= l->flags1_bit45_hstretch;
+		uint8_t px_in_byte = x_in_layer % 4;
 
-		// px = pixel in byte being read
-		uint8_t  px = x % 4;
-
-		// << 7 heeft te maken met aantal (niet zichtbare) tiles per lijn = 128
-		uint16_t index = (((y / (4 << l->flags2_bit45_vsize)) << 7) + (x / (4 << l->flags2_bit01_hsize))) & 0xffff;
+		// << 7 heeft te maken met aantal tiles per lijn = 128 (een deel is niet zichtbaar)
+		uint16_t index = (((y_in_layer / (4 << l->flags2_bit45_vsize)) << 7) + (x_in_layer / (4 << l->flags2_bit01_hsize))) & 0xffff;
 		uint16_t tile_index = (l->tiles_address + index) & 0xffff;
 		if (!l->flags0_bit1_bitmapped) tile_index = ram[tile_index];
 
@@ -175,11 +173,12 @@ void vdc_t::draw_scanline_layer(layer_t *l, uint16_t sl)
 			l->tileset_address +
 			(tile_index * (4 << l->flags2_bit45_vsize) * (1 << l->flags2_bit01_hsize)) +
 			(y_in_tile * (1 << l->flags2_bit01_hsize)) +
-			((x >> 2) % (1 << l->flags2_bit01_hsize))
-		) & 0xffff] >> (2 * (3 - px))) & 0b11;
+			((x_in_layer >> 2) % (1 << l->flags2_bit01_hsize))
+		) & 0xffff] >> (2 * (3 - px_in_byte))) & 0b11;
 
 		// if NOT (transparent AND 0b00) then pixel must be drawn
 		if (!(l->flags0_bit2_transparent && !result)) {
+			//buffer[(VDC_XRES * sl) + (l->flags1_bit0_flip_h ? (VDC_XRES - 1) - scr_x : scr_x)] = (l->flags0_bit3_color_memory && (result == 0b11)) ? crt_palette[color] : crt_palette[l->colors[result]];
 			buffer[(VDC_XRES * sl) + scr_x] = (l->flags0_bit3_color_memory && (result == 0b11)) ? crt_palette[color] : crt_palette[l->colors[result]];
 		}
 	}
@@ -194,56 +193,54 @@ inline uint32_t blend(uint8_t transparency, uint32_t source, uint32_t target)
 		0xff000000;
 }
 
-inline void vdc_t::draw_scanline_sprite(sprite_t *s, uint16_t sl, layer_t *l)
+inline void vdc_t::draw_scanline_sprite(sprite_t *s, uint16_t sl)
 {
-	// determine real y position of sprite and correct if relative to layer
-	uint16_t y = s->y - ((s->flags0_bit5_ypos_rel_layer) ? l->y : 0);
-
 	// Subtract sprite y position from scanline, remainder is y position in sprite.
-	// It wraps around 256 (e.g. height of 32 tiles of height 8 each)
-	// If sprite is vertically stretched, ...
-	uint16_t y_in_sprite = (sl - y) & ((0x100 << l->flags1_bit67_vstretch) - 1);
+	uint16_t y_in_sprite = (sl - s->y);
 
 	y_in_sprite >>= s->flags1_bit67_vstretch;
 
-	if (y_in_sprite < 8) {
-		// find real x position of sprite correct for relative to layer or not
-		uint16_t real_x = s->x - ((s->flags0_bit4_xpos_rel_layer) ? l->x : 0);
-
-		real_x &= ((0x200 << l->flags1_bit45_hstretch) - 1);
-
-		uint16_t width = (8 << s->flags1_bit45_hstretch);
+	if (y_in_sprite < (4 << s->flags2_bit45_vsize)) {
+		uint16_t width = ((4 << s->flags2_bit01_hsize) << s->flags1_bit45_hstretch);
 
 		uint16_t start_x = 0;	// sprite by default not visible
 		uint16_t end_x = 0;		// sprite by default not visible
 
-		if (real_x < VDC_XRES) {	// sprite is on the left of the right edge
-			start_x = real_x;
-			end_x = ((real_x + width) > VDC_XRES) ? VDC_XRES : (real_x + width);
-		} else if (real_x >= ((0x200 << l->flags1_bit45_hstretch) - width)) {	//
-			end_x = (real_x + width) & ((0x200 << l->flags1_bit45_hstretch) - 1);
+		if (s->x < VDC_XRES) {	// sprite is on the left of the right edge
+			start_x = s->x;
+			end_x = ((s->x + width) > VDC_XRES) ? VDC_XRES : (s->x + width);
+		} else if (s->x >= (0x10000 - width)) {
+			end_x = s->x + width;
 		}
 
-		if (s->flags1_bit1_flip_v) y_in_sprite = 7 - y_in_sprite;
+		if (s->flags1_bit1_flip_v) y_in_sprite = ((4 << s->flags2_bit45_vsize) - 1) - y_in_sprite;
 
 		for (uint16_t scr_x = start_x; scr_x < end_x; scr_x++) {
-			uint16_t x = scr_x - real_x;
+			uint16_t x = scr_x - s->x;
 
 			x >>= s->flags1_bit45_hstretch;
-			if (s->flags1_bit0_flip_h) x = 7 - x;
-			if (s->flags1_bit2_flip_xy) { uint8_t t = x; x = y_in_sprite; y_in_sprite = t; }
+			if (s->flags1_bit0_flip_h) x = ((4 << s->flags2_bit01_hsize) - 1) - x;
 
 			// look up color value { 0b00, 0b01, 0b10, 0b11 } (result) from tileset
-			uint8_t result = (ram[(s->tileset_address + (s->index << 4) + (y_in_sprite << 1) + ((x & 0x4) ? 1 : 0)) & 0xffff] >> (2 * (3 - (x%4)))) & 0b11;
+			uint8_t result =
+				(
+					ram
+						[
+							(
+								s->tileset_address +
+								(s->index * (4 << (s->flags2_bit01_hsize + s->flags2_bit45_vsize))) +
+								(y_in_sprite << s->flags2_bit01_hsize) +
+								//((x & 0x4) ? 1 : 0)) & 0xffff]
+								(x >> 2)
+							) & 0xffff
+						] >> (2 * (3 - (x%4)))
+				) & 0b11;
 
 			// if NOT (transparent AND 0b00) then pixel must be drawn
 			if (!((s->flags0_bit2_transparent) && !result)) {
 				uint32_t target = buffer[(VDC_XRES * sl) + scr_x];
 				buffer[(VDC_XRES * sl) + scr_x] = blend(s->flags0_bit67_transparency, crt_palette[s->colors[result]], target);
 			}
-
-			// restore y, if xy flip was done before
-			if (s->flags1_bit2_flip_xy) y_in_sprite = x;
 		}
 	}
 }
@@ -303,8 +300,10 @@ uint8_t vdc_t::io_read8(uint16_t address)
 				(layer[current_layer].flags0_bit3_color_memory ? 0b00001000 : 0) ;
 		case 0x15:
 			return
-				(layer[current_layer].flags1_bit45_hstretch  << 4) |
-				(layer[current_layer].flags1_bit67_vstretch << 6)  ;
+				(layer[current_layer].flags1_bit0_flip_h    ? 0b00000001 : 0) |
+				(layer[current_layer].flags1_bit1_flip_v    ? 0b00000010 : 0) |
+				(layer[current_layer].flags1_bit45_hstretch             << 4) |
+				(layer[current_layer].flags1_bit67_vstretch             << 6) ;
 		case 0x16:
 			return
 				(layer[current_layer].flags2_bit01_hsize << 0) |
@@ -337,14 +336,14 @@ uint8_t vdc_t::io_read8(uint16_t address)
 			return
 				(sprite[current_sprite].flags0_bit0_visible        ? 0b00000001 : 0) |
 				(sprite[current_sprite].flags0_bit2_transparent    ? 0b00000100 : 0) |
-				(sprite[current_sprite].flags0_bit4_xpos_rel_layer ? 0b00010000 : 0) |
-				(sprite[current_sprite].flags0_bit5_ypos_rel_layer ? 0b00100000 : 0) |
+				//(sprite[current_sprite].flags0_bit4_xpos_rel_layer ? 0b00010000 : 0) |
+				//(sprite[current_sprite].flags0_bit5_ypos_rel_layer ? 0b00100000 : 0) |
 				(sprite[current_sprite].flags0_bit67_transparency << 6             ) ;
 		case 0x25:
 			return
 				(sprite[current_sprite].flags1_bit0_flip_h   ? 0b00000001 : 0) |
 				(sprite[current_sprite].flags1_bit1_flip_v   ? 0b00000010 : 0) |
-				(sprite[current_sprite].flags1_bit2_flip_xy  ? 0b00000100 : 0) |
+				//(sprite[current_sprite].flags1_bit2_flip_xy  ? 0b00000100 : 0) |
 				(sprite[current_sprite].flags1_bit45_hstretch << 4           ) |
 				(sprite[current_sprite].flags1_bit67_vstretch << 6           ) ;
 		case 0x26:
@@ -448,7 +447,9 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			layer[current_layer].flags0_bit3_color_memory = value & 0b00001000 ? true : false;
 			break;
 		case 0x15:
-			layer[current_layer].flags1_bit45_hstretch  = (value & 0b00110000) >> 4;
+			layer[current_layer].flags1_bit0_flip_h    = (value & 0b00000001) ? true : false;
+			layer[current_layer].flags1_bit1_flip_v    = (value & 0b00000010) ? true : false;
+			layer[current_layer].flags1_bit45_hstretch = (value & 0b00110000) >> 4;
 			layer[current_layer].flags1_bit67_vstretch = (value & 0b11000000) >> 6;
 			break;
 		case 0x16:
@@ -493,14 +494,14 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 		case 0x24:
 			sprite[current_sprite].flags0_bit0_visible        = value & 0b00000001 ? true : false;
 			sprite[current_sprite].flags0_bit2_transparent    = value & 0b00000100 ? true : false;
-			sprite[current_sprite].flags0_bit4_xpos_rel_layer = value & 0b00010000 ? true : false;
-			sprite[current_sprite].flags0_bit5_ypos_rel_layer = value & 0b00100000 ? true : false;
+			//sprite[current_sprite].flags0_bit4_xpos_rel_layer = value & 0b00010000 ? true : false;
+			//sprite[current_sprite].flags0_bit5_ypos_rel_layer = value & 0b00100000 ? true : false;
 			sprite[current_sprite].flags0_bit67_transparency = (value & 0b11000000) >> 6;
 			break;
 		case 0x25:
 			sprite[current_sprite].flags1_bit0_flip_h   = value & 0b00000001 ? true : false;
 			sprite[current_sprite].flags1_bit1_flip_v   = value & 0b00000010 ? true : false;
-			sprite[current_sprite].flags1_bit2_flip_xy  = value & 0b00000100 ? true : false;
+			//sprite[current_sprite].flags1_bit2_flip_xy  = value & 0b00000100 ? true : false;
 			sprite[current_sprite].flags1_bit45_hstretch  = (value & 0b00110000) >> 4;
 			sprite[current_sprite].flags1_bit67_vstretch = (value & 0b11000000) >> 6;
 			break;

@@ -198,10 +198,10 @@ Source: "rom.s"
                             	    61: 
 00:00010000 01000000        	    62: 	dc.l	$01000000	; initial ssp at end of ram
 00:00010004 00010022        	    63: 	dc.l	start		; reset vector
-00:00010008 726F6D206D633638	    64: version	dc.b	"rom mc68000 0.10.20260719",0
+00:00010008 726F6D206D633638	    64: version	dc.b	"rom mc68000 0.10.20260815",0
 00:00010010 30303020302E3130
-00:00010018 2E32303236303731
-00:00010020 39
+00:00010018 2E32303236303831
+00:00010020 35
 00:00010021 00
                             	    65: 
                             	    66: 
@@ -224,7 +224,7 @@ Source: "rom.s"
 00:00010062 11FC000A0403    	    81: 	move.b	#$0a,VDC_BORDER_SIZE.w
 00:00010068 42380406        	    82: 	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current
 00:0001006C 11FC000C0414    	    83: 	move.b	#%1100,VDC_LAYER_FLAGS0.w	;
-00:00010072 31FCFFF60412    	    84: 	move.w	#$fff6,VDC_LAYER_Y_MSB.w	; y location
+00:00010072 31FC000A0412    	    84: 	move.w	#$000a,VDC_LAYER_Y_MSB.w	; y location
                             	    85: 
 00:00010078 423900006009    	    86: 	clr.b	cursor_active
 00:0001007E 13FC00B700006008	    87: 	move.b	#$b7,cursor_color		; greenish

@@ -61,7 +61,7 @@ prngx		rs.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	start		; reset vector
-version	dc.b	"rom mc68000 0.10.20260719",0
+version	dc.b	"rom mc68000 0.10.20260815",0
 
 
 start
@@ -81,7 +81,7 @@ start
 	move.b	#$0a,VDC_BORDER_SIZE.w
 	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current
 	move.b	#%1100,VDC_LAYER_FLAGS0.w	;
-	move.w	#$fff6,VDC_LAYER_Y_MSB.w	; y location
+	move.w	#$000a,VDC_LAYER_Y_MSB.w	; y location
 
 	clr.b	cursor_active
 	move.b	#$b7,cursor_color		; greenish
