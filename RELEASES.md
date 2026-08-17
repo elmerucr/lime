@@ -1,5 +1,6 @@
 ## Version ...
 
+* 20260816 Bitmap mode removed from layer (can be done with large tiles)
 * 20260816 Adding h and v flip for layers
 * 20260815 Removed relative to layer options for sprite
 * 20260815 Removed xy flip support for sprites

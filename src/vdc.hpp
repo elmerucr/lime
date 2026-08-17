@@ -3,6 +3,8 @@
 // lime
 //
 // video display controller
+//
+// Copyright © 2025-2026 elmerucr. All rights reserved.
 // ---------------------------------------------------------------------
 
 // ---------------------------------------------------------------------
@@ -68,14 +70,12 @@ struct layer_t {
 	// flags0
 	//
 	// bit 7 6 5 4 3 2 1 0
-	//             | | | |
-	//             | | | +- hidden (0) / visible (1)
-	//             | | +--- tilemode (0) / bitmapped (1)
+	//             | |   |
+	//             | |   +- hidden (0) / visible (1)
 	//             | +----- The 0b00 pattern is opaque (0) / transparent (1)
 	//             +------- The 0b11 pattern assumes color 3 (0) or color from memory (1) (color per tile)
 	// -----------------------------------------------------------------
 	bool flags0_bit0_visible;
-	bool flags0_bit1_bitmapped;
 	bool flags0_bit2_transparent;
 	bool flags0_bit3_color_memory;
 
@@ -84,13 +84,13 @@ struct layer_t {
 	//
 	// bit 7 6 5 4 3 2 1 0
 	//     | | | |     | |
-	//     | | | |     | +- flip h  (1)
-	//     | | | |     +--- flip v  (1)
+	//     | | | |     | +- flip h off (0) / on (1)
+	//     | | | |     +--- flip v off (0) / on (1)
 	//     | | +-+--------- horizontal stretch (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
-	//     +-+------------- vertical stretch (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
+	//     +-+------------- vertical stretch   (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
 	// -----------------------------------------------------------------
-	bool flags1_bit0_flip_h;
-	bool flags1_bit1_flip_v;
+	bool    flags1_bit0_flip_h;
+	bool    flags1_bit1_flip_v;
 	uint8_t flags1_bit45_hstretch;
 	uint8_t flags1_bit67_vstretch;
 
@@ -107,9 +107,9 @@ struct layer_t {
 
 	uint8_t colors[4];
 
-	uint16_t tileset_address;
 	uint16_t tiles_address;
 	uint16_t colors_address;
+	uint16_t tileset_address;
 };
 
 struct sprite_t {
@@ -125,8 +125,8 @@ struct sprite_t {
 	//     | |       +----- 0b00 patterns code to opaque (0) or transparent (1)
 	//     +-+------------- transparency of sprite (0b00 = no transp., 0b01/0b01/0b11 various degrees)
 	// -----------------------------------------------------------------
-	bool flags0_bit0_visible;
-	bool flags0_bit2_transparent;
+	bool    flags0_bit0_visible;
+	bool    flags0_bit2_transparent;
 	uint8_t flags0_bit67_transparency;
 
 	// -----------------------------------------------------------------
@@ -134,13 +134,13 @@ struct sprite_t {
 	//
 	// bit 7 6 5 4 3 2 1 0
 	//     | | | |     | |
-	//     | | | |     | +- flip h  (1)
-	//     | | | |     +--- flip v  (1)
+	//     | | | |     | +- flip h off (0) / on (1)
+	//     | | | |     +--- flip v off (1) / on (1)
 	//     | | +-+--------- horizontal stretch (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
-	//     +-+------------- vertical stretch (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
+	//     +-+------------- vertical stretch   (0b00 = 1x, 0b01 = 2x, 0b10 = 4x, 0b11 = 8x)
 	// -----------------------------------------------------------------
-	bool flags1_bit0_flip_h;
-	bool flags1_bit1_flip_v;
+	bool    flags1_bit0_flip_h;
+	bool    flags1_bit1_flip_v;
 	uint8_t flags1_bit45_hstretch;
 	uint8_t flags1_bit67_vstretch;
 

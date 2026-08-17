@@ -3,6 +3,8 @@
 // lime
 //
 // video display controller
+//
+// Copyright © 2025-2026 elmerucr. All rights reserved.
 // ---------------------------------------------------------------------
 
 #include "vdc.hpp"
@@ -71,7 +73,6 @@ void vdc_t::reset()
 		layer[i].x = 0;
 		layer[i].y = 0;
 		layer[i].flags0_bit0_visible      = false;
-		layer[i].flags0_bit1_bitmapped    = false;
 		layer[i].flags0_bit2_transparent  = false;
 		layer[i].flags0_bit3_color_memory = false;
 		layer[i].flags1_bit0_flip_h       = false;
@@ -163,8 +164,7 @@ void vdc_t::draw_scanline_layer(layer_t *l, uint16_t sl)
 
 		// << 7 heeft te maken met aantal tiles per lijn = 128 (een deel is niet zichtbaar)
 		uint16_t index = (((y_in_layer / (4 << l->flags2_bit45_vsize)) << 7) + (x_in_layer / (4 << l->flags2_bit01_hsize))) & 0xffff;
-		uint16_t tile_index = (l->tiles_address + index) & 0xffff;
-		if (!l->flags0_bit1_bitmapped) tile_index = ram[tile_index];
+		uint16_t tile_index = ram[(l->tiles_address + index) & 0xffff];
 
 		uint8_t color = ram[(l->colors_address + index) & 0xffff];
 
@@ -295,7 +295,6 @@ uint8_t vdc_t::io_read8(uint16_t address)
 		case 0x14:
 			return
 				(layer[current_layer].flags0_bit0_visible      ? 0b00000001 : 0) |
-				(layer[current_layer].flags0_bit1_bitmapped    ? 0b00000010 : 0) |
 				(layer[current_layer].flags0_bit2_transparent  ? 0b00000100 : 0) |
 				(layer[current_layer].flags0_bit3_color_memory ? 0b00001000 : 0) ;
 		case 0x15:
@@ -442,7 +441,6 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 			break;
 		case 0x14:
 			layer[current_layer].flags0_bit0_visible      = value & 0b00000001 ? true : false;
-			layer[current_layer].flags0_bit1_bitmapped    = value & 0b00000010 ? true : false;
 			layer[current_layer].flags0_bit2_transparent  = value & 0b00000100 ? true : false;
 			layer[current_layer].flags0_bit3_color_memory = value & 0b00001000 ? true : false;
 			break;
