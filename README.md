@@ -2,14 +2,14 @@
 
 ![icon](./docs/icon_80x80.png)
 
-Lime is a virtual computer system that draws inspiration from computing platforms such as the Commodore 64 (look and feel, SID and VIC-II), the Amiga 500 and Atari ST (Motorola 68000), the TRS-80 Color Computer (Motorola 6809 and binary format), the Nintendo Gameboy (tiles / graphics system) and the Atari 800xl (GTIA palette). Notable features include:
+Lime is a virtual computer system that draws inspiration from computing platforms such as the Commodore 64 (look and feel, SID, VIC-II), the Amiga 500 and Atari ST (Motorola 68000), the TRS-80 Color Computer (Motorola 6809, binary format), the Nintendo Gameboy (tiles / graphics system) and the Atari 800xl (GTIA color palette). Notable features include:
 
 * Motorola MC68000 cpu using the [Moira](https://github.com/dirkwhoffmann/Moira) library
 * Motorola MC6809 cpu using the [mc6809](https://github.com/elmerucr/mc6809) library
-* 16mb ram (MC6809 can address the lowest 64k only)
+* 16mb ram (the MC6809 mode will only address the lowest 64k)
 * Screen resolution of 320x180 pixels, refresh rate of 60Hz
-* Video Display Controller (VDC) for graphics processing, memory access to lowest 64k
-* Programmable using MC68000 and MC6809 assembly (see ```examples```)
+* Video Display Controller (VDC) for graphics processing, shared memory access to lowest 64k
+* Programmable using MC68000 or MC6809 assembly (see ```examples``` folder)
 
 By default, lime starts in MC68000 mode.
 
@@ -79,10 +79,12 @@ git clone https://github.com/elmerucr/lime
 cd lime
 ```
 
+Work in Progress: Automatically downloading SDL3 right version??? --> Needs to be built into cmake...
+
 Create a build directory in the source tree
 ```shell
-mkdir build
-cd build
+mkdir Release
+cd Release
 cmake ..
 make
 ```
