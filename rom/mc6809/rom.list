@@ -262,14 +262,14 @@ FCDF B7053B                           sta     SID1_V                  ; sid 1 vo
 FCE2 3726                             pulu    y,b,a
 FCE4 39                               rts
                       
-FCE5 0098004C0700001C logo_data       fcb     0,152,0,76,%111,0,0,$1c         ; icon top left
-FCED 00A0004C0700001D                 fcb     0,160,0,76,%111,0,0,$1d         ; icon top right
-FCF5 009800540700001E                 fcb     0,152,0,84,%111,0,0,$1e         ; icon bottom left
-FCFD 00A000540700001F                 fcb     0,160,0,84,%111,0,0,$1f         ; icon bottom right
-FD05 0093005C0700006C                 fcb     0,147,0,92,%111,0,0,$6c         ; l
-FD0D 0098005C07000069                 fcb     0,152,0,92,%111,0,0,$69         ; i
-FD15 009E005C0700006D                 fcb     0,158,0,92,%111,0,0,$6d         ; m
-FD1D 00A6005C07000065                 fcb     0,166,0,92,%111,0,0,$65         ; e
+FCE5 0098004C0700111C logo_data       fcb     0,152,0,76,%111,0,$11,$1c       ; icon top left
+FCED 00A0004C0700111D                 fcb     0,160,0,76,%111,0,$11,$1d       ; icon top right
+FCF5 009800540700111E                 fcb     0,152,0,84,%111,0,$11,$1e       ; icon bottom left
+FCFD 00A000540700111F                 fcb     0,160,0,84,%111,0,$11,$1f       ; icon bottom right
+FD05 0093005C0700116C                 fcb     0,147,0,92,%111,0,$11,$6c       ; l
+FD0D 0098005C07001169                 fcb     0,152,0,92,%111,0,$11,$69       ; i
+FD15 009E005C0700116D                 fcb     0,158,0,92,%111,0,$11,$6d       ; m
+FD1D 00A6005C07001165                 fcb     0,166,0,92,%111,0,$11,$65       ; e
                       
 FD25 B60440           exc_irq         lda     TIMER_SR                ; load timer status register
 FD28 2716                             beq     exc_vdc

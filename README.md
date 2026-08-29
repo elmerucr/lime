@@ -79,8 +79,6 @@ git clone https://github.com/elmerucr/lime
 cd lime
 ```
 
-Work in Progress: Automatically downloading SDL3 right version??? --> Needs to be built into cmake...
-
 Create a build directory in the source tree
 ```shell
 mkdir Release

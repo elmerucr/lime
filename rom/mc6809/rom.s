@@ -145,14 +145,14 @@ sound_reset	pshu	y,b,a
 		pulu	y,b,a
 		rts
 
-logo_data	fcb	0,152,0,76,%111,0,0,$1c		; icon top left
-		fcb	0,160,0,76,%111,0,0,$1d		; icon top right
-		fcb	0,152,0,84,%111,0,0,$1e		; icon bottom left
-		fcb	0,160,0,84,%111,0,0,$1f		; icon bottom right
-		fcb	0,147,0,92,%111,0,0,$6c		; l
-		fcb	0,152,0,92,%111,0,0,$69		; i
-		fcb	0,158,0,92,%111,0,0,$6d		; m
-		fcb	0,166,0,92,%111,0,0,$65		; e
+logo_data	fcb	0,152,0,76,%111,0,$11,$1c	; icon top left
+		fcb	0,160,0,76,%111,0,$11,$1d	; icon top right
+		fcb	0,152,0,84,%111,0,$11,$1e	; icon bottom left
+		fcb	0,160,0,84,%111,0,$11,$1f	; icon bottom right
+		fcb	0,147,0,92,%111,0,$11,$6c	; l
+		fcb	0,152,0,92,%111,0,$11,$69	; i
+		fcb	0,158,0,92,%111,0,$11,$6d	; m
+		fcb	0,166,0,92,%111,0,$11,$65	; e
 
 exc_irq		lda	TIMER_SR		; load timer status register
 		beq	exc_vdc
