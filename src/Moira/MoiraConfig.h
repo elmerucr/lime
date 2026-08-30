@@ -53,25 +53,29 @@
  */
 #define MOIRA_EMULATE_FC true
 
+/* Set to true to emulate the 68020 instruction cache.
+ *
+ * The 68020 caches instruction fetches in a small on-chip cache (see
+ * MoiraCache.h). When this option is disabled, every instruction fetch is
+ * treated as a cache miss and goes straight to the bus, which is faster to
+ * emulate but does not reproduce the cycle savings a real cache provides.
+ * This setting has no effect for other supported models, which have no
+ * instruction cache.
+ *
+ * Enable to improve accuracy, disable to gain speed.
+ */
+#define MOIRA_EMULATE_ICACHE true
+
 /* Set to true to enable the disassembler.
  *
- * The disassembler requires a jump table which consumes about 1MB of memory.
+ * The disassembler requires a jump table which consumes about 1MB of memory,
+ * plus 0.25MB for the instruction info table storing information about the
+ * instruction (Instr I), the addressing mode (Mode M), and the size attribute
+ * (Size S) for all 65536 opcode words.
  *
  * Disable to save space.
  */
 #define MOIRA_ENABLE_DASM true
-
-/* Set to true to build the InstrInfo lookup table.
- *
- * The instruction info table stores information about the instruction
- * (Instr I), the addressing mode (Mode M), and the size attribute (Size S) for
- * all 65536 opcode words. The table is meant to provide data for, e.g.,
- * external debuggers. It is not needed by Moira itself and therefore disabled
- * by default.
- *
- * Disable to save space.
- */
-#define MOIRA_BUILD_INSTR_INFO_TABLE true
 
 /* Enables Musashi compatibility mode.
  *
@@ -91,12 +95,4 @@
 /* The following macro appear at the end of each instruction handler.
  * Moira will call 'didExecute(...)' for all listed instructions.
  */
-#define MOIRA_DID_EXECUTE     I == Instr::RESET
-
-/* Controls assertion checking.
- *
- * Comment out to enable assertions (recommended for debugging).
- * Uncomment to disable assertions (recommended for release builds).
- */
-// #define NDEBUG
-#include <cassert>
+#define MOIRA_DID_EXECUTE I == Instr::RESET

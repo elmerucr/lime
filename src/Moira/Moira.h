@@ -13,6 +13,15 @@
 
 namespace moira {
 
+namespace Version {
+
+inline constexpr int major = 5;
+inline constexpr int minor = 0;
+inline constexpr int patch = 0;
+inline constexpr int beta  = 1;
+
+}
+
 class Moira {
     
     friend class Debugger;
@@ -64,7 +73,10 @@ protected:
     
     // Prefetch queue for fetching instructions
     PrefetchQueue queue {};
-    
+
+    // Instruction cache (68020 only)
+    InstructionCache iCache {};
+
     // Interrupt mode
     IrqMode irqMode {IrqMode::AUTO};
     
@@ -109,8 +121,14 @@ private:
     // Jump table holding the loop mode instruction handlers (68010 only)
     ExecPtr *loop = nullptr;
     
-    // Jump table holding the disassembler handlers
-    typedef void (Moira::*DasmPtr)(StrWriter&, u32&, u16) const;
+    /* Jump table holding the disassembler handlers.
+     *
+     * Since the handlers are not templated, the instruction, addressing mode
+     * and size attributes that used to be template arguments are passed in at
+     * call time. They are read from the InstrInfo table, which is built
+     * alongside this one.
+     */
+    typedef void (Moira::*DasmPtr)(StrWriter&, u32&, u16, Instr, Mode, Size) const;
     DasmPtr *dasm = nullptr;
     
     // Table holding instruction information
@@ -129,6 +147,12 @@ public:
     //  Destroys the Moira instance
     virtual ~Moira();
     
+    // Returns a version string for this release
+    static std::string version();
+
+    // Returns a build number string for this release
+    static std::string build();
+    
 protected:
     
     // Creates or updates the jump tables for execution and disassembly
@@ -137,8 +161,27 @@ protected:
     
 private:
     
-    // Core routine for creating jump tables
+    /* Core routines for creating jump tables
+     *
+     * Jump table creation is deliberately split into several parts.
+     * As a single function it expands into several hundred kilobytes of
+     * straight-line code per core, which drives the compiler's memory
+     * consumption far beyond what some environments provide.
+     */
+    
     template <Core C> void createJumpTable(Model model, bool registerDasm);
+    template <Core C> void createJumpTable1(Model model, bool registerDasm);
+    template <Core C> void createJumpTable2(Model model, bool registerDasm);
+    template <Core C> void createJumpTable3(Model model, bool registerDasm);
+    template <Core C> void createJumpTable4(Model model, bool registerDasm);
+    template <Core C> void createJumpTable5(Model model, bool registerDasm);
+    template <Core C> void createJumpTable6(Model model, bool registerDasm);
+    template <Core C> void createJumpTable7(Model model, bool registerDasm);
+    template <Core C> void createJumpTable8(Model model, bool registerDasm);
+    template <Core C> void createJumpTable9(Model model, bool registerDasm);
+    template <Core C> void createJumpTable10(Model model, bool registerDasm);
+    template <Core C> void createJumpTable11(Model model, bool registerDasm);
+    template <Core C> void createJumpTable12(Model model, bool registerDasm);
     
     
     //
@@ -288,17 +331,22 @@ protected:
     // Reads a value from memory
     virtual u8 read8(u32 addr) const = 0;
     virtual u16 read16(u32 addr) const = 0;
-    
+    virtual u32 read32(u32 addr) const = 0;
+
     // Reads a 16-bit value from memory during the reset routine
     virtual u16 read16OnReset(u32 addr) const { return read16(addr); }
-    
+
     // Reads a 16-bit value from memory for disassembly purposes
     virtual u16 read16Dasm(u32 addr) const { return read16(addr); }
-    
+
     // Writes a value into memory
     virtual void write8(u32 addr, u8 val) const = 0;
     virtual void write16(u32 addr, u16 val) const = 0;
-    
+    virtual void write32(u32 addr, u32 val) const = 0;
+
+    // Returns the DSACK bits for the addressed device (68020)
+    virtual u8 dsack(u32 addr) const { return DSACK_16; }
+
     // Provides the interrupt vector for a given interrupt level in USER mode
     virtual u16 readIrqUserVector(u8 level) const { return 0; }
 
@@ -380,17 +428,22 @@ protected:
     // Reads a value from memory
     u8 read8(u32 addr) const;
     u16 read16(u32 addr) const;
-    
+    u32 read32(u32 addr) const;
+
     // Reads a 16-bit value from memory during the reset routine
     u16 read16OnReset(u32 addr) const;
-    
+
     // Reads a 16-bit value from memory for disassembly purposes
     u16 read16Dasm(u32 addr) const;
-    
+
     // Writes a value into memory
     void write8(u32 addr, u8 val) const;
     void write16(u32 addr, u16 val) const;
-    
+    void write32(u32 addr, u32 val) const;
+
+    // Returns the DSACK bits for the addressed device (68020)
+    u8 dsack(u32 addr) const;
+
     // Provides the interrupt vector for a given interrupt level in USER mode
     u16 readIrqUserVector(u8 level) const;
 
@@ -705,9 +758,20 @@ private:
     
 #include "MoiraInit.h"
 #include "MoiraALU.h"
+#include "MoiraCache.h"
 #include "MoiraDataflow.h"
 #include "MoiraExceptions.h"
 #include "MoiraDasm.h"
 };
+
+/* The jump table builders are the only place where the instruction handler
+ * templates are instantiated. Keeping each core in a translation unit of its
+ * own splits the instantiation work three ways and keeps the compiler's peak
+ * memory usage within bounds. The definitions live in MoiraCore680x0.cpp.
+ */
+extern template void Moira::createJumpTable<Core::C68000>(Model, bool);
+extern template void Moira::createJumpTable<Core::C68010>(Model, bool);
+extern template void Moira::createJumpTable<Core::C68020>(Model, bool);
+
 
 }

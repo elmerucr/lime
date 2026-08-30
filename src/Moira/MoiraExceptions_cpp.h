@@ -282,7 +282,7 @@ Moira::execAddressError(StackFrame frame, int delay)
     if (misaligned<C>(reg.sp)) throw DoubleFault();
 
     // Write stack frame
-    if (C == Core::C68000) {
+    if constexpr (C == Core::C68000) {
         writeStackFrameAEBE<C>(frame);
     } else {
         writeStackFrame1000<C>(frame, status, frame.pc, reg.pc0, 3, frame.addr);
@@ -319,7 +319,7 @@ Moira::execBusError(StackFrame frame, int delay)
     if (misaligned<C>(reg.sp)) throw DoubleFault();
 
     // Write stack frame
-    if (C == Core::C68000) {
+    if constexpr (C == Core::C68000) {
         writeStackFrameAEBE<C>(frame);
     } else {
         writeStackFrame1000<C>(frame, status, frame.pc, reg.pc0, 2, frame.addr);
@@ -333,6 +333,10 @@ Moira::execBusError(StackFrame frame, int delay)
     didExecute(M68kException::BUS_ERROR, 2);
 }
 
+// The following definitions are not templated. They are compiled into the
+// main translation unit only (see MoiraCore_cpp.h).
+#ifdef MOIRA_MAIN_TU
+
 void
 Moira::execException(M68kException exc, int nr)
 {
@@ -343,6 +347,8 @@ Moira::execException(M68kException exc, int nr)
         default:            execException<Core::C68020>(exc, nr); break;
     }
 }
+
+#endif
 
 template <Core C> void
 Moira::execException(M68kException exc, int nr)
@@ -383,7 +389,7 @@ Moira::execException(M68kException exc, int nr)
             SYNC(4);
 
             // Write stack frame
-            if (C == Core::C68010 || C == Core::C68020) {
+            if constexpr (C == Core::C68010 || C == Core::C68020) {
                 writeStackFrame0000<C>(status, reg.pc0, vector);
             } else {
                 writeStackFrame0000<C>(status, reg.pc - 2, vector);
@@ -486,6 +492,10 @@ Moira::execException(M68kException exc, int nr)
     didExecute(exc, vector);
 }
 
+// The following definitions are not templated. They are compiled into the
+// main translation unit only (see MoiraCore_cpp.h).
+#ifdef MOIRA_MAIN_TU
+
 void
 Moira::execInterrupt(u8 level)
 {
@@ -498,6 +508,8 @@ Moira::execInterrupt(u8 level)
             execInterrupt<Core::C68020>(level);
     }
 }
+
+#endif
 
 template <Core C> void
 Moira::execInterrupt(u8 level)

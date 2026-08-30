@@ -1,5 +1,8 @@
-## Version ...
+## ...
 
+## Version 0.13.20260830-alpha
+
+* 20260830 Moira cpu core updated to 5.0b
 * 20260828 Compiles with SDL 3.4.14 on macOS Tahoe 26.6.2
 * 20260828 Automatic fetching of SDL3 by cmake (see AltirraSDL)
 * 20260816 Bitmap mode removed from layer (can be done with large tiles)

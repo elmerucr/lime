@@ -5,6 +5,70 @@
 // Published under the terms of the MIT License
 // -----------------------------------------------------------------------------
 
+/* Register accessors and the address bus mask.
+ *
+ * These live here rather than in Moira.cpp so that they stay visible to the
+ * per-core translation units, which need to inline them into the instruction
+ * handlers. addrMask is evaluated on every memory access.
+ */
+template <Core C> u32
+Moira::addrMask() const
+{
+    if constexpr (C == Core::C68020) {
+
+        return cpuModel == Model::M68EC020 ? 0x00FFFFFF : 0xFFFFFFFF;
+
+    } else {
+
+        return 0x00FFFFFF;
+    }
+}
+
+template <Size S> u32
+Moira::readD(int n) const
+{
+    return CLIP<S>(reg.d[n]);
+}
+
+template <Size S> u32
+Moira::readA(int n) const
+{
+    return CLIP<S>(reg.a[n]);
+}
+
+template <Size S> u32
+Moira::readR(int n) const
+{
+    return CLIP<S>(reg.r[n]);
+}
+
+template <Size S> void
+Moira::writeD(int n, u32 v)
+{
+    reg.d[n] = WRITE<S>(reg.d[n], v);
+}
+
+template <Size S> void
+Moira::writeA(int n, u32 v)
+{
+    reg.a[n] = WRITE<S>(reg.a[n], v);
+}
+
+template <Size S> void
+Moira::writeR(int n, u32 v)
+{
+    reg.r[n] = WRITE<S>(reg.r[n], v);
+}
+
+template <Mode M> void
+Moira::setFC()
+{
+    if constexpr (MOIRA_EMULATE_FC) {
+        
+        fcl = (M == Mode::DIPC || M == Mode::IXPC) ? FC::USER_PROG : FC::USER_DATA;
+    }
+}
+
 template <Core C, Mode M, Size S, Flags F> u32
 Moira::computeEA(u32 n) {
 
@@ -32,7 +96,7 @@ Moira::computeEA(u32 n) {
         }
         case 4:  // -(An)
         {
-            if ((F & IMPL_DEC) == 0) SYNC(2);
+            if constexpr ((F & IMPL_DEC) == 0) SYNC(2);
             result = readA(n) - ((n == 7 && S == Byte) ? 2 : S);
             break;
         }
@@ -42,7 +106,7 @@ Moira::computeEA(u32 n) {
             i16  d = (i16)queue.irc;
 
             result = U32_ADD(an, d);
-            if ((F & SKIP_LAST_RD) == 0) { readExt<C>(); } else { reg.pc += 2; }
+            if constexpr ((F & SKIP_LAST_RD) == 0) { readExt<C>(); } else { reg.pc += 2; }
             break;
         }
         case 6: // (d,An,Xi)
@@ -64,7 +128,7 @@ Moira::computeEA(u32 n) {
                 result = U32_ADD3(an, d, ((queue.irc & 0x800) ? xi : SEXT<Word>(xi)));
 
                 SYNC(2);
-                if ((F & SKIP_LAST_RD) == 0) { readExt<C>(); } else { reg.pc += 2; }
+                if constexpr ((F & SKIP_LAST_RD) == 0) { readExt<C>(); } else { reg.pc += 2; }
             }
             break;
         }
@@ -73,7 +137,7 @@ Moira::computeEA(u32 n) {
             result = (i16)queue.irc;
             readBuffer = queue.irc;
 
-            if ((F & SKIP_LAST_RD) == 0) { readExt<C>(); } else { reg.pc += 2; }
+            if constexpr ((F & SKIP_LAST_RD) == 0) { readExt<C>(); } else { reg.pc += 2; }
             break;
         }
         case 8: // ABS.L
@@ -83,7 +147,7 @@ Moira::computeEA(u32 n) {
             result |= queue.irc;
             readBuffer = queue.irc;
 
-            if ((F & SKIP_LAST_RD) == 0) { readExt<C>(); } else { reg.pc += 2; }
+            if constexpr ((F & SKIP_LAST_RD) == 0) { readExt<C>(); } else { reg.pc += 2; }
             break;
         }
         case 9: // (d,PC)
@@ -91,7 +155,7 @@ Moira::computeEA(u32 n) {
             i16  d = (i16)queue.irc;
 
             result = U32_ADD(reg.pc, d);
-            if ((F & SKIP_LAST_RD) == 0) { readExt<C>(); } else { reg.pc += 2; }
+            if constexpr ((F & SKIP_LAST_RD) == 0) { readExt<C>(); } else { reg.pc += 2; }
             break;
         }
         case 10: // (d,PC,Xi)
@@ -111,7 +175,7 @@ Moira::computeEA(u32 n) {
 
                 result = U32_ADD3(reg.pc, d, ((queue.irc & 0x800) ? xi : SEXT<Word>(xi)));
                 SYNC(2);
-                if ((F & SKIP_LAST_RD) == 0) { readExt<C>(); } else { reg.pc += 2; }
+                if constexpr ((F & SKIP_LAST_RD) == 0) { readExt<C>(); } else { reg.pc += 2; }
             }
             break;
         }
@@ -148,7 +212,7 @@ Moira::computeEAbrief(u32 an)
     result = U32_ADD3(an, i8(disp), xn);
 
     SYNC(2);
-    if ((F & SKIP_LAST_RD) == 0) { readExt<C>(); } else { reg.pc += 2; }
+    if constexpr ((F & SKIP_LAST_RD) == 0) { readExt<C>(); } else { reg.pc += 2; }
 
     return result;
 }
@@ -273,6 +337,10 @@ Moira::writeOp(int n, u32 ea, u32 val)
     }
 }
 
+// The following definitions are not templated. They are compiled into the
+// main translation unit only (see MoiraCore_cpp.h).
+#ifdef MOIRA_MAIN_TU
+
 void
 Moira::updateAn(Mode M, Size S, int n)
 {
@@ -310,6 +378,8 @@ Moira::undoAnPD(Mode M, Size S, int n)
 {
     if ((int)M == 4) U32_INC(reg.a[n], (n == 7 && S == Byte) ? 2 : S);
 }
+
+#endif
 
 template <Mode M, Size S> void
 Moira::updateAn(int n)
@@ -359,6 +429,165 @@ Moira::readM(u32 addr)
     }
 }
 
+template <Core C, Flags F> u32
+Moira::read2x16(u32 lo, u32 hi)
+{
+    u32 result = read16(lo) << 16;
+    SYNC(4);
+    if constexpr (F & POLL) POLL_IPL;
+    result |= read16(hi);
+    SYNC(2);
+    return result;
+}
+
+template <Core C, Flags F> void
+Moira::write2x16(u32 lo, u32 hi, u32 valHi, u32 valLo)
+{
+    if constexpr (F & REVERSE) {
+
+        write16(hi, u16(valLo));
+        SYNC(4);
+        if constexpr (F & POLL) POLL_IPL;
+        write16(lo, u16(valHi));
+        SYNC(2);
+
+    } else {
+
+        write16(lo, u16(valHi));
+        SYNC(4);
+        if constexpr (F & POLL) POLL_IPL;
+        write16(hi, u16(valLo));
+        SYNC(2);
+    }
+}
+
+template <Core C, Flags F> u32
+Moira::read2x8(u32 addr)
+{
+    u32 result = u32(read8(addr)) << 8;
+    SYNC(4);
+    if constexpr (F & POLL) POLL_IPL;
+    result |= u32(read8(addr + 1));
+    SYNC(2);
+    return result;
+}
+
+template <Core C, Flags F> void
+Moira::write2x8(u32 addr, u32 val)
+{
+    if constexpr (F & REVERSE) {
+
+        write8(addr + 1, u8(val));
+        SYNC(4);
+        if constexpr (F & POLL) POLL_IPL;
+        write8(addr, u8(val >> 8));
+        SYNC(2);
+
+    } else {
+
+        write8(addr, u8(val >> 8));
+        SYNC(4);
+        if constexpr (F & POLL) POLL_IPL;
+        write8(addr + 1, u8(val));
+        SYNC(2);
+    }
+}
+
+template <Core C, Flags F> u32
+Moira::read4x8(u32 addr)
+{
+    u32 result = u32(read8(addr)) << 24;
+    SYNC(4);
+    result |= u32(read8(addr + 1)) << 16;
+    SYNC(4);
+    result |= u32(read8(addr + 2)) << 8;
+    SYNC(4);
+    if constexpr (F & POLL) POLL_IPL;
+    result |= u32(read8(addr + 3));
+    SYNC(2);
+    return result;
+}
+
+template <Core C, Flags F> void
+Moira::write4x8(u32 addr, u32 val)
+{
+    if constexpr (F & REVERSE) {
+
+        write8(addr + 3, u8(val));
+        SYNC(4);
+        write8(addr + 2, u8(val >> 8));
+        SYNC(4);
+        write8(addr + 1, u8(val >> 16));
+        SYNC(4);
+        if constexpr (F & POLL) POLL_IPL;
+        write8(addr, u8(val >> 24));
+        SYNC(2);
+
+    } else {
+
+        write8(addr, u8(val >> 24));
+        SYNC(4);
+        write8(addr + 1, u8(val >> 16));
+        SYNC(4);
+        write8(addr + 2, u8(val >> 8));
+        SYNC(4);
+        if constexpr (F & POLL) POLL_IPL;
+        write8(addr + 3, u8(val));
+        SYNC(2);
+    }
+}
+
+template <Core C, Flags F> u32
+Moira::readLongSplit(u32 addr)
+{
+    /* The addressed port decides how the transfer is carried out. A 32 bit
+     * port delivers the longword in a single bus cycle, a 16 bit port needs
+     * two and an 8 bit port four (see dsack).
+     */
+    switch (portSize(dsack(addr))) {
+
+        case 4:
+        {
+            u32 result = read32(addr);
+            if constexpr (F & POLL) POLL_IPL;
+            SYNC(2);
+            return result;
+        }
+        case 2:
+
+            return read2x16<C,F>(addr, addr + 2);
+
+        default:
+
+            return read4x8<C,F>(addr);
+    }
+}
+
+template <Core C, Flags F> void
+Moira::writeLongSplit(u32 addr, u32 val)
+{
+    // See readLongSplit(): the port width decides how the transfer is split
+    switch (portSize(dsack(addr))) {
+
+        case 4:
+
+            write32(addr, val);
+            if constexpr (F & POLL) POLL_IPL;
+            SYNC(2);
+            return;
+
+        case 2:
+
+            write2x16<C,F>(addr, addr + 2, val >> 16, val & 0xFFFF);
+            return;
+
+        default:
+
+            write4x8<C,F>(addr, val);
+            return;
+    }
+}
+
 template <Core C, AddrSpace AS, Size S, Flags F> u32
 Moira::read(u32 addr)
 {
@@ -380,24 +609,77 @@ Moira::read(u32 addr)
 
     if constexpr (S == Byte) {
 
-        if (F & POLL) POLL_IPL;
+        if constexpr (F & POLL) POLL_IPL;
         result = read8(addr & addrMask<C>());
         SYNC(2);
     }
 
     if constexpr (S == Word) {
 
-        if (F & POLL) POLL_IPL;
-        result = read16(addr & addrMask<C>());
+        auto a = addr & addrMask<C>();
+
+        // An 8 bit port needs a second bus cycle to deliver a word
+        if constexpr (C >= Core::C68020) {
+
+            if (portSize(dsack(a)) == 1) {
+                return read2x8<C,F>(a);
+            }
+        }
+
+        if constexpr (F & POLL) POLL_IPL;
+        result = read16(a);
         SYNC(2);
     }
 
     if constexpr (S == Long) {
 
-        result = read16(addr & addrMask<C>()) << 16;
-        SYNC(4);
-        if (F & POLL) POLL_IPL;
-        result |= read16((addr + 2) & addrMask<C>());
+        if constexpr (C >= Core::C68020) {
+
+            if ((addr & 3) == 0) {
+                result = readLongSplit<C,F>(addr & addrMask<C>());
+            } else {
+                result = read2x16<C,F>(addr & addrMask<C>(), (addr + 2) & addrMask<C>());
+            }
+
+        } else {
+
+            result = read2x16<C,F>(addr & addrMask<C>(), (addr + 2) & addrMask<C>());
+        }
+    }
+
+    return result;
+}
+
+template <Core C, Flags F> u16
+Moira::readInstr(u32 addr)
+{
+    // Update function code pins
+    setFC(FC::USER_PROG);
+    SYNC(2);
+
+    // Check for address errors
+    if (misaligned<C, Word>(addr)) {
+        throw AddressError(makeFrame<F>(addr));
+    }
+
+    // Check if a watchpoint has been reached
+    if ((flags & State::CHECK_WP) && debugger.watchpointMatches(addr, Word)) {
+        didReachWatchpoint(addr);
+    }
+
+    if constexpr (F & POLL) POLL_IPL;
+
+    u16 result;
+    if constexpr (C == Core::C68020) {
+
+        // Route read access through the instruction cache
+        bool busAccess;
+        result = readInstructionCache(addr & addrMask<C>(), busAccess);
+        cp += busAccess ? (portSize(dsack(addr & addrMask<C>())) == 4 ? 0 : 4) : -2;
+
+    } else {
+
+        result = read16(addr & addrMask<C>());
         SYNC(2);
     }
 
@@ -433,35 +715,44 @@ Moira::write(u32 addr, u32 val)
 
     if constexpr (S == Byte) {
 
-        if (F & POLL) POLL_IPL;
+        if constexpr (F & POLL) POLL_IPL;
         write8(addr & addrMask<C>(), (u8)val);
         SYNC(2);
     }
 
     if constexpr (S == Word) {
 
-        if (F & POLL) POLL_IPL;
-        write16(addr & addrMask<C>(), (u16)val);
+        auto a = addr & addrMask<C>();
+
+        // An 8 bit port needs a second bus cycle to accept a word
+        if constexpr (C >= Core::C68020) {
+
+            if (portSize(dsack(a)) == 1) {
+                write2x8<C,F>(a, val);
+                return;
+            }
+        }
+
+        if constexpr (F & POLL) POLL_IPL;
+        write16(a, (u16)val);
         SYNC(2);
     }
 
     if constexpr (S == Long) {
 
-        if (F & REVERSE) {
+        if constexpr (C >= Core::C68020) {
 
-            write16((addr + 2) & addrMask<C>(), u16(val & 0xFFFF));
-            SYNC(4);
-            if (F & POLL) POLL_IPL;
-            write16(addr & addrMask<C>(), u16(val >> 16));
-            SYNC(2);
+            if ((addr & 3) == 0) {
+                writeLongSplit<C,F>(addr & addrMask<C>(), val);
+            } else {
+                write2x16<C,F>(addr & addrMask<C>(), (addr + 2) & addrMask<C>(),
+                                  val >> 16, val & 0xFFFF);
+            }
 
         } else {
 
-            write16(addr & addrMask<C>(), u16(val >> 16));
-            SYNC(4);
-            if (F & POLL) POLL_IPL;
-            write16((addr + 2) & addrMask<C>(), u16(val & 0xFFFF));
-            SYNC(2);
+            write2x16<C,F>(addr & addrMask<C>(), (addr + 2) & addrMask<C>(),
+                              val >> 16, val & 0xFFFF);
         }
     }
 }
@@ -582,7 +873,7 @@ Moira::prefetch()
     reg.pc0 = reg.pc;
 
     queue.ird = queue.irc;
-    queue.irc = (u16)read<C, AddrSpace::PROG, Word, F>(reg.pc + 2);
+    queue.irc = readInstr<C, F>(reg.pc + 2);
     readBuffer = queue.irc;
 }
 
@@ -591,7 +882,8 @@ Moira::fullPrefetch()
 {
     assert(!misaligned<C>(reg.pc));
 
-    queue.irc = (u16)read<C, AddrSpace::PROG, Word>(reg.pc);
+    flushInstructionLatch();
+    queue.irc = readInstr<C>(reg.pc);
     if (delay) SYNC(delay);
     prefetch<C, F>();
 }
@@ -612,7 +904,7 @@ Moira::readExt()
     assert(!misaligned<C>(reg.pc));
 
     reg.pc += 2;
-    queue.irc = (u16)read<C, AddrSpace::PROG, Word>(reg.pc);
+    queue.irc = readInstr<C>(reg.pc);
 }
 
 template <Core C, Size S> u32
@@ -647,7 +939,7 @@ Moira::jumpToVector(int nr)
             
             throw DoubleFault();
             
-        } else if (C == Core::C68000) {
+        } else if constexpr (C == Core::C68000) {
 
             throw AddressError(makeFrame<F|AE_PROG>(reg.pc, vectorAddr));
 
@@ -691,6 +983,10 @@ Moira::jumpToVector(int nr)
     didJumpToVector(nr, reg.pc);
 }
 
+// The following definitions are not templated. They are compiled into the
+// main translation unit only (see MoiraCore_cpp.h).
+#ifdef MOIRA_MAIN_TU
+
 int
 Moira::baseDispWords(u16 ext) const
 {
@@ -712,6 +1008,8 @@ Moira::outerDispWords(u16 ext) const
 
     return outer_disp ? (outer_disp_long ? 2 : 1) : 0;
 }
+
+#endif
 
 template <Core C, Mode M, Size S> int
 Moira::penaltyCycles(u16 ext) const

@@ -5,6 +5,10 @@
 // Published under the terms of the MIT License
 // -----------------------------------------------------------------------------
 
+// The following definitions are not templated. They are compiled into the
+// main translation unit only (see MoiraCore_cpp.h).
+#ifdef MOIRA_MAIN_TU
+
 bool
 Moira::isValidExtMMU(Instr I, Mode M, u16 op, u32 ext) const
 {
@@ -72,14 +76,17 @@ Moira::isValidExtMMU(Instr I, Mode M, u16 op, u32 ext) const
 
                     if ((ext & 0x300) == 0) {
                         if (preg() != 0) {
-                            if (M == Mode::PI || M == Mode::PD || M == Mode::IM || M == Mode::IP) return false;
+                            if (M == Mode::PI || M == Mode::PD || M == Mode::IM || M == Mode::IP) { return false;
+                            }
                         }
                     }
 
                     // Check register field (binutils accepts all M68851 registers)
                     if ((ext & 0x100) == 0) {
                         if (preg() != 0) {
-                            if (M == Mode::DN || M == Mode::AN) return false;
+                            if (M == Mode::DN || M == Mode::AN) {
+                                return false;
+                            }
                         }
                     }
                     return true;
@@ -110,6 +117,8 @@ Moira::isValidExtMMU(Instr I, Mode M, u16 op, u32 ext) const
             fatalError;
     }
 }
+
+#endif
 
 template <Core C, Instr I, Mode M, Size S> void
 Moira::execPGen(u16 opcode)

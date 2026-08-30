@@ -9,6 +9,7 @@
 #include "Moira.h"
 #include "MoiraMacros.h"
 
+#include <cassert>
 #include <cstdio>
 #include <algorithm>
 #include <cmath>
@@ -20,8 +21,12 @@ namespace moira {
 
 using namespace Flag;
 
+// Mark this file as the main translation unit
+#define MOIRA_MAIN_TU
+
 #include "MoiraInit_cpp.h"
 #include "MoiraALU_cpp.h"
+#include "MoiraCache_cpp.h"
 #include "MoiraDataflow_cpp.h"
 #include "MoiraExceptions_cpp.h"
 #include "MoiraExec_cpp.h"
@@ -32,7 +37,7 @@ Moira::Moira()
 {
     exec = new ExecPtr[65536];
     loop = new ExecPtr[65536];
-    if (MOIRA_BUILD_INSTR_INFO_TABLE) info = new InstrInfo[65536];
+    if (MOIRA_ENABLE_DASM) info = new InstrInfo[65536];
     if (MOIRA_ENABLE_DASM) dasm = new DasmPtr[65536];
 
     createJumpTable(cpuModel, dasmModel);
@@ -62,6 +67,30 @@ Moira::~Moira()
     if (dasm) delete [] dasm;
 }
 
+std::string
+Moira::version()
+{
+    std::string result;
+    
+    result = std::to_string(Version::major) + "." + std::to_string(Version::minor);
+    if constexpr (Version::patch > 0) result += "." + std::to_string(Version::patch);
+    if constexpr (Version::beta > 0) result += 'b' + std::to_string(Version::beta);
+    
+    return result;
+}
+
+std::string
+Moira::build()
+{
+#ifdef NDEBUG
+    std::string db = "";
+#else
+    std::string db = " [DEBUG BUILD]";
+#endif
+    
+    return version() + db + " (" + __DATE__ + " " + __TIME__ + ")";
+}
+
 void
 Moira::setModel(Model cpuModel, Model dasmModel)
 {
@@ -71,8 +100,9 @@ Moira::setModel(Model cpuModel, Model dasmModel)
         this->dasmModel = dasmModel;
 
         createJumpTable(cpuModel, dasmModel);
-        
+
         reg.cacr &= cacrMask();
+        flushInstructionCache();
         flags &= ~State::LOOPING;
     }
 }
@@ -150,7 +180,7 @@ Moira::cacrMask() const
     switch (cpuModel) {
 
         case Model::M68020: case Model::M68EC020: return 0x0003;
-        case Model::M68030: case Model::M68EC030: return 0x3F13;
+        case Model::M68030: case Model::M68EC030: return 0x3313;
         
         default:
             return 0xFFFF;
@@ -167,19 +197,6 @@ Moira::addrMask() const
         
         default:
             return addrMask<Core::C68020>();
-    }
-}
-
-template <Core C> u32
-Moira::addrMask() const
-{
-    if constexpr (C == Core::C68020) {
-
-        return cpuModel == Model::M68EC020 ? 0x00FFFFFF : 0xFFFFFFFF;
-
-    } else {
-
-        return 0x00FFFFFF;
     }
 }
 
@@ -208,6 +225,8 @@ Moira::reset()
     ipl = 0;
     fcl = 2;
     fcSource = 0;
+
+    flushInstructionCache();
 
     SYNC(16);
 
@@ -513,6 +532,12 @@ Moira::setSR(u16 val)
 void
 Moira::setCACR(u32 val)
 {
+    // Setting the CE bit invalidates the entry for the address in CAAR
+    if (val & (1 << 2)) invalidateCacheEntry(reg.caar);
+
+    // Setting the C bit invalidates all entries
+    if (val & (1 << 3)) flushInstructionCache();
+
     reg.cacr = val & cacrMask();
     didChangeCACR(val);
 }
@@ -557,42 +582,6 @@ Moira::setSupervisorFlags(bool s, bool m)
     if (uspIsVisible)  reg.sp = reg.usp;
     if (ispIsVisible)  reg.sp = reg.isp;
     if (mspIsVisible)  reg.sp = reg.msp;
-}
-
-template <Size S> u32
-Moira::readD(int n) const
-{
-    return CLIP<S>(reg.d[n]);
-}
-
-template <Size S> u32
-Moira::readA(int n) const
-{
-    return CLIP<S>(reg.a[n]);
-}
-
-template <Size S> u32
-Moira::readR(int n) const
-{
-    return CLIP<S>(reg.r[n]);
-}
-
-template <Size S> void
-Moira::writeD(int n, u32 v)
-{
-    reg.d[n] = WRITE<S>(reg.d[n], v);
-}
-
-template <Size S> void
-Moira::writeA(int n, u32 v)
-{
-    reg.a[n] = WRITE<S>(reg.a[n], v);
-}
-
-template <Size S> void
-Moira::writeR(int n, u32 v)
-{
-    reg.r[n] = WRITE<S>(reg.r[n], v);
 }
 
 u16
@@ -816,15 +805,6 @@ Moira::setFC(u8 value)
     }
 }
 
-template <Mode M> void
-Moira::setFC()
-{
-    if constexpr (MOIRA_EMULATE_FC) {
-        
-        fcl = (M == Mode::DIPC || M == Mode::IXPC) ? FC::USER_PROG : FC::USER_DATA;
-    }
-}
-
 void
 Moira::setIPL(u8 val)
 {
@@ -855,13 +835,13 @@ Moira::getIrqVector(u8 level) const {
 InstrInfo
 Moira::getInstrInfo(u16 op) const
 {
-    if constexpr (MOIRA_BUILD_INSTR_INFO_TABLE) {
+    if constexpr (MOIRA_ENABLE_DASM) {
 
         return info[op];
 
     } else {
 
-        throw std::runtime_error("This feature requires MOIRA_BUILD_INSTR_INFO_TABLE = true\n");
+        throw std::runtime_error("This feature requires MOIRA_ENABLE_DASM = true\n");
     }
 }
 
