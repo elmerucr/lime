@@ -18,6 +18,12 @@ project(lime)
 #option(LIME_VENDORED "Use vendored libraries" ON)
 
 set(LIME_SDL3_VERSION "release-3.4.14")
+message(STATUS "")
+message(STATUS "  ┌─ SDL3 ─────────────────────────────────────────────────────")
+message(STATUS "  │ Fetching SDL3 ${LIME_SDL3_VERSION} from GitHub...")
+message(STATUS "  │ (first build downloads ~30 MB; subsequent builds use cache)")
+message(STATUS "  └────────────────────────────────────────────────────────────")
+message(STATUS "")
 
 include(FetchContent)
 FetchContent_Declare(

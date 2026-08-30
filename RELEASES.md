@@ -1,6 +1,7 @@
 ## Version ...
 
-* 20260828 Automatic fetching of SDL3 by cmake (learned from AltirraSDL) + compiles with SDL 3.4.14
+* 20260828 Compiles with SDL 3.4.14 on macOS Tahoe 26.6.2
+* 20260828 Automatic fetching of SDL3 by cmake (see AltirraSDL)
 * 20260816 Bitmap mode removed from layer (can be done with large tiles)
 * 20260816 Adding h and v flip for layers
 * 20260815 Removed relative to layer options for sprite
