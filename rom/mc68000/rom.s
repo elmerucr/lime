@@ -70,7 +70,7 @@ start
 
 	jsr	init_vector_table
 	jsr	copy_fonts_from_rom
-	jsr	copy_logo_tiles
+	jsr	copy_logo_tile
 	jsr	init_logo
 	jsr	sound_reset
 
@@ -78,7 +78,7 @@ start
 	move.l	#VDC_LAYER_COLORS,terminal_colors	; default location
 
 	move.b	#$01,VDC_BORDER_COLOR.w		; dark grey / black
-	move.b	#$0a,VDC_BORDER_SIZE.w
+	move.b	#$0a,VDC_BORDER_SIZE.w		; 10 pixels hborder
 	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current
 	move.b	#%1100,VDC_LAYER_FLAGS0.w	;
 	move.w	#$000a,VDC_LAYER_Y_MSB.w	; y location
@@ -105,7 +105,7 @@ start
 logo_screen
 	subq.l	#1,logo_cntdwn
 	bne.s	.ls1				; didn't reach 0
-	move.b	#%1101,$414.w			; display layer 0
+	move.b	#%1101,VDC_LAYER_FLAGS0.w	; display layer 0
 
 .ls1	move.b	(KEYBOARD_STATE+1).w,D0		; check status of esc key
 	beq.s	.ls2				; not pressed
@@ -288,9 +288,10 @@ boot_binary
 	movea.l	exec_address,A0
 	jmp	(A0)
 
-;----------------------------------
-; destroys D0, A0
-;----------------------------------
+;-----------------------------------------------------------------------
+; Routine:  terminal_flip_cursor
+; Destroys: D0, A0
+;-----------------------------------------------------------------------
 terminal_flip_cursor
 	tst.b	cursor_active
 	beq.s	.1
@@ -354,7 +355,9 @@ exc_lvl4_irq_auto		; coupled to timer
 .3	movem.l	(SP)+,D0-D1/A0
 	rte
 
-
+; -----------
+; Routine: exception vdc / letter wobble
+; -----------------
 exc_lvl6_irq_auto				; coupled to vdc
 	move.b	VDC_CURRENT_SPRITE,-(SP)
 	movem.l	D0-D1,-(SP)
@@ -374,7 +377,7 @@ exc_lvl6_irq_auto				; coupled to vdc
 
 .1	move.b	D0,logo_animation
 
-	move.b	#4,D1				; start with sprite 4 (letter 'l')
+	move.b	#1,D1				; start with sprite 1 (letter 'l')
 .2	move.b	D1,VDC_CURRENT_SPRITE
 	move.b	#92,VDC_SPRITE_Y_LSB		; base position for each letter
 
@@ -387,7 +390,7 @@ exc_lvl6_irq_auto				; coupled to vdc
 	subq.b	#1,VDC_SPRITE_Y_LSB		; move letter up 1 pixel
 
 .3	addq	#1,D1				; move to next sprite
-	cmp.b	#8,D1				; did we reach sprite 8?
+	cmp.b	#5,D1				; did we reach sprite 5?
 	bne	.2				; not yet, jump to .2
 
 .end	movem.l	(SP)+,D0-D1
@@ -428,16 +431,16 @@ sound_reset
 
 	movea.l	#SID0_F,A0
 
+	moveq	#64-1,D0
 .1	clr.b	(A0)+
-	cmpa.l	#SID0_F+$40,A0
-	bne	.1
+	dbra	D0,.1
 
 	move.b	#$7f,D0
 	movea.l	#MIX_SID0_LEFT,A0
 
+	moveq	#8-1,D1
 .2	move.b	D0,(A0)+
-	cmpa.l	#MIX_SID0_LEFT+$8,A0
-	bne	.2
+	dbra	D1,.2
 
 	move.b	#$f,SID0_V
 	move.b	#$f,SID1_V
@@ -486,13 +489,13 @@ copy_fonts_from_rom
 	rts
 
 
-copy_logo_tiles
-	movea.l	#logo_tiles,A0
+copy_logo_tile
+	movea.l	#logo_tile,A0
 	movea.w	#$11c0,A1		; start at tile $1c
 
+	moveq	#64-1,D0		; 64 bytes = 1 16x16 tile
 .1	move.b	(A0)+,(A1)+
-	cmpa.l	#logo_tiles+64,A0	; 64 bytes = 4 tiles, 16 bytes/tile
-	bne	.1
+	dbra	D0,.1
 
 	rts
 
@@ -509,7 +512,7 @@ init_logo
 	cmpa.l	#VDC_SPRITE_X_MSB+8,A1
 	bne	.2
 	addq	#1,D0
-	cmpa.l	#logo_data+64,A0	; 8 * 8 bytes = 64 bytes
+	cmpa.l	#logo_data+40,A0	; 5 sprites x 8 = 40
 	bne	.1
 
 	rts
@@ -646,7 +649,7 @@ terminal_putstring
 
 
 ; ----------------------------------------------------------------------
-; Routine:   ...
+; Routine:   terminal_put_hex_number
 ; Inputs:    D0 contains de number to print, D1 no of digits to print
 ; Outputs:   -
 ; Destroyed: D0,D1,A0,A1
@@ -670,30 +673,43 @@ terminal_put_hex_number
 .2	rts
 
 ; ----------------------------------------------------------------------
-; Routine: terminal_put_bcd_number
-; Inputs:  D0-D1 combined (contain max 10 bcd numbers, 2 in D0, 8 in D1)
+; Routine:   terminal_put_bcd_number
+; Inputs:    D0/D1 combined (contain max 10 bcd numbers, 2 in D0, 8 in D1)
 ;
-;
+; Destroyed: D0/D1
 ; ----------------------------------------------------------------------
 terminal_put_bcd_number
 	movem.l	D2-D4,-(SP)
-	moveq	#16,D3
-	asl	D1
-	roxl	D0
-
-
-
-
-
-	moveq	#0,D4		; D4 is flag for 0 outputs
-	move.l	D0,D2
-	ror	#4,D2
-
-
-	;bne	.start
-
-	movem.l	(SP)+,D2-D4
+	moveq	#0,D4		; flag for first non zero
+	moveq	#10-1,D3	; max 10 digits
+.start	move.b	D0,D2
+	lsr.b	#4,D2		; D2 now holds number
+	beq	.chk_D4
+	moveq	#1,D4		; number 1 or above, from now on print all numbers
+	bra.s	.print
+.chk_D4	tst.b	D4
+	beq.s	.cont
+.print	addi.b	#$30,D2
+	movem.l	D0-D1,-(SP)
+	move.b	D2,D0
+	bsr	terminal_putchar
+	movem.l	(SP)+,D0-D1
+.cont	asl.l	D1
+	roxl.l	D0
+	asl.l	D1
+	roxl.l	D0
+	asl.l	D1
+	roxl.l	D0
+	asl.l	D1
+	roxl.l	D0
+	dbra	D3,.start
+	tst.b	D4
+	bne	.end
+	move.b	#'0',D0
+	bsr	terminal_putchar
+.end	movem.l	(SP)+,D2-D4
 	rts
+
 
 ; ----------------------------------------------------------------------
 ; Routine:   terminal_add_bottom_row
@@ -772,52 +788,31 @@ file_loading4	dc.b	$0a,$0a," jumping to $",0
 
 
 logo_data
-	dc.b	0,152,0,76,%111,0,%00010001,$1c	; icon top left
-	dc.b	0,160,0,76,%111,0,%00010001,$1d	; icon top right
-	dc.b	0,152,0,84,%111,0,%00010001,$1e	; icon bottom left
-	dc.b	0,160,0,84,%111,0,%00010001,$1f	; icon bottom right
+	dc.b	0,152,0,76,%111,0,%00100010,$07 ; icon (=tile 7 seen from $1000 at 16x16/tile)
 	dc.b	0,147,0,92,%111,0,%00010001,$6c	; l
 	dc.b	0,152,0,92,%111,0,%00010001,$69	; i
 	dc.b	0,158,0,92,%111,0,%00010001,$6d	; m
 	dc.b	0,166,0,92,%111,0,%00010001,$65	; e
 
 
-logo_tiles
-	dc.b	%00000000,%00000000	; tile 1 (icon upper left)
-	dc.b	%00000001,%00000000
-	dc.b	%00000111,%10000000
-	dc.b	%00000111,%10100000
-	dc.b	%00011110,%11111000
-	dc.b	%00011110,%10101111
-	dc.b	%00011110,%10101010
-	dc.b	%00011110,%10101111
+logo_tile
+	dc.b	%00000000,%00000000,%00000000,%00000000
+	dc.b	%00000001,%00000000,%00000000,%00000000
+	dc.b	%00000111,%10000000,%00000000,%00000000
+	dc.b	%00000111,%10100000,%00000000,%00000000
+	dc.b	%00011110,%11111000,%00000000,%00000000
+	dc.b	%00011110,%10101111,%00000000,%00000000
+	dc.b	%00011110,%10101010,%11000000,%00000000
+	dc.b	%00011110,%10101111,%10110000,%00000000
+	dc.b	%00011110,%11111010,%11101100,%00000000
+	dc.b	%00000111,%10101010,%11101110,%00000000
+	dc.b	%00000111,%10101011,%10101011,%10000000
+	dc.b	%00000001,%11101011,%10101011,%10100000
+	dc.b	%00000000,%01111110,%10101010,%11110100
+	dc.b	%00000000,%00010111,%11111111,%01010000
+	dc.b	%00000000,%00000001,%01010101,%00000000
+	dc.b	%00000000,%00000000,%00000000,%00000000
 
-	dc.b	%00000000,%00000000	; tile 2 (icon upper right)
-	dc.b	%00000000,%00000000
-	dc.b	%00000000,%00000000
-	dc.b	%00000000,%00000000
-	dc.b	%00000000,%00000000
-	dc.b	%00000000,%00000000
-	dc.b	%11000000,%00000000
-	dc.b	%10110000,%00000000
-
-	dc.b	%00011110,%11111010	; tile 3 (icon bottom left)
-	dc.b	%00000111,%10101010
-	dc.b	%00000111,%10101011
-	dc.b	%00000001,%11101011
-	dc.b	%00000000,%01111110
-	dc.b	%00000000,%00010111
-	dc.b	%00000000,%00000001
-	dc.b	%00000000,%00000000
-
-	dc.b	%11101100,%00000000	; tile 4 (icon bottom right)
-	dc.b	%11101110,%00000000
-	dc.b	%10101011,%10000000
-	dc.b	%10101011,%10100000
-	dc.b	%10101010,%11110100
-	dc.b	%11111111,%01010000
-	dc.b	%01010101,%00000000
-	dc.b	%00000000,%00000000
 
 hex_values
 	dc.b	"0123456789abcdef"

@@ -51,15 +51,13 @@ b_process_buffer
 	moveq	#8,D1
 	bsr	terminal_put_hex_number
 
-	;move.l	D0,-(SP)		; temp hack; print the hex number
+	;move.l	D0,-(SP)
 	move.b	#$a,D0			; print newline
 	moveq	#1,D1
 	trap	#15
 	move.l	(SP)+,D0
 	bsr	b_double_dabble
-	exg	D0,D1
-	moveq	#8,D1
-	bsr	terminal_put_hex_number
+	bsr	terminal_put_bcd_number
 	bsr	b_remove_spaces
 	movea.l	(SP)+,A2
 	rts
