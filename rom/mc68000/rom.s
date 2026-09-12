@@ -61,7 +61,7 @@ prngx		rs.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	start		; reset vector
-version	dc.b	"rom mc68000 0.10.20260815",0
+version	dc.b	"rom mc68000 0.10.20260912",0
 
 
 start
@@ -646,7 +646,7 @@ terminal_putstring
 
 
 ; ----------------------------------------------------------------------
-;
+; Routine:   ...
 ; Inputs:    D0 contains de number to print, D1 no of digits to print
 ; Outputs:   -
 ; Destroyed: D0,D1,A0,A1
@@ -669,6 +669,31 @@ terminal_put_hex_number
 	jsr	terminal_putchar
 .2	rts
 
+; ----------------------------------------------------------------------
+; Routine: terminal_put_bcd_number
+; Inputs:  D0-D1 combined (contain max 10 bcd numbers, 2 in D0, 8 in D1)
+;
+;
+; ----------------------------------------------------------------------
+terminal_put_bcd_number
+	movem.l	D2-D4,-(SP)
+	moveq	#16,D3
+	asl	D1
+	roxl	D0
+
+
+
+
+
+	moveq	#0,D4		; D4 is flag for 0 outputs
+	move.l	D0,D2
+	ror	#4,D2
+
+
+	;bne	.start
+
+	movem.l	(SP)+,D2-D4
+	rts
 
 ; ----------------------------------------------------------------------
 ; Routine:   terminal_add_bottom_row
@@ -800,5 +825,6 @@ hex_values
 	include "basic.s"
 
 	;include	"TBI68K.ASM"
+
 
 end_of_rom

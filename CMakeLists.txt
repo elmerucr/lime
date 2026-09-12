@@ -13,7 +13,7 @@ project(lime)
 # Create an option to switch between a system sdl library and a vendored SDL library
 #option(LIME_VENDORED "Use vendored libraries" ON)
 
-set(LIME_SDL3_VERSION "release-3.4.14")
+set(LIME_SDL3_VERSION "release-3.4.16")
 message(STATUS "")
 message(STATUS "  ┌─ SDL3 ─────────────────────────────────────────────────────")
 message(STATUS "  │ Fetching SDL3 ${LIME_SDL3_VERSION} from GitHub...")

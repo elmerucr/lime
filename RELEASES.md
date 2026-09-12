@@ -1,5 +1,8 @@
 ## ...
 
+* 20260912 rom: bin to BCD conversion
+* 20260902 Compiles with SDL 3.4.16 on macOS Tahoe 26.6.2
+
 ## Version 0.13.20260830-alpha
 
 * 20260830 Moira cpu core updated to 5.0b
