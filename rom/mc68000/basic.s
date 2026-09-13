@@ -168,5 +168,5 @@ b_get_dec_number
 	rts
 
 
-b_greeter	dc.b	$a,"basic version <<work in progress>>",0
+b_greeter	dc.b	$a,"basic v0.0 <<this is WIP>>",0
 b_prompt	dc.b	$a,"ready.",$a,0

@@ -1,5 +1,5 @@
 ;-----------------------------------------------------------------------
-; rom.s (assembles with vasmm68k_mot)
+; rom.s (assembles with vasmm68k_mot), see Makefile
 ; lime
 ;
 ; Copyright © 2025-2026 elmerucr. All rights reserved.
@@ -61,7 +61,7 @@ prngx		rs.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	start		; reset vector
-version	dc.b	"rom mc68000 0.10.20260912",0
+version	dc.b	"rom mc68000 0.10.20260913",0
 
 
 start
@@ -426,26 +426,26 @@ timer_default_handler
 	move.b	#$12,VDC_BG_COLOR.w
 	rts
 
+
+; ----------------------------------------------------------------------
+; Routine: sound_reset
+; ----------------------------------------------------------------------
 sound_reset
-	movem.l	D0/A0,-(SP)
-
-	movea.l	#SID0_F,A0
-
+	movea.l	#SID0_BASE,A0		; clear sids
 	moveq	#64-1,D0
 .1	clr.b	(A0)+
 	dbra	D0,.1
 
-	move.b	#$7f,D0
-	movea.l	#MIX_SID0_LEFT,A0
+					; what about analog?
 
+	move.b	#$7f,D0			; mixer values
+	movea.l	#MIX_SID0_LEFT,A0
 	moveq	#8-1,D1
 .2	move.b	D0,(A0)+
 	dbra	D1,.2
 
-	move.b	#$f,SID0_V
+	move.b	#$f,SID0_V		; set sid volumes
 	move.b	#$f,SID1_V
-
-	movem.l	(SP)+,D0/A0
 	rts
 
 
@@ -473,19 +473,17 @@ init_vector_table
 	move.l	#timer_default_handler,VEC_TIMER7.w
 	rts
 
-
+; ----------------------------------------------------------------------
+; Routine: copy_fonts_from_rom (to underlying ram)
+; ----------------------------------------------------------------------
 copy_fonts_from_rom
 	move.b	CORE_ROMS.w,-(SP)
-
-	or.b	#%00000110,CORE_ROMS.w			; make rom font visible to cpu
+	or.b	#%00000110,CORE_ROMS.w		; make rom font visible to cpu
 	movea.l	#$800,A0
-	movea.l	#$2000,A1
-
-.1	move.b	(A0),(A0)+				; copy rom font to underlying ram
-	cmpa	A1,A0
-	bne	.1
-
-	move.b	(SP)+,CORE_ROMS.w
+	move.l	#$1800-1,D0
+.start	move.b	(A0),(A0)+
+	dbra	D0,.start
+	move.b	(SP)+,CORE_ROMS.w		; restore rom settings
 	rts
 
 
@@ -499,22 +497,20 @@ copy_logo_tile
 
 	rts
 
-
-; setup sprites 0 - 7 (position, flags, index)
+; ----------------------------------------------------------------------
+; Routine: init_logo (setup sprites 0 - 4 (position, flags, index))
+; ----------------------------------------------------------------------
 init_logo
 	movea.l	#logo_data,A0
-	clr.b	D0
-
+	moveq	#0,D0
 .1	move.b	D0,VDC_CURRENT_SPRITE
 	movea.l	#VDC_SPRITE_X_MSB,A1
-
 .2	move.b	(A0)+,(A1)+
 	cmpa.l	#VDC_SPRITE_X_MSB+8,A1
 	bne	.2
 	addq	#1,D0
 	cmpa.l	#logo_data+40,A0	; 5 sprites x 8 = 40
 	bne	.1
-
 	rts
 
 
@@ -633,19 +629,18 @@ terminal_putchar
 
 
 ; ----------------------------------------------------------------------
-;
-;
-;
-;
+; Routine: terminal_putstring (zero terminated)
+; Input:   A0 points to first character
+; Output:  -
 ; ----------------------------------------------------------------------
 terminal_putstring
 	move.b	(A0)+,D0
-	beq	.1
+	beq	.end
 	move.l	A0,-(SP)
 	bsr	terminal_putchar
 	movea.l	(SP)+,A0
 	bra	terminal_putstring
-.1	rts
+.end	rts
 
 
 ; ----------------------------------------------------------------------
@@ -672,6 +667,7 @@ terminal_put_hex_number
 	jsr	terminal_putchar
 .2	rts
 
+
 ; ----------------------------------------------------------------------
 ; Routine:   terminal_put_bcd_number
 ; Inputs:    D0/D1 combined (contain max 10 bcd numbers, 2 in D0, 8 in D1)
@@ -680,16 +676,15 @@ terminal_put_hex_number
 ; ----------------------------------------------------------------------
 terminal_put_bcd_number
 	movem.l	D2-D4,-(SP)
-	moveq	#0,D4		; flag for first non zero
+	moveq	#0,D4		; flag for first non zero, then print all zeroes
 	moveq	#10-1,D3	; max 10 digits
 .start	move.b	D0,D2
-	lsr.b	#4,D2		; D2 now holds number
-	beq	.chk_D4
-	moveq	#1,D4		; number 1 or above, from now on print all numbers
-	bra.s	.print
-.chk_D4	tst.b	D4
-	beq.s	.cont
-.print	addi.b	#$30,D2
+	lsr.b	#4,D2		; D2.b now holds a number
+	bne	.print		; it's a 1 or higher
+	tst.b	D4		; it's a 0, but check if it must printed
+	beq.s	.cont		; no, go to .cont
+.print	moveq	#1,D4
+	addi.b	#$30,D2
 	movem.l	D0-D1,-(SP)
 	move.b	D2,D0
 	bsr	terminal_putchar
@@ -703,9 +698,9 @@ terminal_put_bcd_number
 	asl.l	D1
 	roxl.l	D0
 	dbra	D3,.start
-	tst.b	D4
-	bne	.end
-	move.b	#'0',D0
+	tst.b	D4		; if D4.b is still 0, then nothing has been printed
+	bne	.end		; something was printed already
+	move.b	#'0',D0		; nothing printed yet, so print 0
 	bsr	terminal_putchar
 .end	movem.l	(SP)+,D2-D4
 	rts
@@ -743,6 +738,7 @@ terminal_add_bottom_row
 	movem.l	(SP)+,D2/A2-A3
 	rts
 
+
 terminal_welcome
 	lea	welcome,A0
 	jsr	terminal_putstring
@@ -776,6 +772,7 @@ prng
 	move.b	D0,prngc.w
 	rts
 
+
 logo_boot_msg
 		dc.b	$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a
 		dc.b	"             drop a binary file to boot or hit [esc] to start basic",0
@@ -788,11 +785,11 @@ file_loading4	dc.b	$0a,$0a," jumping to $",0
 
 
 logo_data
-	dc.b	0,152,0,76,%111,0,%00100010,$07 ; icon (=tile 7 seen from $1000 at 16x16/tile)
-	dc.b	0,147,0,92,%111,0,%00010001,$6c	; l
-	dc.b	0,152,0,92,%111,0,%00010001,$69	; i
-	dc.b	0,158,0,92,%111,0,%00010001,$6d	; m
-	dc.b	0,166,0,92,%111,0,%00010001,$65	; e
+	dc.b	0,152,0,76,%00000111,0,%00100010,$07 ; icon (=tile 7 seen from $1000 at 16x16/tile)
+	dc.b	0,147,0,92,%00000111,0,%00010001,'l'
+	dc.b	0,152,0,92,%00000111,0,%00010001,'i'
+	dc.b	0,158,0,92,%00000111,0,%00010001,'m'
+	dc.b	0,166,0,92,%00000111,0,%00010001,'e'
 
 
 logo_tile
@@ -818,8 +815,6 @@ hex_values
 	dc.b	"0123456789abcdef"
 
 	include "basic.s"
-
-	;include	"TBI68K.ASM"
 
 
 end_of_rom

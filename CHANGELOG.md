@@ -1,5 +1,6 @@
 ## ...
 
+* 20260913 rom: BCD print
 * 20260912 rom: bin to BCD conversion
 * 20260902 Compiles with SDL 3.4.16 on macOS Tahoe 26.6.2
 

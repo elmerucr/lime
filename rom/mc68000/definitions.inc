@@ -92,9 +92,11 @@ VDC_LAYER_TILES			equ	$2000
 VDC_LAYER_COLORS		equ	$3000
 
 ; sound devices
+SID0_BASE			equ	$0500
 SID0_F				equ	$0500
 SID0_PW				equ	$0502
 SID0_V				equ	$051b
+SID1_BASE			equ	$0520
 SID1_V				equ	$053b
 MIX_SID0_LEFT			equ	$0580
 MIX_SID0_RIGHT			equ	$0581
