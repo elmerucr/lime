@@ -69,10 +69,11 @@ b_process_buffer
 	movea.l	(SP)+,A2
 	rts
 
+
 ; ----------------------------------------------------------------------
-; Routine: b_double_dabble (bin to bcd)
-; Inputs:  D0.l 32bits unsigned value
-; Outputs: D0-D1 combined holding 10 bcd's, big endian order
+; Subroutine: b_double_dabble (bin to bcd)
+; Inputs:     D0.l 32bits unsigned value
+; Outputs:    D0-D1 combined holding 10 bcd's, big endian order
 ; ----------------------------------------------------------------------
 b_double_dabble
 	movem.l	D2-D3,-(SP)
@@ -81,13 +82,12 @@ b_double_dabble
 	moveq	#0,D0
 	moveq	#0,D1
 
-.start
-	move.l	D1,-(SP)	; check individual numbers if >=5
-	bsr.s	chk_nums
+.start	move.l	D1,-(SP)	; check individual numbers if >=5
+	bsr.s	chk_nm
 	move.l	(SP)+,D1
 	exg	D0,D1
 	move.l	D1,-(SP)
-	bsr.s	chk_nums
+	bsr.s	chk_nm
 	move.l	(SP)+,D1
 	exg	D0,D1
 
@@ -100,8 +100,7 @@ b_double_dabble
 	movem.l	(SP)+,D2-D3
 	rts
 
-chk_nums
-	bsr.s	chk_nums_h1
+chk_nm	bsr.s	chk_nums_h1
 	swap	D0
 	bsr.s	chk_nums_h1
 	swap	D0

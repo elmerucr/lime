@@ -289,8 +289,8 @@ boot_binary
 	jmp	(A0)
 
 ;-----------------------------------------------------------------------
-; Routine:  terminal_flip_cursor
-; Destroys: D0, A0
+; Subroutine: terminal_flip_cursor
+; Destroys:   D0, A0
 ;-----------------------------------------------------------------------
 terminal_flip_cursor
 	tst.b	cursor_active
@@ -355,8 +355,8 @@ exc_lvl4_irq_auto		; coupled to timer
 .3	movem.l	(SP)+,D0-D1/A0
 	rte
 
-; -----------
-; Routine: exception vdc / letter wobble
+; ----------------------------------------------------------------------
+; Subroutine: exception vdc / letter wobble
 ; -----------------
 exc_lvl6_irq_auto				; coupled to vdc
 	move.b	VDC_CURRENT_SPRITE,-(SP)
@@ -428,22 +428,18 @@ timer_default_handler
 
 
 ; ----------------------------------------------------------------------
-; Routine: sound_reset
+; Subroutine: sound_reset (what to do with analog?)
 ; ----------------------------------------------------------------------
 sound_reset
 	movea.l	#SID0_BASE,A0		; clear sids
 	moveq	#64-1,D0
 .1	clr.b	(A0)+
 	dbra	D0,.1
-
-					; what about analog?
-
-	move.b	#$7f,D0			; mixer values
+	move.b	#$7f,D0			; set mixer values
 	movea.l	#MIX_SID0_LEFT,A0
 	moveq	#8-1,D1
 .2	move.b	D0,(A0)+
 	dbra	D1,.2
-
 	move.b	#$f,SID0_V		; set sid volumes
 	move.b	#$f,SID1_V
 	rts
@@ -474,7 +470,7 @@ init_vector_table
 	rts
 
 ; ----------------------------------------------------------------------
-; Routine: copy_fonts_from_rom (to underlying ram)
+; Subroutine: copy_fonts_from_rom (to underlying ram)
 ; ----------------------------------------------------------------------
 copy_fonts_from_rom
 	move.b	CORE_ROMS.w,-(SP)
@@ -490,12 +486,11 @@ copy_fonts_from_rom
 copy_logo_tile
 	movea.l	#logo_tile,A0
 	movea.w	#$11c0,A1		; start at tile $1c
-
 	moveq	#64-1,D0		; 64 bytes = 1 16x16 tile
 .1	move.b	(A0)+,(A1)+
 	dbra	D0,.1
-
 	rts
+
 
 ; ----------------------------------------------------------------------
 ; Routine: init_logo (setup sprites 0 - 4 (position, flags, index))
@@ -513,20 +508,20 @@ init_logo
 	bne	.1
 	rts
 
-
+; ----------------------------------------------------------------------
+; Subroutine: terminal_clear
+; ----------------------------------------------------------------------
 terminal_clear
-	move.w	#(TERMINAL_HPITCH*TERMINAL_VPITCH),D0
+	move.w	#(TERMINAL_HPITCH*TERMINAL_VPITCH)-1,D0
 	move.b	cursor_color.w,D1
 	movea.l	terminal_chars,A0
 	movea.l	terminal_colors,A1
-
-.1	move.b	#' ',(A0)+
+.start	move.b	#' ',(A0)+
 	move.b	D1,(A1)+
-	subq.w	#1,D0
-	bne	.1
-
+	dbra	D0,.start
 	clr.w	cursor_pos
 	rts
+
 
 ; ----------------------------------------------------------------------
 ; Subroutine: terminal_putchar
@@ -773,8 +768,7 @@ prng
 	rts
 
 
-logo_boot_msg
-		dc.b	$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a
+logo_boot_msg	dc.b	$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a
 		dc.b	"             drop a binary file to boot or hit [esc] to start basic",0
 welcome		dc.b	"lime virtual computer system",$0a,0
 file_error	dc.b	$0a,$0a,"error: not a valid binary",0
