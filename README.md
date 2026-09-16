@@ -2,7 +2,9 @@
 
 ![icon](./docs/icon_80x80.png)
 
-Lime is a virtual computer system that draws inspiration from computing platforms such as the Commodore 64 (look and feel, SID, VIC-II), the Amiga 500 and Atari ST (Motorola 68000), the TRS-80 Color Computer (Motorola 6809, binary format), the Nintendo Gameboy (tiles / graphics system) and the Atari 800xl (GTIA color palette). Notable features include:
+Lime is a virtual computer system that draws inspiration from computing platforms such as the Commodore 64 (look and feel, VIC-II, SID), the Amiga 500 and Atari ST (Motorola 68000), the original Nintendo Gameboy (tiles system) and the Atari 800xl (GTIA color palette).
+
+Notable features include:
 
 * Motorola MC68000 cpu using the [Moira](https://github.com/dirkwhoffmann/Moira) library
 * Motorola MC6809 cpu using the [mc6809](https://github.com/elmerucr/mc6809) library
@@ -43,21 +45,19 @@ The postamble (nine bytes) starts with magic byte ```$fe```, the next four are z
 
 ## Memory Map
 
-### MC68000 mode
-
 ```
 0x000000 - 0x000007 initial ssp / reset vector (8b)
 0x000008 - 0x0003ff mc68000 vector table (1016b)
-0x000400 - 0x00043f io vdc (64b)
-0x000440 - 0x00047f io timer (64b)
+0x000400 - 0x00047f io vdc (128b)
 0x000480 - 0x0004bf io core (64b)
-0x0004c0 - 0x0004ff unused / reserved (64b)
+0x0004c0 - 0x0004ff io timer (64b)
 0x000500 - 0x00051f io sound / sid0 (32b)
 0x000520 - 0x00053f io sound / sid1 (32b)
 0x000540 - 0x00055f io sound / analog0 (32b)
 0x000560 - 0x00057f io sound / analog1 (32b)
 0x000580 - 0x0005ff io sound / mixer (128b)
-0x000600 - 0x0007ff unused / reserved (512b)
+0x000600 - 0x0006ff io keyboard (256b)
+0x000700 - 0x0007ff unused / reserved (256b)
 0x000800 - 0x000fff default location tileset & 4x8 tileset in rom (2kb)
 0x001000 - 0x001fff default location tileset & 8x8 tileset in rom (4kb)
 0x002000 - 0x002fff default layer tiles (4kb)
@@ -66,10 +66,6 @@ The postamble (nine bytes) starts with magic byte ```$fe```, the next four are z
 0x010000 - 0x01ffff system rom (64kb)
 0x020000 - 0xffffff available ram (16256kb)
 ```
-
-### MC6809 mode
-
-to be done
 
 ## Building with CMake
 

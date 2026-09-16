@@ -105,11 +105,12 @@ struct layer_t {
 	uint8_t flags2_bit01_hsize;
 	uint8_t flags2_bit45_vsize;
 
-	uint8_t colors[4];
-
 	uint16_t tiles_address;
 	uint16_t colors_address;
 	uint16_t tileset_address;
+
+	// 0x58, 0x59, 0x5a, 0x5b
+	uint8_t colors[4];
 };
 
 struct sprite_t {
@@ -157,9 +158,10 @@ struct sprite_t {
 
 	uint8_t index;
 
-	uint8_t colors[4];
-
 	uint16_t tileset_address;
+
+	// 0x78, 0x79, 0x7a, 0x7b
+	uint8_t colors[4];
 };
 
 class vdc_t {

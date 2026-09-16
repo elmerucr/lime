@@ -222,12 +222,13 @@ uint8_t core_t::read8(uint32_t address)
 		return rom_mc68000->data[address];
 	} else if ((address & 0xffff00) == COMBINED_IO_PAGE) {
 		switch (address & 0x00c0) {
-			case VDC_SUB_PAGE:
+			case VDC_SUB_PAGE_1:
+			case VDC_SUB_PAGE_2:
 				return vdc->io_read8(address);
-			case TIMER_SUB_PAGE:
-				return timer->io_read_byte(address);
 			case CORE_SUB_PAGE:
 				return io_read8(address);
+			case TIMER_SUB_PAGE:
+				return timer->io_read_byte(address);
 			default:
 				return 0x00;
 		}
@@ -272,7 +273,8 @@ void core_t::write8(uint32_t address, uint8_t value)
 	if ((address & 0xffff00) == COMBINED_IO_PAGE) {
 		// combined page
 		switch (address & 0xc0) {
-			case VDC_SUB_PAGE:
+			case VDC_SUB_PAGE_1:
+			case VDC_SUB_PAGE_2:
 				vdc->io_write8(address, value);
 				break;
 			case TIMER_SUB_PAGE:

@@ -83,9 +83,10 @@
 #include <cstdio>
 
 #define COMBINED_IO_PAGE    0x000400
-#define     VDC_SUB_PAGE      0x00
-#define     TIMER_SUB_PAGE    0x40
+#define     VDC_SUB_PAGE_1    0x00
+#define     VDC_SUB_PAGE_2    0x40
 #define     CORE_SUB_PAGE     0x80
+#define     TIMER_SUB_PAGE    0xc0
 #define SOUND_IO_PAGE       0x000500
 #define KEYBOARD_IO_PAGE	0x000600
 #define FONT_4X6_PAGE		0x000800

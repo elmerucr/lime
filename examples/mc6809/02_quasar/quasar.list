@@ -59,49 +59,39 @@
 040F                  VDC_IRQ_SCANLINE_LSB            equ     $040f
                       
                       
-0410                  VDC_LAYER_X_MSB         equ     $0410
-0411                  VDC_LAYER_X_LSB         equ     $0411
-0412                  VDC_LAYER_Y_MSB         equ     $0412
-0413                  VDC_LAYER_Y_LSB         equ     $0413
-0414                  VDC_LAYER_FLAGS0        equ     $0414
-0415                  VDC_LAYER_FLAGS1        equ     $0415
-0418                  VDC_LAYER_COLOR0        equ     $0418
-0419                  VDC_LAYER_COLOR1        equ     $0419
-041A                  VDC_LAYER_COLOR2        equ     $041a
-041B                  VDC_LAYER_COLOR3        equ     $041b
-041C                  VDC_LAYER_BASE_MSB      equ     $041c
-041D                  VDC_LAYER_BASE_LSB      equ     $041d
+0440                  VDC_LAYER_X_MSB         equ     $0440
+0441                  VDC_LAYER_X_LSB         equ     $0441
+0442                  VDC_LAYER_Y_MSB         equ     $0442
+0443                  VDC_LAYER_Y_LSB         equ     $0443
+0444                  VDC_LAYER_FLAGS0        equ     $0444
+0445                  VDC_LAYER_FLAGS1        equ     $0445
+0446                  VDC_LAYER_FLAGS2        equ     $0446
+044C                  VDC_LAYER_BASE_MSB      equ     $044c
+044D                  VDC_LAYER_BASE_LSB      equ     $044d
+0458                  VDC_LAYER_COLOR0        equ     $0458
+0459                  VDC_LAYER_COLOR1        equ     $0459
+045A                  VDC_LAYER_COLOR2        equ     $045a
+045B                  VDC_LAYER_COLOR3        equ     $045b
                       
-0420                  VDC_SPRITE_X_MSB        equ     $0420
-0421                  VDC_SPRITE_X_LSB        equ     $0421
-0422                  VDC_SPRITE_Y_MSB        equ     $0422
-0423                  VDC_SPRITE_Y_LSB        equ     $0423
-0424                  VDC_SPRITE_FLAGS0       equ     $0424
-0425                  VDC_SPRITE_FLAGS1       equ     $0425
-0426                  VDC_SPRITE_INDEX        equ     $0426
-0428                  VDC_SPRITE_COLOR0       equ     $0428
-0429                  VDC_SPRITE_COLOR1       equ     $0429
-042A                  VDC_SPRITE_COLOR2       equ     $042a
-042B                  VDC_SPRITE_COLOR3       equ     $042b
-042E                  VDC_SPRITE_TILESET_ADDRESS      equ     $042e
+0460                  VDC_SPRITE_X_MSB        equ     $0460
+0461                  VDC_SPRITE_X_LSB        equ     $0461
+0462                  VDC_SPRITE_Y_MSB        equ     $0462
+0463                  VDC_SPRITE_Y_LSB        equ     $0463
+0464                  VDC_SPRITE_FLAGS0       equ     $0464
+0465                  VDC_SPRITE_FLAGS1       equ     $0465
+0466                  VDC_SPRITE_FLAGS2       equ     $0466
+0467                  VDC_SPRITE_INDEX        equ     $0467
+046E                  VDC_SPRITE_TILESET_PAGE equ     $046e
+0478                  VDC_SPRITE_COLOR0       equ     $0478
+0479                  VDC_SPRITE_COLOR1       equ     $0479
+047A                  VDC_SPRITE_COLOR2       equ     $047a
+047B                  VDC_SPRITE_COLOR3       equ     $047b
                       
 1000                  VDC_TILESET_ADDRESS     equ     $1000
-4000                  VDC_LAYER0_TILES        equ     $4000
-4800                  VDC_LAYER1_TILES        equ     $4800
-5000                  VDC_LAYER2_TILES        equ     $5000
-5800                  VDC_LAYER3_TILES        equ     $5800
-                      
-                      ; timer
-0440                  TIMER_SR                equ     $0440
-0441                  TIMER_CR                equ     $0441
-0450                  TIMER0_BPM              equ     $0450
-0452                  TIMER1_BPM              equ     $0452
-0454                  TIMER2_BPM              equ     $0454
-0456                  TIMER3_BPM              equ     $0456
-0458                  TIMER4_BPM              equ     $0458
-045A                  TIMER5_BPM              equ     $045a
-045C                  TIMER6_BPM              equ     $045c
-045E                  TIMER7_BPM              equ     $045e
+2000                  VDC_LAYER0_TILES        equ     $2000
+2000                  VDC_LAYER1_TILES        equ     $2000
+2000                  VDC_LAYER2_TILES        equ     $2000
+2000                  VDC_LAYER3_TILES        equ     $2000
                       
                       ; core
 0480                  CORE_SR                 equ     $0480
@@ -109,6 +99,18 @@
 0482                  CORE_ROMS               equ     $0482
 0484                  CORE_FILE_DATA          equ     $0484
 0488                  CORE_INPUT0             equ     $0488
+                      
+                      ; timer
+04C0                  TIMER_SR                equ     $04c0
+04C1                  TIMER_CR                equ     $04c1
+04D0                  TIMER0_BPM              equ     $04d0
+04D2                  TIMER1_BPM              equ     $04d2
+04D4                  TIMER2_BPM              equ     $04d4
+04D6                  TIMER3_BPM              equ     $04d6
+04D8                  TIMER4_BPM              equ     $04d8
+04DA                  TIMER5_BPM              equ     $04da
+04DC                  TIMER6_BPM              equ     $04dc
+04DE                  TIMER7_BPM              equ     $04de
                       
                       ; sound devices
 0500                  SID0_F                  equ     $0500
@@ -138,9 +140,9 @@ FE00                  ROM_START               equ     $fe00
 6000 8E6016           main            ldx     #timer0_irq             ; update the timer0 vector
 6003 BF0210                           stx     VECTOR_TIMER0_INDIRECT
 6006 CC9C40                           ldd     #40000                  ; 40000bpm for timer0
-6009 FD0450                           std     TIMER0_BPM
+6009 FD04D0                           std     TIMER0_BPM
 600C 8601                             lda     #1                      ; activate timer0
-600E B70441                           sta     TIMER_CR
+600E B704C1                           sta     TIMER_CR
 6011 1CEF                             andcc   #%11101111              ; enable irq's
 6013 13               1               sync                            ; rest until interrupt
 6014 20FD                             bra     1b

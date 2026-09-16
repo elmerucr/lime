@@ -62,33 +62,33 @@
 040F                  VDC_IRQ_SCANLINE_LSB            equ     $040f
                       
                       
-0410                  VDC_LAYER_X_MSB         equ     $0410
-0411                  VDC_LAYER_X_LSB         equ     $0411
-0412                  VDC_LAYER_Y_MSB         equ     $0412
-0413                  VDC_LAYER_Y_LSB         equ     $0413
-0414                  VDC_LAYER_FLAGS0        equ     $0414
-0415                  VDC_LAYER_FLAGS1        equ     $0415
-0416                  VDC_LAYER_FLAGS2        equ     $0416
-0418                  VDC_LAYER_COLOR0        equ     $0418
-0419                  VDC_LAYER_COLOR1        equ     $0419
-041A                  VDC_LAYER_COLOR2        equ     $041a
-041B                  VDC_LAYER_COLOR3        equ     $041b
-041C                  VDC_LAYER_BASE_MSB      equ     $041c
-041D                  VDC_LAYER_BASE_LSB      equ     $041d
+0440                  VDC_LAYER_X_MSB         equ     $0440
+0441                  VDC_LAYER_X_LSB         equ     $0441
+0442                  VDC_LAYER_Y_MSB         equ     $0442
+0443                  VDC_LAYER_Y_LSB         equ     $0443
+0444                  VDC_LAYER_FLAGS0        equ     $0444
+0445                  VDC_LAYER_FLAGS1        equ     $0445
+0446                  VDC_LAYER_FLAGS2        equ     $0446
+044C                  VDC_LAYER_BASE_MSB      equ     $044c
+044D                  VDC_LAYER_BASE_LSB      equ     $044d
+0458                  VDC_LAYER_COLOR0        equ     $0458
+0459                  VDC_LAYER_COLOR1        equ     $0459
+045A                  VDC_LAYER_COLOR2        equ     $045a
+045B                  VDC_LAYER_COLOR3        equ     $045b
                       
-0420                  VDC_SPRITE_X_MSB        equ     $0420
-0421                  VDC_SPRITE_X_LSB        equ     $0421
-0422                  VDC_SPRITE_Y_MSB        equ     $0422
-0423                  VDC_SPRITE_Y_LSB        equ     $0423
-0424                  VDC_SPRITE_FLAGS0       equ     $0424
-0425                  VDC_SPRITE_FLAGS1       equ     $0425
-0426                  VDC_SPRITE_FLAGS2       equ     $0426
-0427                  VDC_SPRITE_INDEX        equ     $0427
-0428                  VDC_SPRITE_COLOR0       equ     $0428
-0429                  VDC_SPRITE_COLOR1       equ     $0429
-042A                  VDC_SPRITE_COLOR2       equ     $042a
-042B                  VDC_SPRITE_COLOR3       equ     $042b
-042E                  VDC_SPRITE_TILESET_PAGE equ     $042e
+0460                  VDC_SPRITE_X_MSB        equ     $0460
+0461                  VDC_SPRITE_X_LSB        equ     $0461
+0462                  VDC_SPRITE_Y_MSB        equ     $0462
+0463                  VDC_SPRITE_Y_LSB        equ     $0463
+0464                  VDC_SPRITE_FLAGS0       equ     $0464
+0465                  VDC_SPRITE_FLAGS1       equ     $0465
+0466                  VDC_SPRITE_FLAGS2       equ     $0466
+0467                  VDC_SPRITE_INDEX        equ     $0467
+046E                  VDC_SPRITE_TILESET_PAGE equ     $046e
+0478                  VDC_SPRITE_COLOR0       equ     $0478
+0479                  VDC_SPRITE_COLOR1       equ     $0479
+047A                  VDC_SPRITE_COLOR2       equ     $047a
+047B                  VDC_SPRITE_COLOR3       equ     $047b
                       
 1000                  VDC_TILESET_ADDRESS     equ     $1000
 2000                  VDC_LAYER0_TILES        equ     $2000
@@ -96,24 +96,24 @@
 2000                  VDC_LAYER2_TILES        equ     $2000
 2000                  VDC_LAYER3_TILES        equ     $2000
                       
-                      ; timer
-0440                  TIMER_SR                equ     $0440
-0441                  TIMER_CR                equ     $0441
-0450                  TIMER0_BPM              equ     $0450
-0452                  TIMER1_BPM              equ     $0452
-0454                  TIMER2_BPM              equ     $0454
-0456                  TIMER3_BPM              equ     $0456
-0458                  TIMER4_BPM              equ     $0458
-045A                  TIMER5_BPM              equ     $045a
-045C                  TIMER6_BPM              equ     $045c
-045E                  TIMER7_BPM              equ     $045e
-                      
                       ; core
 0480                  CORE_SR                 equ     $0480
 0481                  CORE_CR                 equ     $0481
 0482                  CORE_ROMS               equ     $0482
 0484                  CORE_FILE_DATA          equ     $0484
 0488                  CORE_INPUT0             equ     $0488
+                      
+                      ; timer
+04C0                  TIMER_SR                equ     $04c0
+04C1                  TIMER_CR                equ     $04c1
+04D0                  TIMER0_BPM              equ     $04d0
+04D2                  TIMER1_BPM              equ     $04d2
+04D4                  TIMER2_BPM              equ     $04d4
+04D6                  TIMER3_BPM              equ     $04d6
+04D8                  TIMER4_BPM              equ     $04d8
+04DA                  TIMER5_BPM              equ     $04da
+04DC                  TIMER6_BPM              equ     $04dc
+04DE                  TIMER7_BPM              equ     $04de
                       
                       ; sound devices
 0500                  SID0_F                  equ     $0500
@@ -180,10 +180,10 @@ FC4A 26F7                             bne     2b
 FC4C 8EFCE5                           ldx     #logo_data              ; x points to start of logo data
 FC4F 5F                               clrb                            ; b holds current sprite
 FC50 F70407           3               stb     VDC_CURRENT_SPRITE      ; set active sprite
-FC53 108E0420                         ldy     #VDC_SPRITE_X_MSB       ; y points to start of sprite registers
+FC53 108E0460                         ldy     #VDC_SPRITE_X_MSB       ; y points to start of sprite registers
 FC57 A680             4               lda     ,x+                     ; copy data
 FC59 A7A0                             sta     ,y+
-FC5B 108C0428                         cmpy    #VDC_SPRITE_X_MSB+8     ; did we copy 5 values?
+FC5B 108C0468                         cmpy    #VDC_SPRITE_X_MSB+8     ; did we copy 5 values?
 FC5F 26F6                             bne     4b                      ; not yet, continue at 2
 FC61 5C                               incb                            ; we did, set next active sprite
 FC62 8CFD25                           cmpx    #logo_data+64           ; did we reach end of data?
@@ -236,9 +236,9 @@ FCA5 7F0481                           clr     CORE_CR                 ; no irq w
 FCA8 7F0401                           clr     VDC_CR
 FCAB 5F                               clrb
 FCAC F70407           1               stb     VDC_CURRENT_SPRITE
-FCAF B60424                           lda     VDC_SPRITE_FLAGS0
+FCAF B60464                           lda     VDC_SPRITE_FLAGS0
 FCB2 84FE                             anda    #%11111110
-FCB4 B70424                           sta     VDC_SPRITE_FLAGS0
+FCB4 B70464                           sta     VDC_SPRITE_FLAGS0
 FCB7 5C                               incb
 FCB8 C108                             cmpb    #$08
 FCBA 26F0                             bne     1b
@@ -271,13 +271,13 @@ FD0D 0098005C07001169                 fcb     0,152,0,92,%111,0,$11,$69       ; 
 FD15 009E005C0700116D                 fcb     0,158,0,92,%111,0,$11,$6d       ; m
 FD1D 00A6005C07001165                 fcb     0,166,0,92,%111,0,$11,$65       ; e
                       
-FD25 B60440           exc_irq         lda     TIMER_SR                ; load timer status register
+FD25 B604C0           exc_irq         lda     TIMER_SR                ; load timer status register
 FD28 2716                             beq     exc_vdc
 FD2A 8E0210                           ldx     #VECTOR_TIMER0_INDIRECT ; it is one of the timers, load x with 1st vector indirect
 FD2D 8601                             lda     #%00000001
-FD2F B50440           exc_test_tim    bita    TIMER_SR
+FD2F B504C0           exc_test_tim    bita    TIMER_SR
 FD32 2705                             beq     exc_next_tim
-FD34 B70440                           sta     TIMER_SR                ; acknowledge interrupt
+FD34 B704C0                           sta     TIMER_SR                ; acknowledge interrupt
 FD37 6E94                             jmp     [,x]
 FD39 48               exc_next_tim    asla
 FD3A 271C                             beq     exc_irq_end
@@ -311,13 +311,13 @@ FD6E C604                             ldb     #$04                    ; set curr
 FD70 F70407           2               stb     VDC_CURRENT_SPRITE
                       
 FD73 865C                             lda     #92                     ; set default y value
-FD75 B70423                           sta     VDC_SPRITE_Y_LSB
+FD75 B70463                           sta     VDC_SPRITE_Y_LSB
                       
-FD78 B60421                           lda     VDC_SPRITE_X_LSB        ; load its x register
+FD78 B60461                           lda     VDC_SPRITE_X_LSB        ; load its x register
 FD7B 9000                             suba    logo_animation          ; subtract the ani var
 FD7D 8008                             suba    #$08
 FD7F 2203                             bhi     3f                      ; if difference larger than 8 keep its y value
-FD81 7A0423                           dec     VDC_SPRITE_Y_LSB
+FD81 7A0463                           dec     VDC_SPRITE_Y_LSB
 FD84 5C               3               incb
 FD85 C108                             cmpb    #$08
 FD87 26E7                             bne     2b
