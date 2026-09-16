@@ -1,10 +1,8 @@
 add_library(system STATIC
 	analog.cpp
 	core.cpp
-	cpu_mc6809.cpp
-	cpu_mc68000.cpp
+	cpu.cpp
 	debugger.cpp
-	exceptions.cpp
 	host.cpp
 	keyboard.cpp
 	osd.cpp
@@ -17,8 +15,7 @@ add_library(system STATIC
 	vdc.cpp
 )
 
-target_link_libraries(system mc6809 moira resid)
+target_link_libraries(system moira resid)
 
-add_subdirectory(mc6809/)
 add_subdirectory(Moira/)
 add_subdirectory(resid-0.16/)

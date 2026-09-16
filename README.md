@@ -7,8 +7,7 @@ Lime is a virtual computer system that draws inspiration from computing platform
 Notable features include:
 
 * Motorola MC68000 cpu using the [Moira](https://github.com/dirkwhoffmann/Moira) library
-* Motorola MC6809 cpu using the [mc6809](https://github.com/elmerucr/mc6809) library
-* 16mb ram (the MC6809 mode will only address the lowest 64k)
+* 16mb ram
 * Screen resolution of 320x180 pixels, refresh rate of 60Hz
 * Video Display Controller (VDC) for graphics processing, shared memory access to lowest 64k
 * Programmable using MC68000 or MC6809 assembly (see ```examples``` folder)
@@ -27,19 +26,9 @@ By default, lime starts in MC68000 mode.
 
 Binaries (in ```decb``` format and borrowed from the TRS-80 Color Computer / Disk Extended Color Basic specification) can be dragged and dropped onto the application.
 
-### In MC6809 mode
+The original specification is largely followed (information can be found on the webpage for [LWTOOLS](https://www.lwtools.ca/manual/x27.html)). Binaries include the load address of the binary as well as encoding an execution address. These binaries may contain multiple loadable sections, each of which has its own load address.
 
-This follows the original specification. Information can be found on the webpage for [LWTOOLS](https://www.lwtools.ca/manual/x27.html).
-
-Binaries include the load address of the binary as well as encoding an execution address. These binaries may contain multiple loadable sections, each of which has its own load address.
-
-Each binary starts with a preamble. Each preamble is five bytes long. The first byte is ```$00```. The next two bytes specify the number of bytes to load and the last two bytes specify the address to load at. Then, a string of bytes follows. After this string of bytes, there may be another preamble or postamble. A postamble is also five bytes in length. The first byte of the postamble is ```$ff```, the next two are zero, and the last two are the execution address for the binary.
-
-### In MC68000 mode
-
-Largely comparable to MC6809 mode.
-
-Each preamble is nine bytes long and starts with the magic byte ```$01```, the next four bytes (big endian) specify the number of bytes to load (first byte must be ```$00```), the next four bytes (big endian, first byte ```$00```) the address to load at. There may be multiple preambles / chunks to load.
+Each binary starts with a preamble. Each preamble is nine bytes long and starts with the magic byte ```$01```, the next four bytes (big endian) specify the number of bytes to load (first byte must be ```$00```), the next four bytes (big endian, first byte ```$00```) the address to load at. There may be multiple preambles / chunks to load.
 
 The postamble (nine bytes) starts with magic byte ```$fe```, the next four are zero, then four bytes follow (big endian, first ```$00```) the execution address for the binary.
 
@@ -98,11 +87,8 @@ Run with:
 
 ### Assemblers and Compilers
 
-* [asm6809](https://www.6809.org.uk/asm6809/) - A portable cross assembler targeting the Motorola 6809 and Hitachi 6309 by Ciaran Anscomb.
 * [asmx](http://xi6.com/projects/asmx/) - A multi-CPU macro assembler by Bruce Tomlin for many major 8-bit and 16-bit CPUs, which can assemble code for multiple CPUs in the same source file.
-* [CMOC](https://freshcode.club/projects/cmoc) - CMOC is a 6809-generating cross-compiler for a large subset of the C language by sarrazip.
 * [EASy68K-asm](https://github.com/rayarachelian/EASy68K-asm) - CLI 68000 assembler from the EASy68k project.
-* [LWTOOLS](http://www.lwtools.ca) - LWTOOLS is a set of cross-development tools for the Motorola 6809 and Hitachi 6309 microprocessors by Willam 'Lost Wizard' Astle.
 * [vasm](http://sun.hasenbraten.de/vasm/) - A portable and retargetable assembler by Volker Barthelmann.
 * [vbcc](http://www.compilers.de/vbcc.html) - vbcc is a highly optimizing portable and retargetable ISO C compiler by Volker Barthelmann.
 * [vlink](http://www.compilers.de/vlink.html) - A versatile linker by Frank Wille.
@@ -138,17 +124,9 @@ Clements, Alan. 1994. 68000 Family Assembly Language. PWS Publishing Company.
 
 Leventhal, Hawkins, Kane and Cramer. 1986. 68000 ASSEMBLY LANGUAGE PROGRAMMING SECOND EDITION. OSBORNE/McGraw-Hill.
 
-Leventhal, Lance A. 1981. 6809 ASSEMBLY LANGUAGE PROGRAMMING. OSBORNE/McGraw-Hill.
-
-Motorola. 1981. MC6809-MC6809E 8-BIT Microprocessor Programming Manual. Motorola Inc.
-
-Motorola Semiconductors. 1983. MC6809 Datasheet.
-
 Osborne, Adam. 1976. An introduction to microcomputers - Volume I Basic Concepts. SYBEX.
 
 Skinner, Thomas P. Assembly Language Programming for the 68000 Family. John Wiley & Sons.
-
-Zaks, Rodnay and William Labiak. 1982. Programming the 6809. SYBEX.
 
 ## MIT License
 

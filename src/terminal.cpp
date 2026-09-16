@@ -226,11 +226,7 @@ void terminal_t::cursor_down()
 				system->debugger->memory_binary_dump((address + 2) & 0xfffffe);
 				break;
 			case DISASSEMBLY:
-				if (system->core->mc68000_active) {
-					address += system->core->mc68000->disassemble(text_buffer, address);
-				} else {
-					address += system->core->mc6809->disassemble_instruction(text_buffer, TEXT_BUFFER_SIZE, address);
-				}
+				address += system->core->cpu->disassemble(text_buffer, address);
 				add_bottom_row();
 				printf("\r.");
 				system->debugger->disassemble_instruction_terminal(address);
@@ -315,7 +311,7 @@ enum output_type terminal_t::check_output(bool top_down, uint32_t *address, uint
 			if (top_down) break;
 		} else if (tiles[i + 1] == ',') {
 			output = DISASSEMBLY;
-			int digits = system->core->mc68000_active ? 6 : 4;
+			int digits = 6;
 			for (int j=0; j<digits; j++) {
 				potential_address[j] = tiles[i + 2 + j];
 			}

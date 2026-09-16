@@ -16,27 +16,18 @@ core_t::core_t(system_t *s)
 {
 	system = s;
 
-	mc68000_active = true;
+	rom = new rom_t();
 
-	rom_mc6809 = new rom_mc6809_t();
-	rom_mc68000 = new rom_mc68000_t();
-
-	exceptions = new exceptions_ic();
 	sn74ls148 = new sn74ls148_t(system);
 
-	vdc = new vdc_t(exceptions, sn74ls148);
+	vdc = new vdc_t(sn74ls148);
 
-	mc6809 = new cpu_mc6809_t(system);
+	cpu = new cpu_t(system);
+	cpu->setModel(moira::Model::M68000 , moira::Model::M68000);
+	cpu->setDasmSyntax(moira::Syntax::MOIRA);
+	cpu->setDasmIndentation(8);
 
-	mc6809->assign_nmi_line(&exceptions->nmi_output_pin);
-	mc6809->assign_irq_line(&exceptions->irq_output_pin);
-
-	mc68000 = new cpu_mc68000_t(system);
-	mc68000->setModel(moira::Model::M68000 , moira::Model::M68000);
-	mc68000->setDasmSyntax(moira::Syntax::MOIRA);
-	mc68000->setDasmIndentation(8);
-
-	timer = new timer_ic(exceptions, sn74ls148);
+	timer = new timer_ic(sn74ls148);
 
 	sound = new sound_ic(system);
 
@@ -48,13 +39,11 @@ core_t::core_t(system_t *s)
 	font_4x8 = new font_4x8_t();
 
 	// register core as an interrupt device
-	dev_number_exceptions = exceptions->connect_device("core");
-	printf("[core] Connecting to exceptions getting dev %i\n", dev_number_exceptions);
 
 	dev_number_sn74ls148 = sn74ls148->connect_device(2, "core");
 	printf("[core] Connecting to sn74ls148 at ipl 2 getting dev %i\n", dev_number_sn74ls148);
 
-	// 16mb should fit anything for both mc6809 and mc68000
+	// 16mb should fit anything for mc68000
 	file_data = new uint8_t[0x1000000];
 }
 
@@ -67,13 +56,10 @@ core_t::~core_t()
 	delete cpu_to_core_clock;
 	delete sound;
 	delete timer;
-	delete mc68000;
+	delete cpu;
 	delete sn74ls148;
-	delete mc6809;
 	delete vdc;
-	delete exceptions;
-	delete rom_mc68000;
-	delete rom_mc6809;
+	delete rom;
 }
 
 enum output_states core_t::run(bool debug)
@@ -86,45 +72,25 @@ enum output_states core_t::run(bool debug)
 
 	cpu_to_core_clock->adjust_base_clock(0b1 << cpu_multiplier);
 
-	if (mc68000_active) {
+	do {
 
-		do {
+		cpu->execute();
+		cpu_cycles = cpu->getClock() - cpu->old_clock;
+		cpu->old_clock += cpu_cycles;
 
-			mc68000->execute();
-			cpu_cycles = mc68000->getClock() - mc68000->old_clock;
-			mc68000->old_clock += cpu_cycles;
+		core_cycles = cpu_to_core_clock->clock(cpu_cycles);
 
-			core_cycles = cpu_to_core_clock->clock(cpu_cycles);
+		frame_done = vdc->run(core_cycles);
+		timer->run(core_cycles);
+		sound_cycles = core_to_sid_clock->clock(core_cycles);
+		sound->run(sound_cycles);
+		sound_cycle_saldo += sound_cycles;
 
-			frame_done = vdc->run(core_cycles);
-			timer->run(core_cycles);
-			sound_cycles = core_to_sid_clock->clock(core_cycles);
-			sound->run(sound_cycles);
-			sound_cycle_saldo += sound_cycles;
+	} while((!cpu->breakpoint_reached) && (!frame_done) && (!debug));
 
-		} while((!mc68000->breakpoint_reached) && (!frame_done) && (!debug));
-
-		if (mc68000->breakpoint_reached) {
-			mc68000->breakpoint_reached = false;
-			output_state = BREAKPOINT;
-		}
-
-	} else {
-
-		do {
-
-			cpu_cycles = mc6809->execute();
-			core_cycles = cpu_to_core_clock->clock(cpu_cycles);
-			frame_done = vdc->run(core_cycles);
-			timer->run(core_cycles);
-			sound_cycles = core_to_sid_clock->clock(core_cycles);
-			sound->run(sound_cycles);
-			sound_cycle_saldo += sound_cycles;
-
-		} while ((!mc6809->breakpoint()) && (!frame_done) && (!debug));
-
-		if (mc6809->breakpoint()) output_state = BREAKPOINT;
-
+	if (cpu->breakpoint_reached) {
+		cpu->breakpoint_reached = false;
+		output_state = BREAKPOINT;
 	}
 
 	return output_state;
@@ -145,7 +111,7 @@ uint8_t core_t::io_read8(uint32_t address)
 			return
 				(system_rom_visible        ? 0b00000001 : 0b00000000) |
 				(character_cbm_rom_visible ? 0b00000010 : 0b00000000) |
-				(character_4x6_rom_visible ? 0b00000100 : 0b00000000) ;
+				(character_4x8_rom_visible ? 0b00000100 : 0b00000000) ;
 		case 0x03:
 			return cpu_multiplier;
 		case 0x04:
@@ -172,7 +138,6 @@ void core_t::io_write8(uint32_t address, uint8_t value)
 	case 0x00:
 		// status register
 		if ((value & 0b1) && !irq_line) {
-			exceptions->release(dev_number_exceptions);
 			sn74ls148->release_line(dev_number_sn74ls148);
 			irq_line = true;
 		}
@@ -183,26 +148,17 @@ void core_t::io_write8(uint32_t address, uint8_t value)
 			generate_interrupts = true;
 			if (bin_attached == true) {
 				bin_attached = false;
-				exceptions->pull(dev_number_exceptions);
 				sn74ls148->pull_line(dev_number_sn74ls148);
 				irq_line = false;
 			}
 		} else {
 			generate_interrupts = false;
 		}
-		if ((value & 0b11000000) == 0b10000000) {
-			mc68000_active = true;
-			reset();
-		}
-		if ((value & 0b11000000) == 0b01000000) {
-			mc68000_active = false;
-			reset();
-		}
 		break;
 	case 0x02:
 		system_rom_visible        = (value & 0b00000001) ? true : false;
 		character_cbm_rom_visible = (value & 0b00000010) ? true : false;
-		character_4x6_rom_visible = (value & 0b00000100) ? true : false;
+		character_4x8_rom_visible = (value & 0b00000100) ? true : false;
 		break;
 	case 0x03:
 		cpu_multiplier = value & 0b11;
@@ -217,9 +173,9 @@ uint8_t core_t::read8(uint32_t address)
 {
 	address &= VDC_RAM_MASK;
 
-	if (mc68000_active && !(address & 0xfffff8)) {
+	if (!(address & 0xfffff8)) {
 		// make sure mc68000 vectors are read, if needed
-		return rom_mc68000->data[address];
+		return rom->data[address];
 	} else if ((address & 0xffff00) == COMBINED_IO_PAGE) {
 		switch (address & 0x00c0) {
 			case VDC_SUB_PAGE_1:
@@ -236,8 +192,8 @@ uint8_t core_t::read8(uint32_t address)
 		return sound->io_read_byte(address);
 	} else if ((address & 0xffff00) == KEYBOARD_IO_PAGE) {
 		return system->keyboard->io_read8(address);
-	} else if ((address & 0xfff800) == FONT_4X6_PAGE) {
-		if (character_4x6_rom_visible) {
+	} else if ((address & 0xfff800) == FONT_4X8_PAGE) {
+		if (character_4x8_rom_visible) {
 			return font_4x8->io_read8(address);
 		} else {
 			return vdc->ram[address];
@@ -248,15 +204,9 @@ uint8_t core_t::read8(uint32_t address)
 		} else {
 			return vdc->ram[address];
 		}
-	} else if (!mc68000_active && ((address & 0xfffc00) == MC6809_ROM_ADDRESS)) {
+	} else if ((address & 0xff0000) == ROM_ADDRESS) {
 		if (system_rom_visible) {
-			return rom_mc6809->data[address & 0x3ff];
-		} else {
-			return vdc->ram[address];
-		}
-	} else if (mc68000_active && (address & 0xff0000) == MC68000_ROM_ADDRESS) {
-		if (system_rom_visible) {
-			return rom_mc68000->data[address & 0xffff];
+			return rom->data[address & 0xffff];
 		} else {
 			return vdc->ram[address];
 		}
@@ -304,24 +254,19 @@ void core_t::reset()
 
 	system_rom_visible = true;
 	character_cbm_rom_visible = false;
-	character_4x6_rom_visible = false;
+	character_4x8_rom_visible = false;
 
 	sound->reset();
 	timer->reset();
 	vdc->reset();	// vdc before cpu, as vdc also inits ram
-	mc6809->reset();
 
-	mc68000->reset();
-	mc68000->old_clock = 0;
-	mc68000->setClock(0);
+	cpu->reset();
+	cpu->old_clock = 0;
+	cpu->setClock(0);
 
 	cpu_to_core_clock->reset();
 
-	if (mc68000_active) {
-		cpu_multiplier = 0b11;
-	} else {
-		cpu_multiplier = 0b00;
-	}
+	cpu_multiplier = 0b11;
 }
 
 void core_t::attach_bin(const char *path)
@@ -349,7 +294,6 @@ void core_t::attach_bin(const char *path)
 			printf("[core] Attaching file\n");
 			bin_attached = true;
 			if (generate_interrupts) {
-				exceptions->pull(dev_number_exceptions);
 				sn74ls148->pull_line(dev_number_sn74ls148);
 				irq_line = false;
 				bin_attached = false;

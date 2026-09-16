@@ -51,12 +51,12 @@ void sn74ls148_t::update_interrupt_level()
 			level = devices[i].level;
 	}
 
-	system->core->mc68000->setIPL(level);
+	system->core->cpu->setIPL(level);
 }
 
 void sn74ls148_t::status(char *b, int buffer_length)
 {
-	b += snprintf(b, buffer_length, "------sn74ls148------ ");
+	b += snprintf(b, buffer_length, "------exceptions----- ");
 	b += snprintf(b, buffer_length, " dev ipl lin devname");
 	for (int i=0; i<number_of_devices; i++) {
 		b += snprintf(b, buffer_length, "\n  %1i   %1i   %c  \"%s\"", i, devices[i].level, devices[i].state ? '1' : '0', devices[i].dev_name.c_str());

@@ -58,7 +58,6 @@
 
 #include <cstdint>
 #include "common.hpp"
-#include "exceptions.hpp"
 #include "sn74ls148.hpp"
 #include "font_cbm_8x8.hpp"
 
@@ -186,7 +185,6 @@ private:
 	void draw_scanline_layer(layer_t *l, uint16_t sl);
 	void draw_scanline_sprite(sprite_t *s, uint16_t sl);
 
-	exceptions_ic *exceptions;
 	sn74ls148_t *sn74ls148;
 
 	bool irq_line;
@@ -194,7 +192,7 @@ private:
 	uint16_t irq_scanline;
 
 public:
-	vdc_t(exceptions_ic *e, sn74ls148_t *t);
+	vdc_t(sn74ls148_t *t);
 	~vdc_t();
 
 	uint8_t dev_number_exceptions;

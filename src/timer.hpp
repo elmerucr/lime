@@ -52,7 +52,6 @@
 #define timer_hpp
 
 #include <cstdint>
-#include "exceptions.hpp"
 #include "sn74ls148.hpp"
 
 struct timer_unit {
@@ -81,10 +80,9 @@ private:
 
 	uint32_t bpm_to_clock_interval(uint16_t bpm);
 
-	exceptions_ic *exceptions;
 	sn74ls148_t *sn74ls148;
 public:
-	timer_ic(exceptions_ic *e, sn74ls148_t *t);
+	timer_ic(sn74ls148_t *t);
 	void reset();
 
 	uint8_t dev_number_exceptions;

@@ -65,11 +65,9 @@ endif()
 include_directories(
 	${sdl3_SOURCE_DIR}/include
     src/
-	src/mc6809
 	src/Moira
     src/resid-0.16
-	rom/mc68000
-	rom/mc6809
+	rom/
 )
 
 add_subdirectory(src/)

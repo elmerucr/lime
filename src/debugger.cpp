@@ -76,7 +76,6 @@ debugger_t::debugger_t(system_t *s)
 	terminal->activate_cursor();
 
 	status1 = new terminal_t(system, 80, 25, PICOTRON_V5_1A, (LIME_COLOR_00 & 0x00ffffff) | 0xe0000000);
-	mc6809_status = new terminal_t(system, 60, 2, PICOTRON_V5_1A, 0xff000000);
 	stack_status = new terminal_t(system, 34, 15, PICOTRON_V5_1A, 0xff000000);
 	exception_status = new terminal_t(system, 22, 5, PICOTRON_V5_1A, 0xff000000);
 	vdc_status = new terminal_t(system, 20, 6, PICOTRON_V5_1A, 0xff000000);
@@ -88,7 +87,6 @@ debugger_t::~debugger_t()
 	delete exception_status;
 	delete status1;
 	delete stack_status;
-	delete mc6809_status;
 	delete terminal;
 	delete [] buffer;
 }
@@ -117,147 +115,106 @@ void debugger_t::redraw()
 
 	// update status text
 	status1->clear();
-	mc6809_status->clear();
-	if (system->core->mc68000_active) {
-		system->core->mc68000->disassembleSR(text_buffer);
-		uint32_t isp = system->core->mc68000->getISP();
-		uint32_t usp = system->core->mc68000->getUSP();
-		status1->printf(
-			"------------------------------------MC68000-------------------------------------\n"
-			"   D0:%08x  D4:%08x  A0:%08x  A4:%08x    +e:%02x%02x     +e:%02x%02x\n"
-			"   D1:%08x  D5:%08x  A1:%08x  A5:%08x    +c:%02x%02x     +c:%02x%02x\n"
-			"   D2:%08x  D6:%08x  A2:%08x  A6:%08x    +a:%02x%02x     +a:%02x%02x\n"
-			"   D3:%08x  D7:%08x  A3:%08x  A7:%08x    +8:%02x%02x     +8:%02x%02x\n"
-			"                                                         +6:%02x%02x     +6:%02x%02x\n"
-			"     PC:%08x  SR:%04x (%s)  IPL:%i      +4:%02x%02x     +4:%02x%02x\n"
-			"                                                         +2:%02x%02x     +2:%02x%02x\n"
-			"               SSP:%08x  USP:%08x             SSP+0:%02x%02x  USP+0:%02x%02x\n",
+	system->core->cpu->disassembleSR(text_buffer);
+	uint32_t isp = system->core->cpu->getISP();
+	uint32_t usp = system->core->cpu->getUSP();
+	status1->printf(
+		"--------------------------------------cpu---------------------------------------\n"
+		"   D0:%08x  D4:%08x  A0:%08x  A4:%08x    +e:%02x%02x     +e:%02x%02x\n"
+		"   D1:%08x  D5:%08x  A1:%08x  A5:%08x    +c:%02x%02x     +c:%02x%02x\n"
+		"   D2:%08x  D6:%08x  A2:%08x  A6:%08x    +a:%02x%02x     +a:%02x%02x\n"
+		"   D3:%08x  D7:%08x  A3:%08x  A7:%08x    +8:%02x%02x     +8:%02x%02x\n"
+		"                                                         +6:%02x%02x     +6:%02x%02x\n"
+		"     PC:%08x  SR:%04x (%s)  IPL:%i      +4:%02x%02x     +4:%02x%02x\n"
+		"                                                         +2:%02x%02x     +2:%02x%02x\n"
+		"               SSP:%08x  USP:%08x             SSP+0:%02x%02x  USP+0:%02x%02x\n",
 
-			system->core->mc68000->getD(0),
-			system->core->mc68000->getD(4),
-			system->core->mc68000->getA(0),
-			system->core->mc68000->getA(4),
-			system->core->read8(isp+14), system->core->read8(isp+15),
-			system->core->read8(usp+14), system->core->read8(usp+15),
+		system->core->cpu->getD(0),
+		system->core->cpu->getD(4),
+		system->core->cpu->getA(0),
+		system->core->cpu->getA(4),
+		system->core->read8(isp+14), system->core->read8(isp+15),
+		system->core->read8(usp+14), system->core->read8(usp+15),
 
-			system->core->mc68000->getD(1),
-			system->core->mc68000->getD(5),
-			system->core->mc68000->getA(1),
-			system->core->mc68000->getA(5),
-			system->core->read8(isp+12), system->core->read8(isp+13),
-			system->core->read8(usp+12), system->core->read8(usp+13),
+		system->core->cpu->getD(1),
+		system->core->cpu->getD(5),
+		system->core->cpu->getA(1),
+		system->core->cpu->getA(5),
+		system->core->read8(isp+12), system->core->read8(isp+13),
+		system->core->read8(usp+12), system->core->read8(usp+13),
 
-			system->core->mc68000->getD(2),
-			system->core->mc68000->getD(6),
-			system->core->mc68000->getA(2),
-			system->core->mc68000->getA(6),
-			system->core->read8(isp+10), system->core->read8(isp+11),
-			system->core->read8(usp+10), system->core->read8(usp+11),
+		system->core->cpu->getD(2),
+		system->core->cpu->getD(6),
+		system->core->cpu->getA(2),
+		system->core->cpu->getA(6),
+		system->core->read8(isp+10), system->core->read8(isp+11),
+		system->core->read8(usp+10), system->core->read8(usp+11),
 
-			system->core->mc68000->getD(3),
-			system->core->mc68000->getD(7),
-			system->core->mc68000->getA(3),
-			system->core->mc68000->getA(7),
-			system->core->read8(isp+8), system->core->read8(isp+9),
-			system->core->read8(usp+8), system->core->read8(usp+9),
+		system->core->cpu->getD(3),
+		system->core->cpu->getD(7),
+		system->core->cpu->getA(3),
+		system->core->cpu->getA(7),
+		system->core->read8(isp+8), system->core->read8(isp+9),
+		system->core->read8(usp+8), system->core->read8(usp+9),
 
-			system->core->read8(isp+6), system->core->read8(isp+7),
-			system->core->read8(usp+6), system->core->read8(usp+7),
+		system->core->read8(isp+6), system->core->read8(isp+7),
+		system->core->read8(usp+6), system->core->read8(usp+7),
 
-			system->core->mc68000->getPC(),
-			system->core->mc68000->getSR(),
-			text_buffer,
-			system->core->mc68000->getIPL(),
-			system->core->read8(isp+4), system->core->read8(isp+5),
-			system->core->read8(usp+4), system->core->read8(usp+5),
+		system->core->cpu->getPC(),
+		system->core->cpu->getSR(),
+		text_buffer,
+		system->core->cpu->getIPL(),
+		system->core->read8(isp+4), system->core->read8(isp+5),
+		system->core->read8(usp+4), system->core->read8(usp+5),
 
-			system->core->read8(isp+2), system->core->read8(isp+3),
-			system->core->read8(usp+2), system->core->read8(usp+3),
+		system->core->read8(isp+2), system->core->read8(isp+3),
+		system->core->read8(usp+2), system->core->read8(usp+3),
 
-			isp,
-			usp,
-			system->core->read8(isp+0), system->core->read8(isp+1),
-			system->core->read8(usp+0), system->core->read8(usp+1)
-		);
+		isp,
+		usp,
+		system->core->read8(isp+0), system->core->read8(isp+1),
+		system->core->read8(usp+0), system->core->read8(usp+1)
+	);
 
-		status1->printf(
-			"\n----------------------------------disassembler----------------------------------\n"
-		);
-		uint32_t pc = system->core->mc68000->getPC();
-		uint32_t new_pc;
-		for (int i=0; i<4; i++) {
-			new_pc = pc + system->core->mc68000->disassemble(text_buffer, pc);
-			if (system->core->mc68000->debugger.breakpoints.isSetAt(pc)) {
-				status1->fg_color = 0xffe04040;	// orange
+	status1->printf(
+		"\n----------------------------------disassembler----------------------------------\n"
+	);
+	uint32_t pc = system->core->cpu->getPC();
+	uint32_t new_pc;
+	for (int i=0; i<4; i++) {
+		new_pc = pc + system->core->cpu->disassemble(text_buffer, pc);
+		if (system->core->cpu->debugger.breakpoints.isSetAt(pc)) {
+			status1->fg_color = 0xffe04040;	// orange
+		}
+		if (m68k_disassembly) {
+			status1->printf(",%06x  %s\n", pc, text_buffer);
+		} else {
+			status1->printf(",%06x  ", pc);
+			for (int i=pc; i < new_pc; i++) {
+				status1->printf("%02x", system->core->read8(i));
 			}
-			if (m68k_disassembly) {
-				status1->printf(",%06x  %s\n", pc, text_buffer);
-			} else {
-				status1->printf(",%06x  ", pc);
-				for (int i=pc; i < new_pc; i++) {
-					status1->printf("%02x", system->core->read8(i));
-				}
-				status1->printf("\n");
-			}
-			status1->fg_color = PICOTRON_V5_1A;
-			pc = new_pc;
+			status1->printf("\n");
 		}
-	} else {
-		uint16_t ssp = system->core->mc6809->get_sp() & 0xffff;
-		uint16_t usp = system->core->mc6809->get_us() & 0xffff;
-
-
-		status1->printf("-------------------------------------MC6809-------------------------------------\n\n");
-		system->core->mc6809->status(text_buffer, 1024);
-		mc6809_status->printf("%s", text_buffer);
-		for (int y = 0; y < mc6809_status->height; y++) {
-			for (int x = 0; x < mc6809_status->width; x++) {
-				status1->tiles[((2 + y) * status1->width) + 13 + x] =
-					mc6809_status->tiles[(y * mc6809_status->width) + x];
-			}
-		}
-
-		status1->printf("\n\n ---------------disassembler---------------\n\n");
-		uint16_t pc = system->core->mc6809->get_pc();
-		for (int i=0; i<10; i++) {
-			pc += disassemble_instruction_status1(pc);
-			status1->putchar('\n');
-		}
-
-		stack_status->clear();
-		stack_status->printf("--------------stacks--------------\n");
-		stack_status->printf("          sp         us\n\n");
-		for (uint8_t i=7; i>0; i--) {
-			stack_status->printf("        %04x:%02x    %04x:%02x\n", (ssp+i) & 0xffff, system->core->read8(ssp+i), (usp+i) & 0xffff, system->core->read8(usp+i));
-		}
-		stack_status->printf("        %04x:%02x    %04x:%02x\n", ssp, system->core->read8(ssp), usp, system->core->read8(usp));
-		for (int y = 0; y < stack_status->height; y++) {
-			for (int x = 0; x < stack_status->width; x++) {
-			status1->tiles[((5 + y) * status1->width) + 45 + x] =
-				stack_status->tiles[(y * stack_status->width) + x];
-			}
-		}
+		status1->fg_color = PICOTRON_V5_1A;
+		pc = new_pc;
 	}
 
-		status1->printf("\n   ---------timer----------\n    t     s  bpm   cycles");
-		for (int i=0; i<4; i++) {
-			int j = i + (timers_4_7 ? 4 : 0);
-			status1->printf("\n    %1x %s %s %05u %08x",
-				j,
-				system->core->timer->io_read_byte(0x01) & (1 << j) ? " on" : "off",
-				system->core->timer->io_read_byte(0x00) & (1 << j) ? "*" : "-",
-				system->core->timer->get_timer_bpm(j),
-				system->core->timer->get_timer_clock_interval(j) - system->core->timer->get_timer_counter(j)
-			);
-		}
+	status1->printf("\n   ---------timer----------\n    t     s  bpm   cycles");
+	for (int i=0; i<4; i++) {
+		int j = i + (timers_4_7 ? 4 : 0);
+		status1->printf("\n    %1x %s %s %05u %08x",
+			j,
+			system->core->timer->io_read_byte(0x01) & (1 << j) ? " on" : "off",
+			system->core->timer->io_read_byte(0x00) & (1 << j) ? "*" : "-",
+			system->core->timer->get_timer_bpm(j),
+			system->core->timer->get_timer_clock_interval(j) - system->core->timer->get_timer_counter(j)
+		);
+	}
 
 	exception_status->clear();
 
-	if (system->core->mc68000_active) {
-		system->core->sn74ls148->status(text_buffer, 2048);
-	} else {
-		system->core->exceptions->status(text_buffer, 2048);
-	}
+	system->core->sn74ls148->status(text_buffer, 2048);
+
 	exception_status->printf("%s", text_buffer);
 
 	// copy exception_status into status1
@@ -406,30 +363,15 @@ void debugger_t::process_command(char *c)
 	} else if (token0[0] == ';') {
 		have_prompt = false;
 		enter_memory_binary_line(c);
-	} else if (token0[0] == ',') {
-		if (!system->core->mc68000_active) {
-			// mc6809 mode
-			have_prompt = false;
-			enter_mc6809_assembly_line(c);
-		}
 	} else if (strcmp(token0, "b") == 0) {
 		bool breakpoints_present = false;
 		token1 = strtok(NULL, " ");
 		if (token1 == NULL) {
 			terminal->printf("\nbreakpoints:");
-			if (system->core->mc68000_active) {
-				for (uint32_t i=0x000000; i<0x1000000; i++) {
-					if (system->core->mc68000->debugger.breakpoints.isSetAt(i)) {
-						breakpoints_present = true;
-						terminal->printf("\n$%06x", i);
-					}
-				}
-			} else {
-				for (int i=0; i<65536; i++) {
-					if (system->core->mc6809->breakpoint_array[i]) {
-						breakpoints_present = true;
-						terminal->printf("\n$%04x", i);
-					}
+			for (uint32_t i=0x000000; i<0x1000000; i++) {
+				if (system->core->cpu->debugger.breakpoints.isSetAt(i)) {
+					breakpoints_present = true;
+					terminal->printf("\n$%06x", i);
 				}
 			}
 			if (!breakpoints_present) {
@@ -440,44 +382,18 @@ void debugger_t::process_command(char *c)
 			if (!hex_string_to_int(token1, &address)) {
 				terminal->printf("\nerror: '%s' is not a hex number", token1);
 			} else {
-				if (system->core->mc68000_active) {
-					address &= 0xffffff;
-					if (system->core->mc68000->debugger.breakpoints.isSetAt(address)) {
-						system->core->mc68000->debugger.breakpoints.removeAt(address);
-						terminal->printf("\nbreakpoint removed at $%06x", address);
-					} else {
-						system->core->mc68000->debugger.breakpoints.setAt(address);
-						terminal->printf("\nbreakpoint set at $%06x", address);
-					}
+				address &= 0xffffff;
+				if (system->core->cpu->debugger.breakpoints.isSetAt(address)) {
+					system->core->cpu->debugger.breakpoints.removeAt(address);
+					terminal->printf("\nbreakpoint removed at $%06x", address);
 				} else {
-					address &= 0xffff;
-					system->core->mc6809->toggle_breakpoint(address);
-					if (system->core->mc6809->breakpoint_array[address]) {
-						terminal->printf("\nbreakpoint set at $%04x", address);
-					} else {
-						terminal->printf("\nbreakpoint removed at $%04x", address);
-					}
-			}
+					system->core->cpu->debugger.breakpoints.setAt(address);
+					terminal->printf("\nbreakpoint set at $%06x", address);
+				}
 			}
 		}
 	} else if (strcmp(token0, "cls") == 0) {
 		terminal->clear();
-	} else if (strcmp(token0, "cpu") == 0) {
-		terminal->printf("\nchange cpu and reset lime (y/n)");
-		redraw();
-		system->host->video_update_screen();
-		if (system->host->events_yes_no()) {
-			system->core->mc68000_active = !system->core->mc68000_active;
-			if (system->core->mc68000_active) {
-				terminal->printf("\nmc68000 mode");
-			} else {
-				terminal->printf("\nmc6809 mode");
-			}
-			system->core->reset();
-			system->host->events_wait_until_key_released(SDL_SCANCODE_Y);
-		} else {
-			system->host->events_wait_until_key_released(SDL_SCANCODE_N);
-		}
 	} else if (strcmp(token0, "d") == 0) {
 	 	have_prompt = false;
 	 	token1 = strtok(NULL, " ");
@@ -487,11 +403,7 @@ void debugger_t::process_command(char *c)
 
 	 	uint32_t temp_pc;
 
-		if (system->core->mc68000_active) {
-			temp_pc = system->core->mc68000->getPC();
-		} else {
-			temp_pc = system->core->mc6809->get_pc();
-		}
+		temp_pc = system->core->cpu->getPC();
 
 	 	if (token1 == NULL) {
 	 		for (int i=0; i<lines_remaining; i++) {
@@ -531,11 +443,7 @@ void debugger_t::process_command(char *c)
 
 		uint32_t temp_pc;
 
-		if (system->core->mc68000_active) {
-			temp_pc = system->core->mc68000->getPC();
-		} else {
-			temp_pc = system->core->mc6809->get_pc();
-		}
+		temp_pc = system->core->cpu->getPC();
 
 		if (token1 == NULL) {
 			for (int i=0; i<lines_remaining; i++) {
@@ -564,11 +472,7 @@ void debugger_t::process_command(char *c)
 
 		uint32_t temp_pc;
 
-		if (system->core->mc68000_active) {
-			temp_pc = system->core->mc68000->getPC();
-		} else {
-			temp_pc = system->core->mc6809->get_pc();
-		}
+		temp_pc = system->core->cpu->getPC();
 
 		if (token1 == NULL) {
 			for (int i=0; i<lines_remaining; i++) {
@@ -889,37 +793,15 @@ void debugger_t::enter_memory_binary_line(char *buffer)
 	}
 }
 
-uint32_t debugger_t::disassemble_instruction_status1(uint16_t address)
-{
-	uint32_t cycles;
-	if (system->core->mc6809->breakpoint_array[address]) {
-		status1->fg_color = 0xffe04040;	// orange
-	}
-	cycles = system->core->mc6809->disassemble_instruction(text_buffer, 1024, address) & 0xffff;
-	text_buffer[41] = 0;	// make sure it's not wider than 40 chars
-	status1->printf("  ,%s", text_buffer);
-	status1->fg_color = PICOTRON_V5_1A;
-
-	return cycles;
-}
-
 uint32_t debugger_t::disassemble_instruction_terminal(uint32_t address)
 {
 	uint32_t cycles;
 
-	if (system->core->mc68000_active) {
-		cycles = system->core->mc68000->disassemble(text_buffer, address);
-		terminal->printf(",%06x  %s", address, text_buffer);
+	cycles = system->core->cpu->disassemble(text_buffer, address);
+	terminal->printf(",%06x  %s", address, text_buffer);
 
-		terminal->putchar('\r');
-		for (int i=0; i<10; i++) terminal->cursor_right();
-	} else {
-		cycles = system->core->mc6809->disassemble_instruction(text_buffer, 1024, address & 0xffff);
-		terminal->printf(",%s", text_buffer);
-
-		terminal->putchar('\r');
-		for (int i=0; i<7; i++) terminal->cursor_right();
-	}
+	terminal->putchar('\r');
+	for (int i=0; i<10; i++) terminal->cursor_right();
 
 	return cycles;
 }
@@ -974,44 +856,44 @@ void debugger_t::enter_dc_line(char *buffer)
 	}
 }
 
-void debugger_t::enter_mc6809_assembly_line(char *buffer)
-{
-	uint32_t word;
-	uint32_t address;
+// void debugger_t::enter_mc6809_assembly_line(char *buffer)
+// {
+// 	uint32_t word;
+// 	uint32_t address;
 
-	buffer[5] = '\0';
+// 	buffer[5] = '\0';
 
-	if (!hex_string_to_int(&buffer[1], &word)) {
-		// not a valid address
-		terminal->putchar('\r');
-		terminal->cursor_right();
-		terminal->cursor_right();
-		terminal->puts("????");
-		have_prompt = true;
-	} else {
-		// valid address
-		address = word;
+// 	if (!hex_string_to_int(&buffer[1], &word)) {
+// 		// not a valid address
+// 		terminal->putchar('\r');
+// 		terminal->cursor_right();
+// 		terminal->cursor_right();
+// 		terminal->puts("????");
+// 		have_prompt = true;
+// 	} else {
+// 		// valid address
+// 		address = word;
 
-		// prepare for reading arguments (1 to 5)
-		uint8_t count{0};
-		char old_char;
+// 		// prepare for reading arguments (1 to 5)
+// 		uint8_t count{0};
+// 		char old_char;
 
-		for (int i=0; i<5; i++) {
-			old_char = buffer[8 + (2 * i)];
-			buffer[8 + (2 * i)] = '\0';
-			if (hex_string_to_int(&buffer[6 + (2 * i)], &word)) {
-				system->core->write8((address + i) & 0xffff, word & 0xff);
-				count++;
-				buffer[8 + (2 * i)] = old_char;
-			} else break;
-		}
+// 		for (int i=0; i<5; i++) {
+// 			old_char = buffer[8 + (2 * i)];
+// 			buffer[8 + (2 * i)] = '\0';
+// 			if (hex_string_to_int(&buffer[6 + (2 * i)], &word)) {
+// 				system->core->write8((address + i) & 0xffff, word & 0xff);
+// 				count++;
+// 				buffer[8 + (2 * i)] = old_char;
+// 			} else break;
+// 		}
 
-		if (count) {
-			terminal->printf("\r.");
-			uint8_t no = disassemble_instruction_terminal(address);
-			terminal->printf("\n.,%04x ", (address + no) & 0xffff);
-		} else {
-			terminal->printf("\n.");
-		}
-	}
-}
+// 		if (count) {
+// 			terminal->printf("\r.");
+// 			uint8_t no = disassemble_instruction_terminal(address);
+// 			terminal->printf("\n.,%04x ", (address + no) & 0xffff);
+// 		} else {
+// 			terminal->printf("\n.");
+// 		}
+// 	}
+// }

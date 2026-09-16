@@ -9,12 +9,8 @@
 #include "common.hpp"
 #include <cstdio>
 
-timer_ic::timer_ic(exceptions_ic *e, sn74ls148_t *t)
+timer_ic::timer_ic(sn74ls148_t *t)
 {
-	exceptions = e;
-	dev_number_exceptions = exceptions->connect_device("timer");
-	printf("[timer] Connecting to exceptions getting dev %i\n", dev_number_exceptions);
-
 	sn74ls148 = t;
 	dev_number_sn74ls148 = sn74ls148->connect_device(4, "timer");
 	printf("[timer] Connecting to sn74ls148 at ipl 4 getting dev %i\n", dev_number_sn74ls148);
@@ -34,7 +30,6 @@ void timer_ic::reset()
 		timer[i].counter = 0;
 	}
 
-	exceptions->release(dev_number_exceptions);
 	sn74ls148->release_line(dev_number_sn74ls148);
 }
 
@@ -46,7 +41,6 @@ void timer_ic::run(uint32_t number_of_cycles)
 			while (timer[i].counter >= timer[i].clock_interval)
 				timer[i].counter -= timer[i].clock_interval;
 			if (control_register & (0b1 << i)) {
-				exceptions->pull(dev_number_exceptions);
 				sn74ls148->pull_line(dev_number_sn74ls148);
 				status_register |= (0b1 << i);
 			}
@@ -122,7 +116,6 @@ void timer_ic::io_write_byte(uint8_t address, uint8_t byte)
 			status_register = (~byte) & status_register;
 			if ((status_register & 0xff) == 0) {
 				// no timers left causing interrupts
-				exceptions->release(dev_number_exceptions);
 				sn74ls148->release_line(dev_number_sn74ls148);
 			}
 			break;

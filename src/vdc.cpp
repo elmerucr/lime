@@ -12,13 +12,9 @@
 #include <cstdint>
 #include <cstdio>
 
-vdc_t::vdc_t(exceptions_ic *e, sn74ls148_t *t)
+vdc_t::vdc_t(sn74ls148_t *t)
 {
-	exceptions = e;
 	sn74ls148 = t;
-
-	dev_number_exceptions = exceptions->connect_device("vdc");
-	printf("[vdc] Connecting to exceptions getting dev %i for mc6809\n", dev_number_exceptions);
 
 	dev_number_sn74ls148 = sn74ls148->connect_device(6, "vdc");
 	printf("[vdc] Connecting to sn74ls148 at IPL 6 getting dev %i for mc68000\n", dev_number_exceptions);
@@ -372,7 +368,6 @@ void vdc_t::io_write8(uint16_t address, uint8_t value)
 	switch (address & 0x7f) {
 		case 0x00:
 			if ((value & 0b1) && !irq_line) {
-				exceptions->release(dev_number_exceptions);
 				sn74ls148->release_line(dev_number_sn74ls148);
 				irq_line = true;
 			}
@@ -550,7 +545,6 @@ bool vdc_t::run(uint32_t number_of_cycles)
 			current_scanline = 0;
 		}
 		if ((current_scanline == irq_scanline) && generate_interrupts) {
-			exceptions->pull(dev_number_exceptions);
 			sn74ls148->pull_line(dev_number_sn74ls148);
 			irq_line = false;
 		}

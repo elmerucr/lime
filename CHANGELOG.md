@@ -1,11 +1,12 @@
-## ...
+## Version 0.14.20260916-alpha
 
+* 20260916 mc6809 removed from project
 * 20260915 vdc: from $400 - $47f, timer: from $4c0 - $4ff
 * 20260913 rom: BCD print
 * 20260912 rom: bin to BCD conversion
 * 20260902 Compiles with SDL 3.4.16 on macOS Tahoe 26.6.2
 
-## Version 0.13.20260830-alpha
+## Version 0.13.20260830-alpha (last version to contain MC6809)
 
 * 20260830 Moira cpu core updated to 5.0b
 * 20260828 Compiles with SDL 3.4.14 on macOS Tahoe 26.6.2

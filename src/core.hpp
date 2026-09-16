@@ -68,12 +68,9 @@
 
 #include "system.hpp"
 #include "vdc.hpp"
-#include "cpu_mc6809.hpp"
-#include "exceptions.hpp"
-#include "cpu_mc68000.hpp"
+#include "cpu.hpp"
 #include "sn74ls148.hpp"
-#include "rom_mc68000.hpp"
-#include "rom_mc6809.hpp"
+#include "rom.hpp"
 #include "font_cbm_8x8.hpp"
 #include "font_4x8.hpp"
 #include "timer.hpp"
@@ -89,10 +86,9 @@
 #define     TIMER_SUB_PAGE    0xc0
 #define SOUND_IO_PAGE       0x000500
 #define KEYBOARD_IO_PAGE	0x000600
-#define FONT_4X6_PAGE		0x000800
+#define FONT_4X8_PAGE		0x000800
 #define FONT_CBM_PAGE       0x001000
-#define MC6809_ROM_ADDRESS  0x00fc00
-#define MC68000_ROM_ADDRESS 0x010000
+#define ROM_ADDRESS         0x010000
 
 enum output_states {
 	NORMAL,
@@ -104,13 +100,12 @@ private:
 	uint32_t sound_cycle_saldo{0};
 
 	system_t *system;
-	rom_mc68000_t *rom_mc68000;
-	rom_mc6809_t *rom_mc6809;
+	rom_t *rom;
 
 	// memory configuration address $02 in core bank
 	bool system_rom_visible;		// bit 0
 	bool character_cbm_rom_visible;	// bit 1
-	bool character_4x6_rom_visible;	// bit 2
+	bool character_4x8_rom_visible;	// bit 2
 
 	// irq related
 	uint8_t dev_number_exceptions;		// unique number assigned by exception unit
@@ -126,17 +121,13 @@ public:
 	core_t(system_t *s);
 	~core_t();
 
-	bool mc68000_active;
-
 	uint8_t cpu_multiplier{0};
 
 	vdc_t *vdc;
 
-	exceptions_ic *exceptions;	// for mc6809
 	sn74ls148_t *sn74ls148;		// for m68k
 
-	cpu_mc6809_t *mc6809;
-	cpu_mc68000_t *mc68000;
+	cpu_t *cpu;
 
 	clocks *cpu_to_core_clock;
 	clocks *core_to_sid_clock;

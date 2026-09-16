@@ -3,5 +3,4 @@
 build/
 Debug/
 Release/
-rom/mc68000/mk_rom
-rom/mc6809/mk_rom
+rom/mk_rom
