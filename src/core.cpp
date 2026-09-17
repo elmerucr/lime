@@ -128,7 +128,7 @@ uint8_t core_t::io_read8(uint32_t address)
 				((system->host->keyboard_state[SCANCODE_RSHIFT] & 0b1) ? 0b01000000 : 0) |	// Select
 				((system->host->keyboard_state[SCANCODE_RETURN] & 0b1) ? 0b10000000 : 0) ;	// Start
 		default:
-			return 0x00;
+			return 0xff;
 	}
 }
 

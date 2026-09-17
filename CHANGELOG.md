@@ -1,3 +1,7 @@
+##
+
+* 20260917 vdc: tileset_address now 32bit and word aligned
+
 ## Version 0.14.20260916-alpha
 
 * 20260916 mc6809 removed from project

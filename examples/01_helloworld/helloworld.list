@@ -1,5 +1,5 @@
 Sections:
-00: "org0001:1fff7" (1FFF7-2008A)
+00: "org0001:1fff7" (1FFF7-20092)
 
 
 Source: "base.s"
@@ -74,85 +74,80 @@ Source: "../../rom/definitions.inc"
                             	    61: VDC_LAYER_FLAGS0		equ	$0444
                             	    62: VDC_LAYER_FLAGS1		equ	$0445
                             	    63: VDC_LAYER_FLAGS2		equ	$0446
-                            	    64: ;
-                            	    65: VDC_LAYER_TILES_PAGE		equ	$044c
-                            	    66: VDC_LAYER_COLORS_PAGE		equ	$044d
-                            	    67: VDC_LAYER_TILESET_PAGE		equ	$044e
-                            	    68: ;
-                            	    69: VDC_LAYER_COLOR0		equ	$0458
-                            	    70: VDC_LAYER_COLOR1		equ	$0459
-                            	    71: VDC_LAYER_COLOR2		equ	$045a
-                            	    72: VDC_LAYER_COLOR3		equ	$045b
-                            	    73: 
-                            	    74: VDC_SPRITE_X_MSB		equ	$0460
-                            	    75: VDC_SPRITE_X_LSB		equ	$0461
-                            	    76: VDC_SPRITE_Y_MSB		equ	$0462
-                            	    77: VDC_SPRITE_Y_LSB		equ	$0463
-                            	    78: VDC_SPRITE_FLAGS0		equ	$0464
-                            	    79: VDC_SPRITE_FLAGS1		equ	$0465
-                            	    80: VDC_SPRITE_FLAGS2		equ	$0466
-                            	    81: VDC_SPRITE_INDEX		equ	$0467
-                            	    82: ;
-                            	    83: ;
-                            	    84: VDC_SPRITE_TILESET_PAGE		equ	$046e
-                            	    85: ;
-                            	    86: VDC_SPRITE_COLOR0		equ	$0478
-                            	    87: VDC_SPRITE_COLOR1		equ	$0479
-                            	    88: VDC_SPRITE_COLOR2		equ	$047a
-                            	    89: VDC_SPRITE_COLOR3		equ	$047b
+                            	    64: VDC_LAYER_TILESET_ADDR	equ	$0448
+                            	    65: VDC_LAYER_COLORS_PAGE		equ	$044d
+                            	    66: VDC_LAYER_TILES_ADDR	equ	$0450
+                            	    67: VDC_LAYER_COLOR0		equ	$0458
+                            	    68: VDC_LAYER_COLOR1		equ	$0459
+                            	    69: VDC_LAYER_COLOR2		equ	$045a
+                            	    70: VDC_LAYER_COLOR3		equ	$045b
+                            	    71: 
+                            	    72: VDC_SPRITE_X_MSB		equ	$0460
+                            	    73: VDC_SPRITE_X_LSB		equ	$0461
+                            	    74: VDC_SPRITE_Y_MSB		equ	$0462
+                            	    75: VDC_SPRITE_Y_LSB		equ	$0463
+                            	    76: VDC_SPRITE_FLAGS0		equ	$0464
+                            	    77: VDC_SPRITE_FLAGS1		equ	$0465
+                            	    78: VDC_SPRITE_FLAGS2		equ	$0466
+                            	    79: VDC_SPRITE_INDEX		equ	$0467
+                            	    80: VDC_SPRITE_TILESET_ADDR	equ	$0468
+                            	    81: VDC_SPRITE_COLOR0		equ	$0478
+                            	    82: VDC_SPRITE_COLOR1		equ	$0479
+                            	    83: VDC_SPRITE_COLOR2		equ	$047a
+                            	    84: VDC_SPRITE_COLOR3		equ	$047b
+                            	    85: 
+                            	    86: KEYBOARD_SR			equ	$0600
+                            	    87: KEYBOARD_CR			equ	$0601
+                            	    88: KEYBOARD_EVENTS			equ	$0606
+                            	    89: KEYBOARD_STATE			equ	$0680
                             	    90: 
-                            	    91: KEYBOARD_SR			equ	$0600
-                            	    92: KEYBOARD_CR			equ	$0601
-                            	    93: KEYBOARD_EVENTS			equ	$0606
-                            	    94: KEYBOARD_STATE			equ	$0680
-                            	    95: 
-                            	    96: VDC_LAYER_TILES			equ	$2000
-                            	    97: VDC_LAYER_COLORS		equ	$3000
-                            	    98: 
-                            	    99: ; sound devices
-                            	   100: SID0_BASE			equ	$0500
-                            	   101: SID0_F				equ	$0500
-                            	   102: SID0_PW				equ	$0502
-                            	   103: SID0_V				equ	$051b
-                            	   104: SID1_BASE			equ	$0520
-                            	   105: SID1_V				equ	$053b
-                            	   106: MIX_SID0_LEFT			equ	$0580
-                            	   107: MIX_SID0_RIGHT			equ	$0581
-                            	   108: MIX_SID1_LEFT			equ	$0582
-                            	   109: MIX_SID1_RIGHT			equ	$0583
-                            	   110: MIX_ANA0_LEFT			equ	$0584
-                            	   111: MIX_ANA0_RIGHT			equ	$0585
-                            	   112: MIX_ANA1_LEFT			equ	$0586
-                            	   113: MIX_ANA1_RIGHT			equ	$0587
-                            	   114: 
-                            	   115: ; core
-                            	   116: CORE_SR				equ	$0480
-                            	   117: CORE_CR				equ	$0481
-                            	   118: CORE_ROMS			equ	$0482
-                            	   119: CORE_FILE_DATA			equ	$0484
-                            	   120: CORE_INPUT0			equ	$0488
-                            	   121: 
-                            	   122: ; timer
-                            	   123: TIMER_SR			equ	$04c0
-                            	   124: TIMER_CR			equ	$04c1
-                            	   125: TIMER0_BPM			equ	$04d0
-                            	   126: TIMER1_BPM			equ	$04d2
-                            	   127: TIMER2_BPM			equ	$04d4
-                            	   128: TIMER3_BPM			equ	$04d6
-                            	   129: TIMER4_BPM			equ	$04d8
-                            	   130: TIMER5_BPM			equ	$04da
-                            	   131: TIMER6_BPM			equ	$04dc
-                            	   132: TIMER7_BPM			equ	$04de
-                            	   133: 
-                            	   134: RAM_START			equ	$20000
-                            	   135: 
+                            	    91: VDC_LAYER_TILES			equ	$2000
+                            	    92: VDC_LAYER_COLORS		equ	$3000
+                            	    93: 
+                            	    94: ; sound devices
+                            	    95: SID0_BASE			equ	$0500
+                            	    96: SID0_F				equ	$0500
+                            	    97: SID0_PW				equ	$0502
+                            	    98: SID0_V				equ	$051b
+                            	    99: SID1_BASE			equ	$0520
+                            	   100: SID1_V				equ	$053b
+                            	   101: MIX_SID0_LEFT			equ	$0580
+                            	   102: MIX_SID0_RIGHT			equ	$0581
+                            	   103: MIX_SID1_LEFT			equ	$0582
+                            	   104: MIX_SID1_RIGHT			equ	$0583
+                            	   105: MIX_ANA0_LEFT			equ	$0584
+                            	   106: MIX_ANA0_RIGHT			equ	$0585
+                            	   107: MIX_ANA1_LEFT			equ	$0586
+                            	   108: MIX_ANA1_RIGHT			equ	$0587
+                            	   109: 
+                            	   110: ; core
+                            	   111: CORE_SR				equ	$0480
+                            	   112: CORE_CR				equ	$0481
+                            	   113: CORE_ROMS			equ	$0482
+                            	   114: CORE_FILE_DATA			equ	$0484
+                            	   115: CORE_INPUT0			equ	$0488
+                            	   116: 
+                            	   117: ; timer
+                            	   118: TIMER_SR			equ	$04c0
+                            	   119: TIMER_CR			equ	$04c1
+                            	   120: TIMER0_BPM			equ	$04d0
+                            	   121: TIMER1_BPM			equ	$04d2
+                            	   122: TIMER2_BPM			equ	$04d4
+                            	   123: TIMER3_BPM			equ	$04d6
+                            	   124: TIMER4_BPM			equ	$04d8
+                            	   125: TIMER5_BPM			equ	$04da
+                            	   126: TIMER6_BPM			equ	$04dc
+                            	   127: TIMER7_BPM			equ	$04de
+                            	   128: 
+                            	   129: RAM_START			equ	$20000
+                            	   130: 
 
 Source: "base.s"
                             	     7: 
                             	     8: 		org	RAM_START-9			; allocate 9 bytes for preamble
                             	     9: 
 00:0001FFF7 01              	    10: 		dc.b	$01				; first byte
-00:0001FFF8 00000068        	    11: 		dc.l	graph_preamble-RAM_START	; size (16 bit unsigned)
+00:0001FFF8 00000070        	    11: 		dc.l	graph_preamble-RAM_START	; size (16 bit unsigned)
 00:0001FFFC 00020000        	    12: 		dc.l	RAM_START			; where (16 bit unsigned)
                             	    13: 
                             	    14: 		include	"main.s"
@@ -161,53 +156,54 @@ Source: "main.s"
 00:00020000 13FC003700000404	     1: main	move.b	#$37,VDC_BG_COLOR	; "orange" background color
 00:00020008 423900000406    	     2: 	clr.b	VDC_CURRENT_LAYER
 00:0002000E 023900F700000444	     3: 	andi.b	#%11110111,VDC_LAYER_FLAGS0	; turn off color per tile
-00:00020016 33FCFFF600000442	     4: 	move.w	#$fff6,VDC_LAYER_Y_MSB
+00:00020016 33FC000A00000442	     4: 	move.w	#$000a,VDC_LAYER_Y_MSB
                             	     5: 
 00:0002001E 423900000407    	     6: 	clr.b	VDC_CURRENT_SPRITE
 00:00020024 423900000467    	     7: 	clr.b	VDC_SPRITE_INDEX
 00:0002002A 13FC000500000464	     8: 	move.b	#%00000101,VDC_SPRITE_FLAGS0
-00:00020032 13FC00080000046E	     9: 	move.b	#$08,VDC_SPRITE_TILESET_PAGE
-00:0002003A 13FC001B00000461	    10: 	move.b	#27,VDC_SPRITE_X_LSB
-00:00020042 13FC000A00000463	    11: 	move.b	#$a,VDC_SPRITE_Y_LSB
-                            	    12: 
-00:0002004A 41F90002005A    	    13: 	lea.l	hello,A0
-00:00020050 123C0002        	    14: 	move.b	#2,D1
-00:00020054 4E4F            	    15: 	trap	#15
-                            	    16: 
-00:00020056 6000FFFE        	    17: .1	bra	.1	; loop
-                            	    18: 
-00:0002005A 48656C6C6F205720	    19: hello	dc.b	"Hello W  rld!",0
-00:00020062 20726C6421
-00:00020067 00
-                            	    20: 
+00:00020032 13FC001100000466	     9: 	move.b	#%00010001,VDC_SPRITE_FLAGS2
+00:0002003A 21FC000008000468	    10: 	move.l	#$800,VDC_SPRITE_TILESET_ADDR.w
+00:00020042 13FC001B00000461	    11: 	move.b	#27,VDC_SPRITE_X_LSB
+00:0002004A 13FC000A00000463	    12: 	move.b	#$a,VDC_SPRITE_Y_LSB
+                            	    13: 
+00:00020052 41F900020062    	    14: 	lea.l	hello,A0
+00:00020058 123C0002        	    15: 	move.b	#2,D1
+00:0002005C 4E4F            	    16: 	trap	#15
+                            	    17: 
+00:0002005E 6000FFFE        	    18: .1	bra	.1	; loop
+                            	    19: 
+00:00020062 48656C6C6F205720	    20: hello	dc.b	"Hello W  rld!",0
+00:0002006A 20726C6421
+00:0002006F 00
+                            	    21: 
 
 Source: "base.s"
                             	    15: 
-00:00020068 01              	    16: graph_preamble	dc.b	$01				; first byte
-00:00020069 00000010        	    17: 		dc.l	postamble-tiles			; size (16 bit unsigned)
-00:0002006D 00000800        	    18: 		dc.l	$0800				; where (16 bit unsigned)
+00:00020070 01              	    16: graph_preamble	dc.b	$01				; first byte
+00:00020071 00000010        	    17: 		dc.l	postamble-tiles			; size (16 bit unsigned)
+00:00020075 00000800        	    18: 		dc.l	$0800				; where (16 bit unsigned)
                             	    19: 
                             	    20: tiles		include	"tiles.s"
 
 Source: "tiles.s"
-00:00020071 0150            	     1: 		dc.w	%0000000101010000
-00:00020073 06A4            	     2: 		dc.w	%0000011010100100
-00:00020075 1999            	     3: 		dc.w	%0001100110011001
-00:00020077 1AA9            	     4: 		dc.w	%0001101010101001
-00:00020079 1999            	     5: 		dc.w	%0001100110011001
-00:0002007B 1959            	     6: 		dc.w	%0001100101011001
-00:0002007D 06A4            	     7: 		dc.w	%0000011010100100
-00:0002007F 0150            	     8: 		dc.w	%0000000101010000
+00:00020079 0150            	     1: 		dc.w	%0000000101010000
+00:0002007B 06A4            	     2: 		dc.w	%0000011010100100
+00:0002007D 1999            	     3: 		dc.w	%0001100110011001
+00:0002007F 1AA9            	     4: 		dc.w	%0001101010101001
+00:00020081 1999            	     5: 		dc.w	%0001100110011001
+00:00020083 1959            	     6: 		dc.w	%0001100101011001
+00:00020085 06A4            	     7: 		dc.w	%0000011010100100
+00:00020087 0150            	     8: 		dc.w	%0000000101010000
                             	     9: 
 
 Source: "base.s"
                             	    21: 
-00:00020081 FE              	    22: postamble	dc.b	$fe,$00,$00,$00,$00
-00:00020082 00
-00:00020083 00
-00:00020084 00
-00:00020085 00
-00:00020086 00020000        	    23: 		dc.l	main				; execution address
+00:00020089 FE              	    22: postamble	dc.b	$fe,$00,$00,$00,$00
+00:0002008A 00
+00:0002008B 00
+00:0002008C 00
+00:0002008D 00
+00:0002008E 00020000        	    23: 		dc.l	main				; execution address
                             	    24: 
 
 
@@ -219,15 +215,16 @@ VDC_CURRENT_SPRITE               E:00000407
 VDC_LAYER_FLAGS0                 E:00000444
 VDC_LAYER_Y_MSB                  E:00000442
 VDC_SPRITE_FLAGS0                E:00000464
+VDC_SPRITE_FLAGS2                E:00000466
 VDC_SPRITE_INDEX                 E:00000467
-VDC_SPRITE_TILESET_PAGE          E:0000046E
+VDC_SPRITE_TILESET_ADDR          E:00000468
 VDC_SPRITE_X_LSB                 E:00000461
 VDC_SPRITE_Y_LSB                 E:00000463
-graph_preamble                   A:00020068
-hello                            A:0002005A
+graph_preamble                   A:00020070
+hello                            A:00020062
 main                             A:00020000
-postamble                        A:00020081
-tiles                            A:00020071
+postamble                        A:00020089
+tiles                            A:00020079
 
 Symbols by value:
 00000404 VDC_BG_COLOR
@@ -238,11 +235,12 @@ Symbols by value:
 00000461 VDC_SPRITE_X_LSB
 00000463 VDC_SPRITE_Y_LSB
 00000464 VDC_SPRITE_FLAGS0
+00000466 VDC_SPRITE_FLAGS2
 00000467 VDC_SPRITE_INDEX
-0000046E VDC_SPRITE_TILESET_PAGE
+00000468 VDC_SPRITE_TILESET_ADDR
 00020000 RAM_START
 00020000 main
-0002005A hello
-00020068 graph_preamble
-00020071 tiles
-00020081 postamble
+00020062 hello
+00020070 graph_preamble
+00020079 tiles
+00020089 postamble

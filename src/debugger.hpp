@@ -49,7 +49,6 @@ public:
 	void memory_binary_dump(uint32_t address);
 	void enter_memory_binary_line(char *buffer);
 	void enter_dc_line(char *buffer);
-	//void enter_mc6809_assembly_line(char *buffer);
 	uint32_t disassemble_instruction_terminal(uint32_t address);
 
 	bool hex_string_to_int(const char *temp_string, uint32_t *return_value);

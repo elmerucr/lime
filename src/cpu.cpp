@@ -1,16 +1,16 @@
-/*
- * cpu.cpp
- * lime
- *
- * Copyright © 2025-2026 elmerucr. All rights reserved.
- */
+// ---------------------------------------------------------------------
+// cpu.cpp
+// lime
+//
+// Copyright © 2025-2026 elmerucr. All rights reserved.
+// ---------------------------------------------------------------------
 
 #include "cpu.hpp"
 #include "core.hpp"
 
 cpu_t::cpu_t(system_t *s)
 {
-	printf("[cpu] mc680000 Moira %s\n", build().c_str());
+	printf("[cpu] mc68000 Moira %s\n", build().c_str());
 	system = s;
 }
 

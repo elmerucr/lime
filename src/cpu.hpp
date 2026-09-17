@@ -1,9 +1,9 @@
-/*
- * cpu.hpp
- * lime
- *
- * Copyright © 2025-2026 elmerucr. All rights reserved.
- */
+// ---------------------------------------------------------------------
+// cpu.hpp
+// lime
+//
+// Copyright © 2025-2026 elmerucr. All rights reserved.
+// ---------------------------------------------------------------------
 
 #ifndef CPU_HPP
 #define CPU_HPP

@@ -7,14 +7,13 @@
 
 // ---------------------------------------------------------------------
 // The original C64 characters are copyright Commodore Business Systems.
-// The order of characters and characters themselves have been altered to
-// match code page 437.
+// The order of characters and characters themselves have been altered
+// to partly match code page 437.
 //
-// 2020-10-23 first version
-// 2025-01-29 lime icons added, and in lime 2bpp format / and removed
-// 2026-05-11 replace tiles 0x10 - 0x1f with "4x4 pixel stuff"
+// 20201023 first version
+// 20260511 replace tiles 0x00 - 0x1f with "4x4 pixel stuff"
 //
-// Part of lime - Character ROM 2kb
+// Part of lime - Character ROM 2kb (4kb when expanded)
 // ---------------------------------------------------------------------
 
 #include <cstdint>

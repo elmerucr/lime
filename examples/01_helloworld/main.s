@@ -1,12 +1,13 @@
 main	move.b	#$37,VDC_BG_COLOR	; "orange" background color
 	clr.b	VDC_CURRENT_LAYER
 	andi.b	#%11110111,VDC_LAYER_FLAGS0	; turn off color per tile
-	move.w	#$fff6,VDC_LAYER_Y_MSB
+	move.w	#$000a,VDC_LAYER_Y_MSB
 
 	clr.b	VDC_CURRENT_SPRITE
 	clr.b	VDC_SPRITE_INDEX
 	move.b	#%00000101,VDC_SPRITE_FLAGS0
-	move.b	#$08,VDC_SPRITE_TILESET_PAGE
+	move.b	#%00010001,VDC_SPRITE_FLAGS2
+	move.l	#$800,VDC_SPRITE_TILESET_ADDR.w
 	move.b	#27,VDC_SPRITE_X_LSB
 	move.b	#$a,VDC_SPRITE_Y_LSB
 

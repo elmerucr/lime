@@ -45,12 +45,12 @@
 // 0x0e: IRQ scanline MSB
 // 0x0f: IRQ scanline LSB
 //
-// 0x20: x_pos current sprite MSB
-// 0x21: x_pos current sprite LSB
-// 0x22: y_pos current sprite MSB
-// 0x23: y_pos current sprite LSB
-// 0x24: flags0 current sprite
-// 0x25: flags1 current sprite
+// 0x60: x_pos current sprite MSB
+// 0x61: x_pos current sprite LSB
+// 0x62: y_pos current sprite MSB
+// 0x63: y_pos current sprite LSB
+// 0x64: flags0 current sprite
+// 0x65: flags1 current sprite
 // ---------------------------------------------------------------------
 
 #ifndef VDC_HPP
@@ -104,9 +104,9 @@ struct layer_t {
 	uint8_t flags2_bit01_hsize;
 	uint8_t flags2_bit45_vsize;
 
-	uint16_t tiles_address;
-	uint16_t colors_address;
-	uint16_t tileset_address;
+	uint32_t tileset_address;
+	uint32_t tiles_address;
+	uint32_t colors_address;
 
 	// 0x58, 0x59, 0x5a, 0x5b
 	uint8_t colors[4];
@@ -157,7 +157,7 @@ struct sprite_t {
 
 	uint8_t index;
 
-	uint16_t tileset_address;
+	uint32_t tileset_address;
 
 	// 0x78, 0x79, 0x7a, 0x7b
 	uint8_t colors[4];
@@ -221,7 +221,7 @@ public:
 	bool started_new_scanline() { return new_scanline; }
 
 	// Using Atari GTIA colors of https://lospec.com/palette-list/atari-8-bit-family-gtia
-	uint32_t palette[256] = {
+	const uint32_t palette[256] = {
 		0xff000000, 0xff111111, 0xff222222, 0xff333333, 0xff444444, 0xff555555, 0xff666666, 0xff777777,
 		0xff888888, 0xff999999, 0xffaaaaaa, 0xffbbbbbb, 0xffcccccc, 0xffdddddd, 0xffeeeeee, 0xffffffff,
 		0xff190700, 0xff2a1800, 0xff3b2900, 0xff4c3a00, 0xff5d4b00, 0xff6e5c00, 0xff7f6d00, 0xff907e09,

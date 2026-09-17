@@ -10,7 +10,7 @@ Notable features include:
 * 16mb ram
 * Screen resolution of 320x180 pixels, refresh rate of 60Hz
 * Video Display Controller (VDC) for graphics processing, shared memory access to lowest 64k
-* Programmable using MC68000 or MC6809 assembly (see ```examples``` folder)
+* Programmable using Motorola 68000 assembly (see ```examples``` folder)
 
 By default, lime starts in MC68000 mode.
 
@@ -20,7 +20,7 @@ By default, lime starts in MC68000 mode.
 
 ![icon](./docs/20260716_screenshot_basic.png)
 
-![icon](./docs/20260716_screenshot_debug_mc68000.png)
+![icon](./docs/20260716_screenshot_debug.png)
 
 ## Binaries (apps / games)
 
