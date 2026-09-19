@@ -29,10 +29,13 @@ TERMINAL_WIDTH	equ	$50	; 80 columns visible
 TERMINAL_HEIGHT	equ	$14	; 20 rows
 TERMINAL_BG_COL	equ	$93
 TERMINAL_FG_COL	equ	$99
+TERMINAL_TILES	equ	$2000
+TERMINAL_COLORS	equ	$3000
 
 ;-----------------------------------------------------------------------
 		rsset	$6000
 
+logo		rs.b	64
 logo_cntdwn	rs.l	1
 logo_animation	rs.b	1
 logo_status	rs.b	1
@@ -61,7 +64,7 @@ prngx		rs.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	start		; reset vector
-version	dc.b	"rom 0.10.20260913",0
+version	dc.b	"rom 0.10.20260919",0
 
 
 start
@@ -74,12 +77,15 @@ start
 	jsr	init_logo
 	jsr	sound_reset
 
-	move.l	#VDC_LAYER_TILES,terminal_chars		; default location
-	move.l	#VDC_LAYER_COLORS,terminal_colors	; default location
+	move.l	#TERMINAL_TILES,terminal_chars		; default location
+	move.l	#TERMINAL_COLORS,terminal_colors	; default location
 
 	move.b	#$01,VDC_BORDER_COLOR.w		; dark grey / black
 	move.b	#$0a,VDC_BORDER_SIZE.w		; 10 pixels hborder
 	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current
+	move.l	#$800,VDC_LAYER_TILESET_ADDR.w
+	move.l	#TERMINAL_TILES,VDC_LAYER_TILES_ADDR.w
+	move.l	#TERMINAL_COLORS,VDC_LAYER_COLORS_ADDR.w
 	move.b	#%1100,VDC_LAYER_FLAGS0.w	;
 	move.w	#$000a,VDC_LAYER_Y_MSB.w	; y location
 
@@ -296,7 +302,7 @@ terminal_flip_cursor
 	tst.b	cursor_active
 	beq.s	.1
 	move.w	cursor_pos,D0
-	movea.l	#VDC_LAYER_TILES,A0
+	movea.l	#TERMINAL_TILES,A0
 	eori.b	#$80,(A0,D0)
 .1	rts
 
@@ -485,7 +491,7 @@ copy_fonts_from_rom
 
 copy_logo_tile
 	movea.l	#logo_tile,A0
-	movea.w	#$11c0,A1		; start at tile $1c
+	movea.l	#logo,A1		; start at tile $1c
 	moveq	#64-1,D0		; 64 bytes = 1 16x16 tile
 .1	move.b	(A0)+,(A1)+
 	dbra	D0,.1
@@ -501,10 +507,10 @@ init_logo
 .1	move.b	D0,VDC_CURRENT_SPRITE
 	movea.l	#VDC_SPRITE_X_MSB,A1
 .2	move.b	(A0)+,(A1)+
-	cmpa.l	#VDC_SPRITE_X_MSB+8,A1
+	cmpa.l	#VDC_SPRITE_X_MSB+12,A1
 	bne	.2
 	addq	#1,D0
-	cmpa.l	#logo_data+40,A0	; 5 sprites x 8 = 40
+	cmpa.l	#logo_data+60,A0	; 5 sprites x 8 = 40
 	bne	.1
 	rts
 
@@ -779,11 +785,11 @@ file_loading4	dc.b	$0a,$0a," jumping to $",0
 
 
 logo_data
-	dc.b	0,152,0,76,%00000111,0,%00100010,$07 ; icon (=tile 7 seen from $1000 at 16x16/tile)
-	dc.b	0,147,0,92,%00000111,0,%00010001,'l'
-	dc.b	0,152,0,92,%00000111,0,%00010001,'i'
-	dc.b	0,158,0,92,%00000111,0,%00010001,'m'
-	dc.b	0,166,0,92,%00000111,0,%00010001,'e'
+	dc.b	0,152,0,76,%00000111,0,%00100010,$00,$00,$00,$60,$00 ; icon
+	dc.b	0,147,0,92,%00000111,0,%00010001,'l',$00,$00,$10,$00
+	dc.b	0,152,0,92,%00000111,0,%00010001,'i',$00,$00,$10,$00
+	dc.b	0,158,0,92,%00000111,0,%00010001,'m',$00,$00,$10,$00
+	dc.b	0,166,0,92,%00000111,0,%00010001,'e',$00,$00,$10,$00
 
 
 logo_tile

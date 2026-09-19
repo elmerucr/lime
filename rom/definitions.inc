@@ -88,9 +88,6 @@ KEYBOARD_CR			equ	$0601
 KEYBOARD_EVENTS			equ	$0606
 KEYBOARD_STATE			equ	$0680
 
-VDC_LAYER_TILES			equ	$2000
-VDC_LAYER_COLORS		equ	$3000
-
 ; sound devices
 SID0_BASE			equ	$0500
 SID0_F				equ	$0500

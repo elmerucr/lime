@@ -179,7 +179,6 @@ private:
 
 	uint8_t current_layer;
 	uint8_t current_sprite;
-	uint8_t current_palette_index;
 
 	void draw_scanline(uint16_t scanline);
 	void draw_scanline_layer(layer_t *l, uint16_t sl);

@@ -1,6 +1,8 @@
 ##
 
-* 20260917 vdc: tileset_address now 32bit and word aligned
+*
+* 20260918 vdc: palette cannot be edited any more
+* 20260917 vdc: tileset_address now 32bit
 
 ## Version 0.14.20260916-alpha
 

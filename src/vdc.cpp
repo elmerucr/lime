@@ -21,6 +21,8 @@ vdc_t::vdc_t(sn74ls148_t *t)
 
     ram = new uint8_t[VDC_RAM];
     buffer = new uint32_t[VDC_XRES * VDC_YRES];
+
+	calculate_crt_palette();
 }
 
 vdc_t::~vdc_t()
@@ -62,7 +64,7 @@ void vdc_t::reset()
 		sprite[i].colors[1] = 0xc2;
 		sprite[i].colors[2] = 0xc7;
 		sprite[i].colors[3] = 0xce;
-		sprite[i].tileset_address = 0x1000;
+		sprite[i].tileset_address = 0;
 	}
 
 	for (int i=0; i<4; i++) {
@@ -77,26 +79,17 @@ void vdc_t::reset()
 		layer[i].flags1_bit67_vstretch = 0;
 		layer[i].flags2_bit01_hsize = 0b00;
 		layer[i].flags2_bit45_vsize = 0b01;
+		layer[i].tiles_address = 0;
+		layer[i].colors_address = 0;
 		layer[i].colors[0] = 0x01;
 		layer[i].colors[1] = 0xc2;
 		layer[i].colors[2] = 0xc7;
 		layer[i].colors[3] = 0xce;
-		layer[i].tileset_address = 0x800;
+		layer[i].tileset_address = 0;
 	}
-
-	layer[0].tiles_address = VDC_LAYER0_TILES_ADDRESS & 0xfffe;
-	layer[1].tiles_address = VDC_LAYER1_TILES_ADDRESS & 0xfffe;
-	layer[2].tiles_address = VDC_LAYER2_TILES_ADDRESS & 0xfffe;
-	layer[3].tiles_address = VDC_LAYER3_TILES_ADDRESS & 0xfffe;
-
-	layer[0].colors_address = VDC_LAYER0_COLORS_ADDRESS & 0xfffe;
-	layer[1].colors_address = VDC_LAYER1_COLORS_ADDRESS & 0xfffe;
-	layer[2].colors_address = VDC_LAYER2_COLORS_ADDRESS & 0xfffe;
-	layer[3].colors_address = VDC_LAYER3_COLORS_ADDRESS & 0xfffe;
 
 	current_layer = 0;
 	current_sprite = 0;
-	current_palette_index = 0;
 
 	cycles_run = 0;
 	current_scanline = 0;
@@ -109,8 +102,6 @@ void vdc_t::reset()
 
 	irq_line = true;
 	generate_interrupts = false;
-
-	calculate_crt_palette();
 }
 
 void vdc_t::draw_scanline(uint16_t scanline)
