@@ -64,7 +64,7 @@ prngx		rs.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	start		; reset vector
-version	dc.b	"rom 0.10.20260919",0
+version	dc.b	"rom 0.10.20260926",0
 
 
 start

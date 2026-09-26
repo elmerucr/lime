@@ -10,8 +10,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
 project(lime)
 
-# Create an option to switch between a system sdl library and a vendored SDL library
-#option(LIME_VENDORED "Use vendored libraries" ON)
+# Create an option to switch between fetched or system sdl library
+option(LIME_FETCH "Use fetched libraries" ON)
 
 set(LIME_SDL3_VERSION "release-3.4.16")
 message(STATUS "")

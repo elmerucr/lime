@@ -1,5 +1,5 @@
 Sections:
-00: "code" (0-A81)
+00: "code" (0-AED)
 
 
 Source: "rom.s"
@@ -200,9 +200,9 @@ Source: "rom.s"
                             	    64: 
 00:00010000 01000000        	    65: 	dc.l	$01000000	; initial ssp at end of ram
 00:00010004 0001001A        	    66: 	dc.l	start		; reset vector
-00:00010008 726F6D20302E3130	    67: version	dc.b	"rom 0.10.20260918",0
-00:00010010 2E32303236303931
-00:00010018 38
+00:00010008 726F6D20302E3130	    67: version	dc.b	"rom 0.10.20260926",0
+00:00010010 2E32303236303932
+00:00010018 36
 00:00010019 00
                             	    68: 
                             	    69: 
@@ -1129,13 +1129,13 @@ Source: "basic.s"
 00:0001092C 6166
 00:0001092E 207900006162    	    13: 	movea.l	b_start,A0
 00:00010934 4290            	    14: 	clr.l	(A0)		; clear / new
-00:00010936 41F900010A5C    	    15: 	lea	b_greeter,A0
+00:00010936 41F900010AB4    	    15: 	lea	b_greeter,A0
 00:0001093C 6100FD6A        	    16: 	bsr	terminal_putstring
 00:00010940 4E75            	    17: 	rts
                             	    18: 
                             	    19: 
                             	    20: b_warm_start
-00:00010942 41F900010A78    	    21: 	lea	b_prompt,A0
+00:00010942 41F900010AD0    	    21: 	lea	b_prompt,A0
 00:00010948 6100FD5E        	    22: 	bsr	terminal_putstring
 00:0001094C 4E75            	    23: 	rts
                             	    24: 
@@ -1147,154 +1147,225 @@ Source: "basic.s"
                             	    30: ;
                             	    31: ;-----------------------------------------------------------------------
                             	    32: b_process_buffer
-00:0001094E 2F0A            	    33: 	move.l	A2,-(SP)
-00:00010950 41F900006052    	    34: 	lea	terminal_buf_1,A0
-00:00010956 610000C6        	    35: 	bsr	b_remove_spaces
-00:0001095A 610000CE        	    36: 	bsr	b_get_dec_number
-00:0001095E 4A01            	    37: 	tst.b	D1			; check no of digits
-00:00010960 673C            	    38: 	beq.s	.dm			; zero = NAN --> direct mode
-                            	    39: 
-                            	    40: 					; store line mode
-00:00010962 43F9000060D2    	    41: 	lea	terminal_buf_2,A1	; this is where we put our result
-00:00010968 22C0            	    42: 	move.l	D0,(A1)+		; store line number in buffer
-00:0001096A 2449            	    43: 	movea.l	A1,A2			; at this pos, no of chars of basic line will be stored
-00:0001096C D3FC00000004    	    44: 	adda.l	#4,A1			; move pointer
-                            	    45: 
-00:00010972 2F00            	    46: 	move.l	D0,-(SP)		; temp hack; print the hex number
-00:00010974 103C000A        	    47: 	move.b	#$a,D0			; print newline
-00:00010978 7201            	    48: 	moveq	#1,D1
-00:0001097A 4E4F            	    49: 	trap	#15
-00:0001097C 2017            	    50: 	move.l	(SP),D0
-00:0001097E 7208            	    51: 	moveq	#8,D1
-00:00010980 6100FD3A        	    52: 	bsr	terminal_put_hex_number
-                            	    53: 
-                            	    54: 	;move.l	D0,-(SP)
-00:00010984 103C000A        	    55: 	move.b	#$a,D0			; print newline
-00:00010988 7201            	    56: 	moveq	#1,D1
-00:0001098A 4E4F            	    57: 	trap	#15
-00:0001098C 201F            	    58: 	move.l	(SP)+,D0
-00:0001098E 61000012        	    59: 	bsr	b_double_dabble
-00:00010992 6100FD5E        	    60: 	bsr	terminal_put_bcd_number
-00:00010996 61000086        	    61: 	bsr	b_remove_spaces
-00:0001099A 245F            	    62: 	movea.l	(SP)+,A2
-00:0001099C 4E75            	    63: 	rts
-                            	    64: 
-                            	    65: 					; direct mode
-                            	    66: .dm	;
-                            	    67: 	;
-                            	    68: 	;
-00:0001099E 245F            	    69: 	movea.l	(SP)+,A2
-00:000109A0 4E75            	    70: 	rts
-                            	    71: 
-                            	    72: 
-                            	    73: ; ----------------------------------------------------------------------
-                            	    74: ; Subroutine: b_double_dabble (bin to bcd)
-                            	    75: ; Inputs:     D0.l 32bits unsigned value
-                            	    76: ; Outputs:    D0-D1 combined holding 10 bcd's, big endian order
-                            	    77: ; ----------------------------------------------------------------------
-                            	    78: b_double_dabble
-00:000109A2 48E73000        	    79: 	movem.l	D2-D3,-(SP)
-00:000109A6 761F            	    80: 	moveq	#32-1,D3	; counter for 32 shifts
-00:000109A8 2400            	    81: 	move.l	D0,D2		; D2 now holds input value
-00:000109AA 7000            	    82: 	moveq	#0,D0
-00:000109AC 7200            	    83: 	moveq	#0,D1
-                            	    84: 
-00:000109AE 2F01            	    85: .start	move.l	D1,-(SP)	; check individual numbers if >=5
-00:000109B0 611C            	    86: 	bsr.s	chk_nm
-00:000109B2 221F            	    87: 	move.l	(SP)+,D1
-00:000109B4 C141            	    88: 	exg	D0,D1
-00:000109B6 2F01            	    89: 	move.l	D1,-(SP)
-00:000109B8 6114            	    90: 	bsr.s	chk_nm
-00:000109BA 221F            	    91: 	move.l	(SP)+,D1
-00:000109BC C141            	    92: 	exg	D0,D1
-                            	    93: 
-00:000109BE E382            	    94: 	asl.l	D2
-00:000109C0 E391            	    95: 	roxl.l	D1
-00:000109C2 E390            	    96: 	roxl.l	D0
-                            	    97: 
-00:000109C4 51CBFFE8        	    98: 	dbra	D3,.start
-                            	    99: 
-00:000109C8 4CDF000C        	   100: 	movem.l	(SP)+,D2-D3
-00:000109CC 4E75            	   101: 	rts
-                            	   102: 
-00:000109CE 6108            	   103: chk_nm	bsr.s	chk_nums_h1
-00:000109D0 4840            	   104: 	swap	D0
-00:000109D2 6104            	   105: 	bsr.s	chk_nums_h1
-00:000109D4 4840            	   106: 	swap	D0
-00:000109D6 4E75            	   107: 	rts
-                            	   108: chk_nums_h1
-00:000109D8 2200            	   109: 	move.l	D0,D1
-00:000109DA 0201000F        	   110: 	andi.b	#$0f,D1
-00:000109DE B23C0005        	   111: 	cmp.b	#$05,D1
-00:000109E2 65000006        	   112: 	blo	.n1
-00:000109E6 06000003        	   113: 	addi.b	#$3,D0
-00:000109EA 02410F00        	   114: .n1	andi.w	#$0f00,D1
-00:000109EE B27C0500        	   115: 	cmp.w	#$500,D1
-00:000109F2 65000006        	   116: 	blo	.n2
-00:000109F6 06400300        	   117: 	addi.w	#$300,D0
-00:000109FA 2200            	   118: .n2	move.l	D0,D1
-00:000109FC 020100F0        	   119: 	andi.b	#$f0,D1
-00:00010A00 B23C0050        	   120: 	cmp.b	#$50,D1
-00:00010A04 65000006        	   121: 	blo	.n3
-00:00010A08 06000030        	   122: 	addi.b	#$30,D0
-00:00010A0C 0241F000        	   123: .n3	andi.w	#$f000,D1
-00:00010A10 B27C5000        	   124: 	cmp.w	#$5000,D1
-00:00010A14 65000006        	   125: 	blo	.end
-00:00010A18 06403000        	   126: 	addi.w	#$3000,D0
-00:00010A1C 4E75            	   127: .end	rts
-                            	   128: 
-                            	   129: ;-----------------------------------------------------------------------
-                            	   130: ; Subroutine: b_remove_spaces
-                            	   131: ; Inputs:     A0 pointer to text in buffer
-                            	   132: ; Outputs:    A0 point to first item not equal to space ($20)
-                            	   133: ;-----------------------------------------------------------------------
-                            	   134: b_remove_spaces
-00:00010A1E 0C100020        	   135: 	cmp.b	#' ',(A0)
-00:00010A22 6604            	   136: 	bne.s	.end
-00:00010A24 5288            	   137: 	addq.l	#1,A0
-00:00010A26 60F6            	   138: 	bra.s	b_remove_spaces
-00:00010A28 4E75            	   139: .end	rts
-                            	   140: 
-                            	   141: 
-                            	   142: ;-----------------------------------------------------------------------
-                            	   143: ; Subroutine: b_get_dec_number
-                            	   144: ; Inputs:     A0 points to ascii
-                            	   145: ; Outputs:    D0.l contains the number (32 bits), D1 contains the number
-                            	   146: ;             of digits it consumed (so is 0 when NAN)
-                            	   147: ;             A0 remains (1) the same if NAN or (2) points after number
-                            	   148: ;-----------------------------------------------------------------------
-                            	   149: b_get_dec_number
-00:00010A2A 2F02            	   150: 	move.l	D2,-(SP)
-00:00010A2C 4280            	   151: 	clr.l	D0		; will contain end result
-00:00010A2E 4281            	   152: 	clr.l	D1		; is zero if NAN
-00:00010A30 0C100030        	   153: .start	cmp.b	#'0',(A0)
-00:00010A34 65000022        	   154: 	blo	.end
-00:00010A38 0C100039        	   155: 	cmp.b	#'9',(A0)
-00:00010A3C 6200001A        	   156: 	bhi	.end
-00:00010A40 2400            	   157: 	move.l	D0,D2		; times ten: first save D0 into D2
-00:00010A42 E580            	   158: 	asl.l	#2,D0		; double D0
-00:00010A44 D082            	   159: 	add.l	D2,D0		; now D0 is times 5
-00:00010A46 E380            	   160: 	asl.l	#1,D0		; double D0 (times 10)
-00:00010A48 1418            	   161: 	move.b	(A0)+,D2
-00:00010A4A 02820000000F    	   162: 	andi.l	#$f,D2
-00:00010A50 D082            	   163: 	add.l	D2,D0
-00:00010A52 5281            	   164: 	addq.l	#1,D1
-00:00010A54 6000FFDA        	   165: 	bra	.start
-00:00010A58 241F            	   166: .end	move.l	(SP)+,D2
-00:00010A5A 4E75            	   167: 	rts
-                            	   168: 
-                            	   169: 
-00:00010A5C 0A              	   170: b_greeter	dc.b	$a,"basic v0.0 <<this is WIP>>",0
-00:00010A5D 6261736963207630
-00:00010A65 2E30203C3C746869
-00:00010A6D 7320697320574950
-00:00010A75 3E3E
-00:00010A77 00
-00:00010A78 0A              	   171: b_prompt	dc.b	$a,"ready.",$a,0
-00:00010A79 72656164792E
-00:00010A7F 0A
-00:00010A80 00
-                            	   172: 
+00:0001094E 48E72020        	    33: 	movem.l	D2/A2,-(SP)
+00:00010952 7400            	    34: 	moveq	#0,D2			; D2 serves as flag for line mode
+00:00010954 41F900006052    	    35: 	lea	terminal_buf_1,A0
+00:0001095A 6100011A        	    36: 	bsr	b_remove_spaces
+00:0001095E 61000122        	    37: 	bsr	b_get_dec_number
+00:00010962 43F9000060D2    	    38: 	lea	terminal_buf_2,A1	; this is where we put our result
+00:00010968 4A01            	    39: 	tst.b	D1			; check no of digits
+00:0001096A 670C            	    40: 	beq.s	.1			; it's zero (so direct mode)
+00:0001096C 7401            	    41: 	moveq	#1,D2			; 1 or more, set flag = line mode
+                            	    42: 
+00:0001096E 22C0            	    43: 	move.l	D0,(A1)+		; store line number in buffer
+00:00010970 2449            	    44: 	movea.l	A1,A2			; at this pos (A2), no of chars of basic line will be stored
+00:00010972 D3FC00000002    	    45: 	adda.l	#2,A1			; move pointer (save space 2 bytes)
+                            	    46: 
+00:00010978 6106            	    47: .1	bsr.s	b_tokenize
+                            	    48: 
+00:0001097A 4CDF0404        	    49: 	movem.l	(SP)+,D2/A2
+00:0001097E 4E75            	    50: 	rts
+                            	    51: 
+                            	    52: 
+                            	    53: ; ----------------------------------------------------------------------
+                            	    54: ; Subroutine: b_tokenize
+                            	    55: ; Inputs:     A0 contains read pointer, A1 write pointer
+                            	    56: ; ----------------------------------------------------------------------
+                            	    57: b_tokenize
+00:00010980 1018            	    58: 	move.b	(A0)+,D0
+00:00010982 67000034        	    59: 	beq	.done		; if null ($00), end of line
+                            	    60: 
+00:00010986 B03C0020        	    61: 	cmp.b	#' ',D0
+00:0001098A 6700FFF4        	    62: 	beq	b_tokenize	; strip spaces out to save ram
+                            	    63: 
+                            	    64: 	; check if char is a letter
+00:0001098E B03C0061        	    65: 	cmp.b	#'a',D0
+00:00010992 65000018        	    66: 	blo	.copy_raw
+00:00010996 B03C007A        	    67: 	cmp.b	#'z',D0
+00:0001099A 62000010        	    68: 	bhi	.copy_raw
+                            	    69: 
+                            	    70: 	; it's a letter see if there's a match
+00:0001099E 5348            	    71: 	subq	#1,A0		; make sure A0 points again to start of potential keyword
+00:000109A0 6100001A        	    72: 	bsr	b_check_keyword
+00:000109A4 4A00            	    73: 	tst.b	D0		; did we find a token? D0 != 0
+00:000109A6 6600000A        	    74: 	bne	.write_token	; yes, go write it
+                            	    75: 
+                            	    76: 	; if it wasn't, restore char and copy as raw text
+00:000109AA 1018            	    77: 	move.b	(A0)+,D0
+                            	    78: 
+                            	    79: .copy_raw
+00:000109AC 12C0            	    80: 	move.b	D0,(A1)+
+00:000109AE 6000FFD0        	    81: 	bra	b_tokenize
+                            	    82: 
+                            	    83: .write_token
+00:000109B2 12C0            	    84: 	move.b	D0,(A1)+
+00:000109B4 6000FFCA        	    85: 	bra	b_tokenize
+                            	    86: 
+00:000109B8 12C0            	    87: .done	move.b	D0,(A1)+
+00:000109BA 4E75            	    88: 	rts
+                            	    89: 
+                            	    90: 
+                            	    91: ; ----------------------------------------------------------------------
+                            	    92: ; Subroutine: b_check_keyword
+                            	    93: ; Input:      A0 pointer to input string
+                            	    94: ; Outputs:    D0 is $00 if no token found or token byte ($80-$ff) if found
+                            	    95: ;             A0 untouched when no match, A0 points to after keyword if match
+                            	    96: ; Destroyed:  D1
+                            	    97: ; ----------------------------------------------------------------------
+                            	    98: b_check_keyword
+00:000109BC 48E70030        	    99: 	movem.l	A2-A3,-(SP)
+00:000109C0 45F900010AD9    	   100: 	lea	b_token_table,A2
+                            	   101: 
+                            	   102: .loop_keywords
+00:000109C6 4A12            	   103: 	tst.b	(A2)		; check the first character from the keyword
+00:000109C8 67000028        	   104: 	beq	.not_found	; if $00, we hit end of table
+00:000109CC 2648            	   105: 	movea.l	A0,A3		; leave A0, use A3 for now
+                            	   106: 
+                            	   107: .compare_loop
+00:000109CE 121A            	   108: 	move.b	(A2)+,D1
+00:000109D0 67000016        	   109: 	beq	.match_found	; we came this far and character = null = match found
+00:000109D4 101B            	   110: 	move.b	(A3)+,D0	; get character from input buffer
+00:000109D6 B200            	   111: 	cmp.b	D0,D1		; compare chars case sensitive
+00:000109D8 6700FFF4        	   112: 	beq	.compare_loop
+                            	   113: 
+                            	   114: .skip_keyword
+00:000109DC 4A1A            	   115: 	tst.b	(A2)+		; test table byte and advance pointer
+00:000109DE 6600FFFC        	   116: 	bne	.skip_keyword	; repeat as it wasn't zero
+00:000109E2 528A            	   117: 	addq.l	#1,A2		; it was zero, so advance pointer to skip token value
+00:000109E4 6000FFE0        	   118: 	bra	.loop_keywords	; try next keyword
+                            	   119: 
+                            	   120: .match_found
+00:000109E8 1012            	   121: 	move.b	(A2),D0		; load token value into D0
+00:000109EA 204B            	   122: 	movea.l	A3,A0		; advance original A0 pointer
+00:000109EC 4CDF0C00        	   123: 	movem.l	(SP)+,A2-A3	; cleanup and return
+00:000109F0 4E75            	   124: 	rts
+                            	   125: 
+                            	   126: .not_found
+00:000109F2 7000            	   127: 	moveq	#0,D0		; no match, A0 not advanced
+00:000109F4 4CDF0C00        	   128: 	movem.l	(SP)+,A2-A3	; cleanup and return
+00:000109F8 4E75            	   129: 	rts
+                            	   130: 
+                            	   131: 
+                            	   132: ; ----------------------------------------------------------------------
+                            	   133: ; Subroutine: b_double_dabble (bin to bcd)
+                            	   134: ; Inputs:     D0.l 32bits unsigned value
+                            	   135: ; Outputs:    D0-D1 combined holding 10 bcd's, big endian order
+                            	   136: ; ----------------------------------------------------------------------
+                            	   137: b_double_dabble
+00:000109FA 48E73000        	   138: 	movem.l	D2-D3,-(SP)
+00:000109FE 761F            	   139: 	moveq	#32-1,D3	; counter for 32 shifts
+00:00010A00 2400            	   140: 	move.l	D0,D2		; D2 now holds input value
+00:00010A02 7000            	   141: 	moveq	#0,D0
+00:00010A04 7200            	   142: 	moveq	#0,D1
+                            	   143: 
+00:00010A06 2F01            	   144: .start	move.l	D1,-(SP)	; check individual numbers if >=5
+00:00010A08 611C            	   145: 	bsr.s	chk_nm
+00:00010A0A 221F            	   146: 	move.l	(SP)+,D1
+00:00010A0C C141            	   147: 	exg	D0,D1
+00:00010A0E 2F01            	   148: 	move.l	D1,-(SP)
+00:00010A10 6114            	   149: 	bsr.s	chk_nm
+00:00010A12 221F            	   150: 	move.l	(SP)+,D1
+00:00010A14 C141            	   151: 	exg	D0,D1
+                            	   152: 
+00:00010A16 E382            	   153: 	asl.l	D2
+00:00010A18 E391            	   154: 	roxl.l	D1
+00:00010A1A E390            	   155: 	roxl.l	D0
+                            	   156: 
+00:00010A1C 51CBFFE8        	   157: 	dbra	D3,.start
+                            	   158: 
+00:00010A20 4CDF000C        	   159: 	movem.l	(SP)+,D2-D3
+00:00010A24 4E75            	   160: 	rts
+                            	   161: 
+00:00010A26 6108            	   162: chk_nm	bsr.s	chk_nums_h1
+00:00010A28 4840            	   163: 	swap	D0
+00:00010A2A 6104            	   164: 	bsr.s	chk_nums_h1
+00:00010A2C 4840            	   165: 	swap	D0
+00:00010A2E 4E75            	   166: 	rts
+                            	   167: chk_nums_h1
+00:00010A30 2200            	   168: 	move.l	D0,D1
+00:00010A32 0201000F        	   169: 	andi.b	#$0f,D1
+00:00010A36 B23C0005        	   170: 	cmp.b	#$05,D1
+00:00010A3A 65000006        	   171: 	blo	.n1
+00:00010A3E 06000003        	   172: 	addi.b	#$3,D0
+00:00010A42 02410F00        	   173: .n1	andi.w	#$0f00,D1
+00:00010A46 B27C0500        	   174: 	cmp.w	#$500,D1
+00:00010A4A 65000006        	   175: 	blo	.n2
+00:00010A4E 06400300        	   176: 	addi.w	#$300,D0
+00:00010A52 2200            	   177: .n2	move.l	D0,D1
+00:00010A54 020100F0        	   178: 	andi.b	#$f0,D1
+00:00010A58 B23C0050        	   179: 	cmp.b	#$50,D1
+00:00010A5C 65000006        	   180: 	blo	.n3
+00:00010A60 06000030        	   181: 	addi.b	#$30,D0
+00:00010A64 0241F000        	   182: .n3	andi.w	#$f000,D1
+00:00010A68 B27C5000        	   183: 	cmp.w	#$5000,D1
+00:00010A6C 65000006        	   184: 	blo	.end
+00:00010A70 06403000        	   185: 	addi.w	#$3000,D0
+00:00010A74 4E75            	   186: .end	rts
+                            	   187: 
+                            	   188: ;-----------------------------------------------------------------------
+                            	   189: ; Subroutine: b_remove_spaces
+                            	   190: ; Inputs:     A0 pointer to text in buffer
+                            	   191: ; Outputs:    A0 point to first item not equal to space ($20)
+                            	   192: ;-----------------------------------------------------------------------
+                            	   193: b_remove_spaces
+00:00010A76 0C100020        	   194: 	cmp.b	#' ',(A0)
+00:00010A7A 6604            	   195: 	bne.s	.end
+00:00010A7C 5288            	   196: 	addq.l	#1,A0
+00:00010A7E 60F6            	   197: 	bra.s	b_remove_spaces
+00:00010A80 4E75            	   198: .end	rts
+                            	   199: 
+                            	   200: 
+                            	   201: ;-----------------------------------------------------------------------
+                            	   202: ; Subroutine: b_get_dec_number
+                            	   203: ; Inputs:     A0 points to ascii
+                            	   204: ; Outputs:    D0.l contains the number (32 bits), D1 contains the number
+                            	   205: ;             of digits it consumed (so is 0 when NAN)
+                            	   206: ;             A0 remains (1) the same if NAN or (2) points after number
+                            	   207: ;-----------------------------------------------------------------------
+                            	   208: b_get_dec_number
+00:00010A82 2F02            	   209: 	move.l	D2,-(SP)
+00:00010A84 4280            	   210: 	clr.l	D0		; will contain end result
+00:00010A86 4281            	   211: 	clr.l	D1		; is zero if NAN
+00:00010A88 0C100030        	   212: .start	cmp.b	#'0',(A0)
+00:00010A8C 65000022        	   213: 	blo	.end
+00:00010A90 0C100039        	   214: 	cmp.b	#'9',(A0)
+00:00010A94 6200001A        	   215: 	bhi	.end
+00:00010A98 2400            	   216: 	move.l	D0,D2		; times ten: first save D0 into D2
+00:00010A9A E580            	   217: 	asl.l	#2,D0		; double D0
+00:00010A9C D082            	   218: 	add.l	D2,D0		; now D0 is times 5
+00:00010A9E E380            	   219: 	asl.l	#1,D0		; double D0 (times 10)
+00:00010AA0 1418            	   220: 	move.b	(A0)+,D2
+00:00010AA2 02820000000F    	   221: 	andi.l	#$f,D2
+00:00010AA8 D082            	   222: 	add.l	D2,D0
+00:00010AAA 5281            	   223: 	addq.l	#1,D1
+00:00010AAC 6000FFDA        	   224: 	bra	.start
+00:00010AB0 241F            	   225: .end	move.l	(SP)+,D2
+00:00010AB2 4E75            	   226: 	rts
+                            	   227: 
+                            	   228: 
+00:00010AB4 0A              	   229: b_greeter	dc.b	$a,"basic v0.0 <<this is WIP>>",0
+00:00010AB5 6261736963207630
+00:00010ABD 2E30203C3C746869
+00:00010AC5 7320697320574950
+00:00010ACD 3E3E
+00:00010ACF 00
+00:00010AD0 0A              	   230: b_prompt	dc.b	$a,"ready.",$a,0
+00:00010AD1 72656164792E
+00:00010AD7 0A
+00:00010AD8 00
+                            	   231: 
+                            	   232: b_token_table
+00:00010AD9 676F746F        	   233: 	dc.b	"goto",0,$80
+00:00010ADD 00
+00:00010ADE 80
+00:00010ADF 706F6B65        	   234: 	dc.b	"poke",0,$81
+00:00010AE3 00
+00:00010AE4 81
+00:00010AE5 7072696E74      	   235: 	dc.b	"print",0,$82
+00:00010AEA 00
+00:00010AEB 82
+00:00010AEC 00              	   236: 	dc.b	0               ; Single $00 marks the absolute end of the table
+                            	   237: 
 
 Source: "rom.s"
                             	   818: 
@@ -1359,19 +1430,22 @@ VEC_TIMER6                       E:00000118
 VEC_TIMER7                       E:0000011C
 VEC_TRAP14                       E:000000B8
 VEC_TRAP15                       E:000000BC
+b_check_keyword                  A:000109BC
 b_cold_start                     A:0001091A
-b_double_dabble                  A:000109A2
+b_double_dabble                  A:000109FA
 b_end                            E:00006166
-b_get_dec_number                 A:00010A2A
-b_greeter                        A:00010A5C
+b_get_dec_number                 A:00010A82
+b_greeter                        A:00010AB4
 b_process_buffer                 A:0001094E
-b_prompt                         A:00010A78
-b_remove_spaces                  A:00010A1E
+b_prompt                         A:00010AD0
+b_remove_spaces                  A:00010A76
 b_start                          E:00006162
+b_token_table                    A:00010AD9
+b_tokenize                       A:00010980
 b_warm_start                     A:00010942
 boot_binary                      A:000101BE
-chk_nm                           A:000109CE
-chk_nums_h1                      A:000109D8
+chk_nm                           A:00010A26
+chk_nums_h1                      A:00010A30
 chunk_address                    E:00006156
 chunk_length                     E:00006152
 copy_fonts_from_rom              A:00010502
@@ -1379,7 +1453,7 @@ copy_logo_tile                   A:00010524
 cursor_active                    E:00006049
 cursor_color                     E:00006048
 cursor_pos                       E:00006046
-end_of_rom                       A:00010A81
+end_of_rom                       A:00010AED
 exc_addr_error                   A:00010326
 exc_illegal_instr                A:00010330
 exc_lvl1_irq_auto                A:00010342
@@ -1552,11 +1626,14 @@ Symbols by value:
 0001091A b_cold_start
 00010942 b_warm_start
 0001094E b_process_buffer
-000109A2 b_double_dabble
-000109CE chk_nm
-000109D8 chk_nums_h1
-00010A1E b_remove_spaces
-00010A2A b_get_dec_number
-00010A5C b_greeter
-00010A78 b_prompt
-00010A81 end_of_rom
+00010980 b_tokenize
+000109BC b_check_keyword
+000109FA b_double_dabble
+00010A26 chk_nm
+00010A30 chk_nums_h1
+00010A76 b_remove_spaces
+00010A82 b_get_dec_number
+00010AB4 b_greeter
+00010AD0 b_prompt
+00010AD9 b_token_table
+00010AED end_of_rom
