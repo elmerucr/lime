@@ -23,14 +23,14 @@
 
 ;-----------------------------------------------------------------------
 ; constants
-TERMINAL_HPITCH	equ	$80	; 128 tiles
-TERMINAL_VPITCH	equ	$20	; 32 tiles
-TERMINAL_WIDTH	equ	$50	; 80 columns visible
-TERMINAL_HEIGHT	equ	$14	; 20 rows
-TERMINAL_BG_COL	equ	$93
-TERMINAL_FG_COL	equ	$99
-TERMINAL_TILES	equ	$2000
-TERMINAL_COLORS	equ	$3000
+T_HPITCH	equ	$80	; 128 tiles
+T_VPITCH	equ	$20	; 32 tiles
+T_WIDTH		equ	$50	; 80 columns visible
+T_HEIGHT	equ	$14	; 20 rows
+T_BG_COL	equ	$93
+T_FG_COL	equ	$99
+T_TILES		equ	$2000
+T_COLORS	equ	$3000
 
 ;-----------------------------------------------------------------------
 		rsset	$6000
@@ -42,10 +42,11 @@ logo_status	rs.b	1
 cursor_pos	rs.w	1
 cursor_color	rs.b	1
 cursor_active	rs.b	1
-terminal_chars	rs.l	1
-terminal_colors	rs.l	1
-terminal_buf_1	rs.b	128
-terminal_buf_2	rs.b	128
+t_chars		rs.l	1
+t_colors	rs.l	1
+t_buf_1		rs.b	128
+t_buf_2		rs.b	128
+t_link_table	rs.b	T_HEIGHT
 
 chunk_length	rs.l	1
 chunk_address	rs.l	1
@@ -64,7 +65,7 @@ prngx		rs.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	start		; reset vector
-version	dc.b	"rom 0.10.20260926",0
+version	dc.b	"rom 0.10.20261001",0
 
 
 start
@@ -77,15 +78,15 @@ start
 	jsr	init_logo
 	jsr	sound_reset
 
-	move.l	#TERMINAL_TILES,terminal_chars		; default location
-	move.l	#TERMINAL_COLORS,terminal_colors	; default location
+	move.l	#T_TILES,t_chars		; default location
+	move.l	#T_COLORS,t_colors	; default location
 
 	move.b	#$01,VDC_BORDER_COLOR.w		; dark grey / black
 	move.b	#$0a,VDC_BORDER_SIZE.w		; 10 pixels hborder
 	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current
 	move.l	#$800,VDC_LAYER_TILESET_ADDR.w
-	move.l	#TERMINAL_TILES,VDC_LAYER_TILES_ADDR.w
-	move.l	#TERMINAL_COLORS,VDC_LAYER_COLORS_ADDR.w
+	move.l	#T_TILES,VDC_LAYER_TILES_ADDR.w
+	move.l	#T_COLORS,VDC_LAYER_COLORS_ADDR.w
 	move.b	#%1100,VDC_LAYER_FLAGS0.w	;
 	move.w	#$000a,VDC_LAYER_Y_MSB.w	; y location
 
@@ -93,9 +94,9 @@ start
 	move.b	#$b7,cursor_color		; greenish
 	move.b	#$01,VDC_BG_COLOR		; black / dark grey
 
-	bsr	terminal_clear
+	bsr	t_clear
 	lea	logo_boot_msg,A0		; print boot message
-	bsr	terminal_putstring
+	bsr	t_putstring
 
 	move.b	#$68,logo_animation.w		; init variable for letter wobble
 	move.l	#$77777,logo_cntdwn		; counter init value before displaying message
@@ -113,12 +114,14 @@ logo_screen
 	bne.s	.ls1				; didn't reach 0
 	move.b	#%1101,VDC_LAYER_FLAGS0.w	; display layer 0
 
-.ls1	move.b	(KEYBOARD_STATE+1).w,D0		; check status of esc key
+.ls1
+	move.b	(KEYBOARD_STATE+1).w,D0		; check status of esc key
 	beq.s	.ls2				; not pressed
 	btst	#0,D0				; check bit0
 	bne.s	.ls2
 	or.b	#%00000010,logo_status
-.ls2	tst.b	logo_status
+.ls2
+	tst.b	logo_status
 	beq.s	logo_screen			; nothing happened, go back
 
 ; either [esc] or boot happened
@@ -135,11 +138,11 @@ logo_screen
 	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current and visible
 	or.b	#%00000001,VDC_LAYER_FLAGS0.w
 
-	move.b	#TERMINAL_FG_COL,cursor_color
-	move.b	#TERMINAL_BG_COL,VDC_BG_COLOR.w	; Atari Basic BG
+	move.b	#T_FG_COL,cursor_color
+	move.b	#T_BG_COL,VDC_BG_COLOR.w	; Atari Basic BG
 	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
-	bsr	terminal_clear
-	bsr	terminal_welcome
+	bsr	t_clear
+	bsr	t_welcome
 
 	btst	#0,logo_status
 	bne.s	boot_binary
@@ -149,12 +152,12 @@ screen_editor
 	bsr	b_cold_start
 	bsr	b_warm_start
 	move.b	#%1,cursor_active
-.se1	bsr	terminal_flip_cursor		; make cursor visible
+.se1	bsr	t_flip_cursor		; make cursor visible
 
 .se2	move.b	KEYBOARD_EVENTS.w,D0		; load potential key event into D0
 	beq.s	.se2				; no key event (D0 == 0)
 	move.l	D0,-(SP)
-	bsr	terminal_flip_cursor		; hide
+	bsr	t_flip_cursor		; hide
 	move.l	(SP)+,D0
 	cmp.b	#$0a,D0				; is it a newline (return)?
 	bne.s	.se3				; no
@@ -164,7 +167,8 @@ screen_editor
 	bsr	b_process_buffer
 	move.l	(SP)+,D0
 
-.se3	move.b	#1,D1				; char out routine
+.se3
+	move.b	#1,D1				; char out routine
 	trap	#15				;
 	bra.s	.se1
 
@@ -178,9 +182,9 @@ screen_editor
 screen_copy_to_line_buffer
 	move.w	cursor_pos,D0		; get current cursor position
 	andi.w	#$ff80,D0		; cursor to start of line
-	movea.l	terminal_chars,A0	; point to beginning of chars
+	movea.l	t_chars,A0		; point to beginning of chars
 	lea	(A0,D0),A0		; point to start of current line
-	lea	terminal_buf_1,A1	; point to buffer
+	lea	t_buf_1,A1	; point to buffer
 	move.l	#(80-1),D0		; counter = 80 chars
 .1	move.b	(A0)+,(A1)+
 	dbra	D0,.1
@@ -195,10 +199,10 @@ boot_binary
 	bne	.bb3				; it's not a valid file
 
 	lea	file_loading1,A0
-	bsr	terminal_putstring
+	bsr	t_putstring
 
 .bb1	lea	file_loading2,A0
-	bsr	terminal_putstring
+	bsr	t_putstring
 
 	clr.l	D0					; getting chunk length
 	move.b	CORE_FILE_DATA.w,D0
@@ -214,7 +218,7 @@ boot_binary
 	bsr	terminal_put_hex_number
 
 	lea	file_loading3,A0
-	bsr	terminal_putstring
+	bsr	t_putstring
 
 	clr.l	D0			; getting the start address of
 	move.b	CORE_FILE_DATA.w,D0	; chunk into D0
@@ -238,7 +242,7 @@ boot_binary
 
 	move.l	A0,-(SP)
 	lea	file_loading3,A0
-	bsr	terminal_putstring
+	bsr	t_putstring
 	movea.l	(SP)+,A0
 
 	subq.l	#1,A0			; now A0 contains the last address in which a byte was loaded
@@ -275,11 +279,11 @@ boot_binary
 	bra	.bb4
 
 .bb3	lea	file_error,A0
-	bsr	terminal_putstring
+	bsr	t_putstring
 .bb4	movem.l	(SP)+,D0-D1
 
 	lea	file_loading4,A0
-	bsr	terminal_putstring
+	bsr	t_putstring
 
 	move.l	exec_address,D0
 	move.b	#8,D1
@@ -289,47 +293,65 @@ boot_binary
 .bb5	subq.l	#1,D0
 	bne	.bb5
 
-	bsr	terminal_clear
+	bsr	t_clear
 
 	movea.l	exec_address,A0
 	jmp	(A0)
 
 ;-----------------------------------------------------------------------
-; Subroutine: terminal_flip_cursor
+; Subroutine: t_flip_cursor
 ; Destroys:   D0, A0
 ;-----------------------------------------------------------------------
-terminal_flip_cursor
+t_flip_cursor
 	tst.b	cursor_active
 	beq.s	.1
 	move.w	cursor_pos,D0
-	movea.l	#TERMINAL_TILES,A0
+	movea.l	#T_TILES,A0
 	eori.b	#$80,(A0,D0)
 .1	rts
 
 
+; -----------
+;
+; ------
 exc_addr_error
 	move.b	#$01,VDC_BG_COLOR.w	; black
 .1	bra	.1
 
 
+; -----------
+;
+; ------
 exc_illegal_instr
 	move.b	#$41,VDC_BG_COLOR.w	; red
 .1	bra.s	.1
 
 
+; -----------
+;
+; ------
 exc_privilege_violation
 	move.b	#$b4,VDC_BG_COLOR.w	; green
 .1	bra.s	.1
 
 
+; -----------
+;
+; ------
 exc_spurious_interrupt
 	rte
 
 
+; -----------
+;
+; ------
 exc_lvl1_irq_auto
 	rte
 
 
+; -----------
+;
+; ------
 exc_lvl2_irq_auto
 	movem.l	D0-D1,-(SP)
 	move.b	CORE_SR.w,D0			; did core cause an irq?
@@ -340,6 +362,9 @@ exc_lvl2_irq_auto
 	rte
 
 
+; -----------
+;
+; ------
 exc_lvl4_irq_auto		; coupled to timer
 	movem.l	D0-D1/A0,-(SP)
 	movea.l	#VEC_TIMER0,A0
@@ -419,12 +444,12 @@ exc_trap15_handler
 	cmp.b	#1,D1			; simple, no jump table needed yet
 	bne	.1
 	;move.b	D1,D0
-	bsr	terminal_putchar
+	bsr	t_putchar
 	rte
 
 .1	cmp.b	#2,D1
 	bne	.2
-	bsr	terminal_putstring
+	bsr	t_putstring
 
 .2	rte
 
@@ -515,29 +540,35 @@ init_logo
 	rts
 
 ; ----------------------------------------------------------------------
-; Subroutine: terminal_clear
+; Subroutine: t_clear
 ; ----------------------------------------------------------------------
-terminal_clear
-	move.w	#(TERMINAL_HPITCH*TERMINAL_VPITCH)-1,D0
+t_clear
+	move.w	#(T_HPITCH*T_VPITCH)-1,D0
 	move.b	cursor_color.w,D1
-	movea.l	terminal_chars,A0
-	movea.l	terminal_colors,A1
-.start	move.b	#' ',(A0)+
+	movea.l	t_chars,A0
+	movea.l	t_colors,A1
+.1	move.b	#' ',(A0)+
 	move.b	D1,(A1)+
-	dbra	D0,.start
+	dbra	D0,.1
 	clr.w	cursor_pos
+
+	move.l	#T_HEIGHT-1,D0		; reset link table
+	lea	t_link_table,A0
+.2	move.b	#$80,(A0)+
+	dbra	D0,.2
+
 	rts
 
 
 ; ----------------------------------------------------------------------
-; Subroutine: terminal_putchar
+; Subroutine: t_putchar
 ; Inputs:     D0 contains char to be printed
 ; Outputs:    -
 ; Destroyed:  D0,D1,A0,A1
 ; ----------------------------------------------------------------------
-terminal_putchar
-	movea.l	terminal_chars,A0
-	movea.l	terminal_colors,A1
+t_putchar
+	movea.l	t_chars,A0
+	movea.l	t_colors,A1
 	move.w	cursor_pos,D1
 
 	cmp.b	#$0a,D0			; check for linefeed
@@ -561,16 +592,16 @@ terminal_putchar
 .right	addq.w	#1,D1			; move cursor one step to the right
 	move.w	D1,D0
 	andi.w	#%1111111,D0
-	cmp.w	#TERMINAL_WIDTH,D0	; are we at pos 80 or higher?
+	cmp.w	#T_WIDTH,D0	; are we at pos 80 or higher?
 	blo	.2			; no
 
-.lf	addi.w	#TERMINAL_HPITCH,D1	; yes, move cursor one line down, followed by carriage return
+.lf	addi.w	#T_HPITCH,D1	; yes, move cursor one line down, followed by carriage return
 .cr	andi.w	#%1111111110000000,D1	; cursor to beginning of line (carriage return)
 
-.1	cmp.w	#(TERMINAL_HPITCH*TERMINAL_HEIGHT),D1	; check for cursor out of screen
+.1	cmp.w	#(T_HPITCH*T_HEIGHT),D1	; check for cursor out of screen
 	blo	.2			; no
 
-	subi.w	#TERMINAL_HPITCH,D1	; move cursor one line up
+	subi.w	#T_HPITCH,D1	; move cursor one line up
 	move.w	D1,cursor_pos
 	bsr	terminal_add_bottom_row
 	rts
@@ -578,13 +609,13 @@ terminal_putchar
 .2	move.w	D1,cursor_pos
 	rts
 
-.down	addi.w	#TERMINAL_HPITCH,D1	; yes, move cursor one line down
+.down	addi.w	#T_HPITCH,D1	; yes, move cursor one line down
 	bra	.1
 	rts
 
-.up	subi.w	#TERMINAL_HPITCH,D1	; move cursor one line up
+.up	subi.w	#T_HPITCH,D1	; move cursor one line up
 	bpl.s	.2
-	addi.w	#TERMINAL_HPITCH,D1	; move cursor one line down
+	addi.w	#T_HPITCH,D1	; move cursor one line down
 	bra.s	.2
 
 .left	tst.w	D1
@@ -594,7 +625,7 @@ terminal_putchar
 	andi.w	#$7f,D0
 	tst.w	D0
 	bne	.l1
-	addi.w	#(TERMINAL_WIDTH-1),D1
+	addi.w	#(T_WIDTH-1),D1
 	bra	.up
 .l1	subq.w	#1,D1
 	bra.s	.2
@@ -603,7 +634,7 @@ terminal_putchar
 	beq	.2		; do nothing if we're at position 0 (left top)
 	andi.b	#$7f,D0		; the byte in D1 now contains the current column
 	bne	.bs0		; it's column 0
-	subi.w	#(TERMINAL_HPITCH-(TERMINAL_WIDTH-1)),D1
+	subi.w	#(T_HPITCH-(T_WIDTH-1)),D1
 	move.b	#' ',(A0,D1)
 	move.b	cursor_color,(A1,D1)
 	bra	.2
@@ -615,7 +646,7 @@ terminal_putchar
 	move.b	(A1,D2),-1(A1,D2)
 	addq.w	#1,D2
 	addq.b	#1,D0
-	cmp.b	#TERMINAL_WIDTH,D0
+	cmp.b	#T_WIDTH,D0
 	bne	.bs1
 
 	subq.w	#1,D2
@@ -630,17 +661,17 @@ terminal_putchar
 
 
 ; ----------------------------------------------------------------------
-; Routine: terminal_putstring (zero terminated)
+; Routine: t_putstring (zero terminated)
 ; Input:   A0 points to first character
 ; Output:  -
 ; ----------------------------------------------------------------------
-terminal_putstring
+t_putstring
 	move.b	(A0)+,D0
 	beq	.end
 	move.l	A0,-(SP)
-	bsr	terminal_putchar
+	bsr	t_putchar
 	movea.l	(SP)+,A0
-	bra	terminal_putstring
+	bra	t_putstring
 .end	rts
 
 
@@ -665,7 +696,7 @@ terminal_put_hex_number
 	andi.l	#$f,D1
 	lea	hex_values,A0
 	move.b	(A0,D1),D0
-	jsr	terminal_putchar
+	jsr	t_putchar
 .2	rts
 
 
@@ -688,7 +719,7 @@ terminal_put_bcd_number
 	addi.b	#$30,D2
 	movem.l	D0-D1,-(SP)
 	move.b	D2,D0
-	bsr	terminal_putchar
+	bsr	t_putchar
 	movem.l	(SP)+,D0-D1
 .cont	asl.l	D1
 	roxl.l	D0
@@ -702,7 +733,7 @@ terminal_put_bcd_number
 	tst.b	D4		; if D4.b is still 0, then nothing has been printed
 	bne	.end		; something was printed already
 	move.b	#'0',D0		; nothing printed yet, so print 0
-	bsr	terminal_putchar
+	bsr	t_putchar
 .end	movem.l	(SP)+,D2-D4
 	rts
 
@@ -716,19 +747,19 @@ terminal_put_bcd_number
 terminal_add_bottom_row
 	movem.l	D2/A2-A3,-(SP)
 
-	movea.l	terminal_chars,A0
-	lea	TERMINAL_HPITCH(A0),A1
-	movea.l	terminal_colors,A2
-	lea	TERMINAL_HPITCH(A2),A3
+	movea.l	t_chars,A0
+	lea	T_HPITCH(A0),A1
+	movea.l	t_colors,A2
+	lea	T_HPITCH(A2),A3
 
-	move.w	#(TERMINAL_HPITCH*(TERMINAL_HEIGHT-1)),D0	; use terminal size minus lowest row
+	move.w	#(T_HPITCH*(T_HEIGHT-1)),D0	; use terminal size minus lowest row
 	lsr.w	#2,D0			; divide by 4
 .1	move.l	(A1)+,(A0)+		; do 4 bytes at once
 	move.l	(A3)+,(A2)+		; do 4 bytes at once
 	subq.w	#1,D0
 	bne	.1
 
-	move.b	#TERMINAL_HPITCH,D0	; do last row
+	move.b	#T_HPITCH,D0	; do last row
 	move.b	#' ',D1
 	move.b	cursor_color,D2
 .2	move.b	D1,(A0)+
@@ -740,11 +771,11 @@ terminal_add_bottom_row
 	rts
 
 
-terminal_welcome
+t_welcome
 	lea	welcome,A0
-	jsr	terminal_putstring
+	jsr	t_putstring
 	lea	version,A0
-	jsr	terminal_putstring
+	jsr	t_putstring
 	rts
 
 

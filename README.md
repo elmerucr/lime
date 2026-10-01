@@ -2,17 +2,16 @@
 
 ![icon](./docs/icon_80x80.png)
 
-Lime is a virtual computer system that draws inspiration from computing platforms such as the Commodore 64 (look and feel, VIC-II, SID), the Amiga 500 and Atari ST (Motorola 68000), the original Nintendo Gameboy (tiles system) and the Atari 800xl (GTIA color palette).
+Lime is a virtual computer system that draws inspiration from eighties computing platforms such as the Commodore 64 (VIC-II, SID), the Amiga 500 and Atari ST (Motorola 68000), the original Nintendo Gameboy (tiles system) and the Atari 800xl (GTIA color palette).
 
 Notable features include:
 
 * Motorola MC68000 cpu using the [Moira](https://github.com/dirkwhoffmann/Moira) library
-* 16mb ram
+* Video Display Controller (VDC) for graphics processing
+* 16mb shared ram
+* Two SID chips implemented with the [reSID](http://www.zimmers.net/anonftp/pub/cbm/crossplatform/emulators/resid/index.html) library and two custom Analog chips for sound
 * Screen resolution of 320x180 pixels, refresh rate of 60Hz
-* Video Display Controller (VDC) for graphics processing, shared memory access to lowest 64k
 * Programmable using Motorola 68000 assembly (see ```examples``` folder)
-
-By default, lime starts in MC68000 mode.
 
 ## Screenshots
 
@@ -103,7 +102,7 @@ Run with:
 * [mc6809](https://github.com/elmerucr/mc6809) -  Motorola 6809 cpu emulator written in C++ by elmerucr.
 * [Moira](https://github.com/dirkwhoffmann/Moira) - Motorola 68000 cpu emulator written in C++ by Dirk W. Hoffmann.
 * [Peddle](https://dirkwhoffmann.github.io/Peddle/) - Peddle is a MOS Technology 6502, 6507, and 6510 emulator with high emulation accuracy by Dirk W. Hoffmann.
-* [reSID](http://www.zimmers.net/anonftp/pub/cbm/crossplatform/emulators/resid/index.html) - ReSID is a Commodore 6581 and 8580 Sound Interface Device emulator by Dag Lem.
+* [reSID](http://www.zimmers.net/anonftp/pub/cbm/crossplatform/emulators/resid/index.html) - A Commodore 6581 and 8580 Sound Interface Device emulator by Dag Lem.
 * [vAmiga](https://dirkwhoffmann.github.io/vAmiga/) - An Amiga 500, 1000, or 2000 on your Apple Macintosh by Dirk W. Hoffmann.
 * [VICE](http://vice-emu.sourceforge.net) - The Versatile Commodore Emulator.
 * [VirtualC64](https://dirkwhoffmann.github.io/virtualc64/) - A Commodore 64 on your Apple Macintosh by Dirk W. Hoffmann.
@@ -113,6 +112,7 @@ Run with:
 ### Other
 
 * [PICO-8](https://www.lexaloffle.com/pico-8.php) - PICO-8 is a fantasy console for making, sharing and playing tiny games and other computer programs by lexaloffle.
+* [Picotron](https://www.lexaloffle.com/picotron.php) - A Fantasy Workstation: a self-contained creative environment built for imaginary hardware.
 * [SDL Simple DirectMedia Layer](https://www.libsdl.org) - A cross-platform development library by Sam Lantinga designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware.
 * [stb](https://github.com/nothings/stb) - single-file public domain (or MIT licensed) libraries for C/C++
 * [TIC-80](https://tic80.com) - TIC-80 is a free and open source fantasy computer for making, playing and sharing tiny games.
