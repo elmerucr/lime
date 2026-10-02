@@ -44,9 +44,8 @@ cursor_color	rs.b	1
 cursor_active	rs.b	1
 t_chars		rs.l	1
 t_colors	rs.l	1
-t_buf_1		rs.b	128
-t_buf_2		rs.b	128
-t_link_table	rs.b	T_HEIGHT
+t_buf_1		rs.b	(2*T_WIDTH)
+t_buf_2		rs.b	(2*T_WIDTH)
 
 chunk_length	rs.l	1
 chunk_address	rs.l	1
@@ -543,20 +542,20 @@ init_logo
 ; Subroutine: t_clear
 ; ----------------------------------------------------------------------
 t_clear
+	movem.l	D2-D3,-(SP)
 	move.w	#(T_HPITCH*T_VPITCH)-1,D0
-	move.b	cursor_color.w,D1
+
+	move.b	#' ',D2
+	move.b	cursor_color.w,D3
+
 	movea.l	t_chars,A0
 	movea.l	t_colors,A1
-.1	move.b	#' ',(A0)+
-	move.b	D1,(A1)+
+.1	move.b	D2,(A0)+
+	move.b	D3,(A1)+
 	dbra	D0,.1
 	clr.w	cursor_pos
 
-	move.l	#T_HEIGHT-1,D0		; reset link table
-	lea	t_link_table,A0
-.2	move.b	#$80,(A0)+
-	dbra	D0,.2
-
+	movem.l	(SP)+,D2-D3
 	rts
 
 
@@ -844,6 +843,7 @@ logo_tile
 
 hex_values
 	dc.b	"0123456789abcdef"
+
 
 	include "basic.s"
 
