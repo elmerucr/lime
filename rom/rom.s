@@ -214,7 +214,7 @@ boot_binary
 	move.l	D0,chunk_length
 
 	move.b	#6,D1
-	bsr	terminal_put_hex_number
+	bsr	t_put_hex_number
 
 	lea	file_loading3,A0
 	bsr	t_putstring
@@ -230,7 +230,7 @@ boot_binary
 	move.l	D0,chunk_address
 
 	move.b	#6,D1
-	bsr	terminal_put_hex_number
+	bsr	t_put_hex_number
 
 	move.l	chunk_length,D0
 	movea.l	chunk_address,A0
@@ -247,7 +247,7 @@ boot_binary
 	subq.l	#1,A0			; now A0 contains the last address in which a byte was loaded
 	move.l	A0,D0
 	move.b	#6,D1
-	bsr	terminal_put_hex_number
+	bsr	t_put_hex_number
 
 	move.b	CORE_FILE_DATA.w,D0	; look for next chunk
 	cmp.b	#1,D0
@@ -286,7 +286,7 @@ boot_binary
 
 	move.l	exec_address,D0
 	move.b	#8,D1
-	bsr	terminal_put_hex_number
+	bsr	t_put_hex_number
 
 	move.l	#$000c0000,D0			; wait loop
 .bb5	subq.l	#1,D0
@@ -542,20 +542,30 @@ init_logo
 ; Subroutine: t_clear
 ; ----------------------------------------------------------------------
 t_clear
-	movem.l	D2-D3,-(SP)
-	move.w	#(T_HPITCH*T_VPITCH)-1,D0
-
-	move.b	#' ',D2
+	movem.l	D2-D4,-(SP)
+	move.w	#(T_HPITCH*T_VPITCH),D0
+	moveq	#0,D1
 	move.b	cursor_color.w,D3
-
 	movea.l	t_chars,A0
 	movea.l	t_colors,A1
-.1	move.b	D2,(A0)+
-	move.b	D3,(A1)+
-	dbra	D0,.1
+
+.1	move.b	#' ',D2		; default to ' '
+	move.l	D1,D4
+	andi.l	#$7f,D4
+	cmp.l	#80-1,D4
+	ble.s	.2
+	move.b	#$80,D2		; it's higher than 79, use char $80 instead
+
+.2	move.b	D2,(A0,D1)
+	move.b	D3,(A1,D1)
+	move.b	#$80,D2
+	addq	#1,D1
+	cmp.l	D0,D1
+	bne.s	.1
+
 	clr.w	cursor_pos
 
-	movem.l	(SP)+,D2-D3
+	movem.l	(SP)+,D2-D4
 	rts
 
 
@@ -602,7 +612,7 @@ t_putchar
 
 	subi.w	#T_HPITCH,D1	; move cursor one line up
 	move.w	D1,cursor_pos
-	bsr	terminal_add_bottom_row
+	bsr	t_add_bottom_row
 	rts
 
 .2	move.w	D1,cursor_pos
@@ -675,12 +685,12 @@ t_putstring
 
 
 ; ----------------------------------------------------------------------
-; Routine:   terminal_put_hex_number
+; Routine:   t_put_hex_number
 ; Inputs:    D0 contains de number to print, D1 no of digits to print
 ; Outputs:   -
 ; Destroyed: D0,D1,A0,A1
 ; ----------------------------------------------------------------------
-terminal_put_hex_number
+t_put_hex_number
 	tst.b	D1		; D1 contains no of digits to print
 	beq	.2		; if this is 0, end this function
 	subq.b	#1,D1		; reduce number of digits to print by 1
@@ -688,7 +698,7 @@ terminal_put_hex_number
 	move.l	D0,-(SP)
 	lsr.l	#4,D0
 	move.b	D1,-(SP)
-	jsr	terminal_put_hex_number
+	jsr	t_put_hex_number
 	move.b	(SP)+,D1
 	move.l	(SP)+,D0
 .1	move.l	D0,D1
@@ -738,12 +748,12 @@ terminal_put_bcd_number
 
 
 ; ----------------------------------------------------------------------
-; Routine:   terminal_add_bottom_row
+; Routine:   t_add_bottom_row
 ; Inputs:    -
 ; Outputs:   -
 ; Destroyed: D0,D1,A0,A1
 ; ----------------------------------------------------------------------
-terminal_add_bottom_row
+t_add_bottom_row
 	movem.l	D2/A2-A3,-(SP)
 
 	movea.l	t_chars,A0
@@ -758,6 +768,7 @@ terminal_add_bottom_row
 	subq.w	#1,D0
 	bne	.1
 
+; TODO: How about >79????
 	move.b	#T_HPITCH,D0	; do last row
 	move.b	#' ',D1
 	move.b	cursor_color,D2

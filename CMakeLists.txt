@@ -13,7 +13,7 @@ project(lime)
 # Create an option to switch between fetched or system sdl library
 option(LIME_FETCH "Use fetched libraries" ON)
 
-set(LIME_SDL3_VERSION "release-3.4.16")
+set(LIME_SDL3_VERSION "release-3.4.18")
 message(STATUS "")
 message(STATUS "  ┌─ SDL3 ─────────────────────────────────────────────────────")
 message(STATUS "  │ Fetching SDL3 ${LIME_SDL3_VERSION} from GitHub...")
