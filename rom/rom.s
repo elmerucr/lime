@@ -42,10 +42,13 @@ logo_status	rs.b	1
 cursor_pos	rs.w	1
 cursor_color	rs.b	1
 cursor_active	rs.b	1
+cursor_interval	rs.b	1
+cursor_cntdwn	rs.b	1
 t_chars		rs.l	1
 t_colors	rs.l	1
 t_buf_1		rs.b	(2*T_WIDTH)
 t_buf_2		rs.b	(2*T_WIDTH)
+t_link_table	rs.b	T_HEIGHT
 
 chunk_length	rs.l	1
 chunk_address	rs.l	1
@@ -151,12 +154,12 @@ screen_editor
 	bsr	b_cold_start
 	bsr	b_warm_start
 	move.b	#%1,cursor_active
-.se1	bsr	t_flip_cursor		; make cursor visible
+.se1	bsr	t_flip_cursor			; make cursor visible
 
 .se2	move.b	KEYBOARD_EVENTS.w,D0		; load potential key event into D0
 	beq.s	.se2				; no key event (D0 == 0)
 	move.l	D0,-(SP)
-	bsr	t_flip_cursor		; hide
+	bsr	t_flip_cursor			; hide
 	move.l	(SP)+,D0
 	cmp.b	#$0a,D0				; is it a newline (return)?
 	bne.s	.se3				; no
@@ -166,8 +169,7 @@ screen_editor
 	bsr	b_process_buffer
 	move.l	(SP)+,D0
 
-.se3
-	move.b	#1,D1				; char out routine
+.se3	move.b	#1,D1				; char out routine
 	trap	#15				;
 	bra.s	.se1
 
@@ -296,6 +298,7 @@ boot_binary
 
 	movea.l	exec_address,A0
 	jmp	(A0)
+
 
 ;-----------------------------------------------------------------------
 ; Subroutine: t_flip_cursor
@@ -543,25 +546,17 @@ init_logo
 ; ----------------------------------------------------------------------
 t_clear
 	movem.l	D2-D4,-(SP)
-	move.w	#(T_HPITCH*T_VPITCH),D0
-	moveq	#0,D1
-	move.b	cursor_color.w,D3
+	move.w	#(T_HPITCH*T_VPITCH)-1,D0
 	movea.l	t_chars,A0
 	movea.l	t_colors,A1
+.1	move.b	#' ',(A0)+
+	move.b	cursor_color.w,(A1)+
+	dbra	D0,.1
 
-.1	move.b	#' ',D2		; default to ' '
-	move.l	D1,D4
-	andi.l	#$7f,D4
-	cmp.l	#80-1,D4
-	ble.s	.2
-	move.b	#$80,D2		; it's higher than 79, use char $80 instead
-
-.2	move.b	D2,(A0,D1)
-	move.b	D3,(A1,D1)
-	move.b	#$80,D2
-	addq	#1,D1
-	cmp.l	D0,D1
-	bne.s	.1
+	move.l	#T_HEIGHT-1,D0
+	lea	t_link_table,A0
+.2	move.b	#$80,(A0)+
+	dbra	D0,.2
 
 	clr.w	cursor_pos
 
