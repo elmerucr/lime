@@ -39,11 +39,15 @@ logo		rs.b	64
 logo_cntdwn	rs.l	1
 logo_animation	rs.b	1
 logo_status	rs.b	1
+
 cursor_pos	rs.w	1
 cursor_color	rs.b	1
 cursor_active	rs.b	1
 cursor_interval	rs.b	1
 cursor_cntdwn	rs.b	1
+cursor_ori_chr	rs.b	1
+cursor_ori_col	rs.b	1
+
 t_chars		rs.l	1
 t_colors	rs.l	1
 t_buf_1		rs.b	(2*T_WIDTH)
@@ -67,7 +71,7 @@ prngx		rs.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	start		; reset vector
-version	dc.b	"rom 0.10.20261001",0
+version	dc.b	"rom 0.10.20261004",0
 
 
 start
@@ -153,13 +157,14 @@ logo_screen
 screen_editor
 	bsr	b_cold_start
 	bsr	b_warm_start
+	move.b	#17,cursor_interval		; 17/50 = 0.34s if at 50Hz
 	move.b	#%1,cursor_active
-.se1	bsr	t_flip_cursor			; make cursor visible
+.se1	bsr	t_cursor_flip			; make cursor visible
 
 .se2	move.b	KEYBOARD_EVENTS.w,D0		; load potential key event into D0
 	beq.s	.se2				; no key event (D0 == 0)
 	move.l	D0,-(SP)
-	bsr	t_flip_cursor			; hide
+	bsr	t_cursor_flip			; hide
 	move.l	(SP)+,D0
 	cmp.b	#$0a,D0				; is it a newline (return)?
 	bne.s	.se3				; no
@@ -301,10 +306,70 @@ boot_binary
 
 
 ;-----------------------------------------------------------------------
-; Subroutine: t_flip_cursor
+; Subroutine: t_cursor_activate
+;-----------------------------------------------------------------------
+t_cursor_activate
+	movea.l	t_chars,A0
+	move.w	cursor_pos,D0
+	move.b	(A0,D0),cursor_ori_chr
+	movea.l	t_colors,A0
+	move.b	(A0,D0),cursor_ori_col
+	clr.b	cursor_cntdwn			; set counter on 0
+	move.b	#%1,cursor_active
+	rts
+
+
+;-----------------------------------------------------------------------
+; Subroutine: t_cursor_deactivate
+;-----------------------------------------------------------------------
+t_cursor_deactivate
+	clr.b	cursor_active
+	movea.l	t_chars,A0
+	move.w	cursor_pos,D0
+	move.b	cursor_ori_chr,(A0,D0)
+	movea.l	t_colors,A0
+	move.b	cursor_ori_col,(A0,D0)
+	rts
+
+
+;-----------------------------------------------------------------------
+; Subroutine: t_cursor_process
+;-----------------------------------------------------------------------
+t_cursor_process
+	movem.l	D2-D3,-(SP)
+	tst.b	cursor_active
+	bne	.end
+
+	tst.b	cursor_cntdwn
+	bne	.cntdwn
+
+	movea.l	t_chars,A0
+	move.w	cursor_pos,D0
+	eori.b	#$80,(A0,D0)
+
+	move.b	(A0,D0),D1
+	andi.b	#$80,D1
+	move.b	cursor_ori_chr,D2
+	andi.b	#$80,D2
+	movea.l	t_colors,A0
+	move.b	cursor_interval,D3
+
+	cmp.b	D1,D2
+	beq.s	.equal
+.uneq	move.b	cursor_color,(A0,D0)
+	add.b	D3,cursor_cntdwn
+	bra.s	.cntdwn
+.equal	move.b	cursor_ori_col,(A0,D0)
+	add.b	D3,cursor_cntdwn
+.cntdwn	subi.b	#1,cursor_cntdwn
+.end	movem.l	(SP)+,D2-D3
+	rts
+
+;-----------------------------------------------------------------------
+; Subroutine: t_cursor_flip
 ; Destroys:   D0, A0
 ;-----------------------------------------------------------------------
-t_flip_cursor
+t_cursor_flip
 	tst.b	cursor_active
 	beq.s	.1
 	move.w	cursor_pos,D0
@@ -812,7 +877,7 @@ prng
 
 logo_boot_msg	dc.b	$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a,$0a
 		dc.b	"             drop a binary file to boot or hit [esc] to start basic",0
-welcome		dc.b	"lime virtual computer system",$0a,0
+welcome		dc.b	"lime computer system",$0a,0
 file_error	dc.b	$0a,$0a,"error: not a valid binary",0
 file_loading1	dc.b	$0a,$0a,"  size    from    to",0
 file_loading2	dc.b	$0a,"$",0
@@ -850,7 +915,7 @@ logo_tile
 hex_values
 	dc.b	"0123456789abcdef"
 
-
+	cnop	0,2		; alignment
 	include "basic.s"
 
 

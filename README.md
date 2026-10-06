@@ -2,7 +2,7 @@
 
 ![icon](./docs/icon_80x80.png)
 
-Lime is a virtual computer system that draws inspiration from eighties computing platforms such as the Commodore 64 (VIC-II, SID), the Amiga 500 and Atari ST (Motorola 68000), the original Nintendo Gameboy (tiles system) and the Atari 800xl (GTIA color palette).
+Lime is a computer system that draws inspiration from eighties computing platforms such as the Commodore 64 (VIC-II, SID), the Amiga 500 and Atari ST (Motorola 68000), the original Nintendo Gameboy (tiles system) and the Atari 800xl (GTIA color palette).
 
 Notable features include:
 
