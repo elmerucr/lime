@@ -71,7 +71,7 @@ prngx		rs.b	1
 
 	dc.l	$01000000	; initial ssp at end of ram
 	dc.l	start		; reset vector
-version	dc.b	"rom 0.10.20261004",0
+version	dc.b	"rom 0.10.20261006",0
 
 
 start
@@ -157,14 +157,17 @@ logo_screen
 screen_editor
 	bsr	b_cold_start
 	bsr	b_warm_start
-	move.b	#17,cursor_interval		; 17/50 = 0.34s if at 50Hz
-	move.b	#%1,cursor_active
-.se1	bsr	t_cursor_flip			; make cursor visible
+	move.b	#20,cursor_interval		; 20/50 = 0.4s if at 50Hz
+	;move.b	#%1,cursor_active
+	move.w	#$bb8,TIMER0_BPM.w		; 3000bpm = 50Hz
+	move.b	#%00000001,TIMER_CR.w
+
+.se1	bsr	t_cursor_activate		; make cursor visible
 
 .se2	move.b	KEYBOARD_EVENTS.w,D0		; load potential key event into D0
 	beq.s	.se2				; no key event (D0 == 0)
 	move.l	D0,-(SP)
-	bsr	t_cursor_flip			; hide
+	bsr	t_cursor_deactivate		; hide
 	move.l	(SP)+,D0
 	cmp.b	#$0a,D0				; is it a newline (return)?
 	bne.s	.se3				; no
@@ -336,9 +339,9 @@ t_cursor_deactivate
 ; Subroutine: t_cursor_process
 ;-----------------------------------------------------------------------
 t_cursor_process
-	movem.l	D2-D3,-(SP)
+	movem.l	D0-D3/A0,-(SP)
 	tst.b	cursor_active
-	bne	.end
+	beq	.end
 
 	tst.b	cursor_cntdwn
 	bne	.cntdwn
@@ -362,20 +365,8 @@ t_cursor_process
 .equal	move.b	cursor_ori_col,(A0,D0)
 	add.b	D3,cursor_cntdwn
 .cntdwn	subi.b	#1,cursor_cntdwn
-.end	movem.l	(SP)+,D2-D3
+.end	movem.l	(SP)+,D0-D3/A0
 	rts
-
-;-----------------------------------------------------------------------
-; Subroutine: t_cursor_flip
-; Destroys:   D0, A0
-;-----------------------------------------------------------------------
-t_cursor_flip
-	tst.b	cursor_active
-	beq.s	.1
-	move.w	cursor_pos,D0
-	movea.l	#T_TILES,A0
-	eori.b	#$80,(A0,D0)
-.1	rts
 
 
 ; -----------
@@ -557,7 +548,7 @@ init_vector_table
 	move.l	#exc_lvl6_irq_auto,VEC_LVL6_IRQ_AUTO.w
 	move.l	#exc_trap14_handler,VEC_TRAP14.w
 	move.l	#exc_trap15_handler,VEC_TRAP15.w
-	move.l	#timer_default_handler,VEC_TIMER0.w
+	move.l	#t_cursor_process,VEC_TIMER0.w
 	move.l	#timer_default_handler,VEC_TIMER1.w
 	move.l	#timer_default_handler,VEC_TIMER2.w
 	move.l	#timer_default_handler,VEC_TIMER3.w
