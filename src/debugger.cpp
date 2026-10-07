@@ -120,14 +120,14 @@ void debugger_t::redraw()
 	uint32_t usp = system->core->cpu->getUSP();
 	status1->printf(
 		"--------------------------------------cpu---------------------------------------\n"
-		"   D0:%08x  D4:%08x  A0:%08x  A4:%08x    +e:%02x%02x     +e:%02x%02x\n"
-		"   D1:%08x  D5:%08x  A1:%08x  A5:%08x    +c:%02x%02x     +c:%02x%02x\n"
-		"   D2:%08x  D6:%08x  A2:%08x  A6:%08x    +a:%02x%02x     +a:%02x%02x\n"
-		"   D3:%08x  D7:%08x  A3:%08x  A7:%08x    +8:%02x%02x     +8:%02x%02x\n"
+		"   d0:%08x  d4:%08x  a0:%08x  a4:%08x    +e:%02x%02x     +e:%02x%02x\n"
+		"   d1:%08x  d5:%08x  a1:%08x  a5:%08x    +c:%02x%02x     +c:%02x%02x\n"
+		"   d2:%08x  d6:%08x  a2:%08x  a6:%08x    +a:%02x%02x     +a:%02x%02x\n"
+		"   d3:%08x  d7:%08x  a3:%08x  a7:%08x    +8:%02x%02x     +8:%02x%02x\n"
 		"                                                         +6:%02x%02x     +6:%02x%02x\n"
-		"     PC:%08x  SR:%04x (%s)  IPL:%i      +4:%02x%02x     +4:%02x%02x\n"
+		"     pc:%08x  sr:%04x (%s)  ipl:%i      +4:%02x%02x     +4:%02x%02x\n"
 		"                                                         +2:%02x%02x     +2:%02x%02x\n"
-		"               SSP:%08x  USP:%08x             SSP+0:%02x%02x  USP+0:%02x%02x\n",
+		"               ssp:%08x  usp:%08x             ssp+0:%02x%02x  usp+0:%02x%02x\n",
 
 		system->core->cpu->getD(0),
 		system->core->cpu->getD(4),

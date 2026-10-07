@@ -4,14 +4,14 @@ main	clr.b	VDC_BG_COLOR.w		; make sure bg color = 0
 	move.b	#$01,TIMER_CR.w		; activate timer 0
 .1	bra	.1			; endless loop
 
-routine	move.l	D0,-(SP)
+routine	move.l	d0,-(sp)
 
-	move.b	VDC_BG_COLOR.w,D0
-	addq.b	#1,D0
-	;cmp.b	#$40,D0
+	move.b	VDC_BG_COLOR.w,d0
+	addq.b	#1,d0
+	;cmp.b	#$40,d0
 	;bne	.1
-	;clr.b	D0
-	move.b	D0,VDC_BG_COLOR.w
+	;clr.b	d0
+	move.b	d0,VDC_BG_COLOR.w
 
-	move.l	(SP)+,D0
+	move.l	(sp)+,d0
 	rts

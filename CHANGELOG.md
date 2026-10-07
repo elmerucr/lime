@@ -1,6 +1,8 @@
 ##
 
+* 20261007 rom: flashing cursor
 * 20261003 Compiles with SDL 3.4.18 on macOS Golden Gate 27.0.1
+* 20260926 rom / basic: initial version of tokenizer
 * 20260918 vdc: palette cannot be edited any more
 * 20260917 vdc: tileset_address now 32bit
 

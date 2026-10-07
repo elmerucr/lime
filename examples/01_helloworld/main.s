@@ -11,8 +11,8 @@ main	move.b	#$37,VDC_BG_COLOR	; "orange" background color
 	move.b	#27,VDC_SPRITE_X_LSB
 	move.b	#$a,VDC_SPRITE_Y_LSB
 
-	lea.l	hello,A0
-	move.b	#2,D1
+	lea.l	hello,a0
+	move.b	#2,d1
 	trap	#15
 
 .1	bra	.1	; loop

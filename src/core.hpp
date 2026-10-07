@@ -13,7 +13,7 @@
 // | | | | | | | |
 // | | | | | | | +--
 //
-// Register 1 - Control Register (SR)
+// Register 1 - Control Register (CR)
 //
 // (READ)
 // 7 6 5 4 3 2 1 0
