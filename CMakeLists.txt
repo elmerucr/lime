@@ -26,7 +26,6 @@ FetchContent_Declare(
 	sdl3
 	GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
 	GIT_TAG        ${LIME_SDL3_VERSION}
-	GIT_SHALLOW    TRUE
 	GIT_PROGRESS   TRUE
 )
 

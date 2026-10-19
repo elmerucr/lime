@@ -88,7 +88,7 @@ start
 	jsr	sound_reset
 
 	move.l	#T_TILES,t_chars		; default location
-	move.l	#T_COLORS,t_colors	; default location
+	move.l	#T_COLORS,t_colors		; default location
 
 	move.b	#$01,VDC_BORDER_COLOR.w		; dark grey / black
 	move.b	#$0a,VDC_BORDER_SIZE.w		; 10 pixels hborder
@@ -147,7 +147,7 @@ logo_screen
 	clr.b	VDC_CURRENT_LAYER.w		; make layer 0 current and visible
 	or.b	#%00000001,VDC_LAYER_FLAGS0.w
 
-	move.b	#T_FG_COL,cursor_color
+	move.b	#T_FG_COL,cursor_color		; Atari Basic FG
 	move.b	#T_BG_COL,VDC_BG_COLOR.w	; Atari Basic BG
 	move.b	#%10000000,KEYBOARD_CR.w	; purge keyboard events
 	bsr	t_clear
@@ -161,7 +161,6 @@ screen_editor
 	bsr	b_cold_start
 	bsr	b_warm_start
 	move.b	#20,cursor_interval		; 20/50 = 0.4s if at 50Hz
-	;move.b	#%1,cursor_active
 	move.w	#$bb8,TIMER0_BPM.w		; 3000bpm = 50Hz
 	move.b	#%00000001,TIMER_CR.w
 
@@ -175,13 +174,14 @@ screen_editor
 	cmp.b	#$0a,d0				; is it a newline (return)?
 	bne.s	.se3				; no
 
-	move.l	d0,-(sp)
-	bsr.s	screen_copy_to_line_buffer	; yes, copy to line buffer
+	move.l	d0,-(sp)			; yes
+	bsr.s	screen_copy_to_line_buffer
 	bsr	b_process_buffer
 	move.l	(sp)+,d0
 
 .se3	move.b	#1,d1				; char out routine
-	trap	#15				;
+	trap	#15
+	; check if we're in a next line, if so adjust link table keeping account of all situations?
 	bra.s	.se1
 
 
@@ -604,7 +604,7 @@ init_logo
 ; Subroutine: t_clear
 ; ----------------------------------------------------------------------
 t_clear
-	movem.l	d2-d4,-(sp)
+	movem.l	d2-d4,-(sp)		; clear chars / colors
 	move.w	#(T_HPITCH*T_VPITCH)-1,d0
 	movea.l	t_chars,a0
 	movea.l	t_colors,a1
@@ -612,7 +612,7 @@ t_clear
 	move.b	cursor_color.w,(a1)+
 	dbra	d0,.1
 
-	move.l	#T_HEIGHT-1,d0
+	move.l	#T_HEIGHT-1,d0		; clear link table
 	lea	t_link_table,a0
 .2	move.b	#$80,(a0)+
 	dbra	d0,.2
@@ -630,9 +630,11 @@ t_clear
 ; Destroyed:  d0,d1,a0,a1
 ; ----------------------------------------------------------------------
 t_putchar
+	move.l	d2,-(sp)
 	movea.l	t_chars,a0
 	movea.l	t_colors,a1
 	move.w	cursor_pos,d1
+	clr.b	d2			; d2 serves as flag for char print -> link table
 
 	cmp.b	#$0a,d0			; check for linefeed
 	beq	.lf
@@ -649,36 +651,47 @@ t_putchar
 	cmp.b	#$08,d0			; backspace
 	beq	.bs
 
-	move.b	d0,(a0,d1.w)		; print char
-	move.b	cursor_color,(a1,d1.w)	; set color
+	move.b	d0,(a0,d1.w)		; print char (it's not a control char)
+	move.b	cursor_color,(a1,d1.w)	; set color (and then, falls through in .right)
+	move.b	#1,d2			; set flag for link table situation
 
 .right	addq.w	#1,d1			; move cursor one step to the right
 	move.w	d1,d0
 	andi.w	#%1111111,d0
-	cmp.w	#T_WIDTH,d0	; are we at pos 80 or higher?
+	cmp.w	#T_WIDTH,d0		; are we at pos 80 or higher?
 	blo	.2			; no
 
-.lf	addi.w	#T_HPITCH,d1	; yes, move cursor one line down, followed by carriage return
+	tst.b	d2			; yes, test flag
+	beq.s	.lf			; not set
+	; set -> update link table properly
+	move.w	d1,d2			; d2 has cursor pos
+	andi.w	#%1111111110000000,d2
+	asr.w	#7,d2			; d2 contains row
+	; now test link table for this row
+
+.lf	addi.w	#T_HPITCH,d1		; yes, move cursor one line down, followed by carriage return
 .cr	andi.w	#%1111111110000000,d1	; cursor to beginning of line (carriage return)
 
 .1	cmp.w	#(T_HPITCH*T_HEIGHT),d1	; check for cursor out of screen
 	blo	.2			; no
 
-	subi.w	#T_HPITCH,d1	; move cursor one line up
+	subi.w	#T_HPITCH,d1		; move cursor one line up
 	move.w	d1,cursor_pos
 	bsr	t_add_bottom_row
+	move.l	(sp)+,d2
 	rts
 
 .2	move.w	d1,cursor_pos
+	move.l	(sp)+,d2
 	rts
 
-.down	addi.w	#T_HPITCH,d1	; yes, move cursor one line down
+.down	addi.w	#T_HPITCH,d1		; yes, move cursor one line down
 	bra	.1
 	rts
 
-.up	subi.w	#T_HPITCH,d1	; move cursor one line up
+.up	subi.w	#T_HPITCH,d1		; move cursor one line up
 	bpl.s	.2
-	addi.w	#T_HPITCH,d1	; move cursor one line down
+	addi.w	#T_HPITCH,d1		; move cursor one line down
 	bra.s	.2
 
 .left	tst.w	d1

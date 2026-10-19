@@ -55,33 +55,6 @@ The postamble (nine bytes) starts with magic byte ```$fe```, the next four are z
 0x020000 - 0xffffff available ram (16256kb)
 ```
 
-## Building with CMake
-
-Clone the repository with:
-```shell
-git clone https://github.com/elmerucr/lime
-cd lime
-```
-
-Create a build directory in the source tree
-```shell
-mkdir Release
-cd Release
-cmake ..
-make
-```
-Alternatively to build with debug symbols:
-```shell
-mkdir Debug
-cd Debug
-cmake -DCMAKE_BUILD_TYPE=Debug ..
-make
-```
-Run with:
-```shell
-./lime
-```
-
 ## Websites and Projects of Interest
 
 ### Assemblers and Compilers
